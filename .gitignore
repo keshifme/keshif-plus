@@ -1,0 +1,17 @@
+# Assets in dist directory
+dist/assets
+src/assets/font-awesome
+
+# Local module dependencies
+node_modules/
+
+# VSCode
+.vscode/*
+.history/
+ 
+#Cache
+.rollup.cache
+tsconfig.tsbuildinfo
+
+# Mac/OSX
+.DS_Store
