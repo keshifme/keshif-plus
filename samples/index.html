@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <link rel="stylesheet" type="text/css" href="../dist/keshif.min.css">
+  <script type="module">
+    import * as kshf from "../dist/keshif.min.js";
+    import { keys } from "./keys.js";
+
+    kshf.Base.geoFileDir = 'https://storage.googleapis.com/asset.keshif.me/geo/';
+    kshf.Base.geoFileExt = 'topojson';
+
+    // if using map, specify timeTemplate in keys
+    kshf.Base.map.tileTemplate = keys.tileTemplate;
+
+    // if loading data using google sheets, specify clientId and gKey for Google API
+    kshf.Base.gapi.clientId = keys.gapi.clientId;
+    kshf.Base.gapi.gKey = keys.gapi.gKey;
+
+    kshf.Base.defaultBarHeight = 20;
+
+    let defaultSample = "cars";
+
+    // import the dashboard config
+    var s = new URLSearchParams(location.search);
+    var { config } = await import(`./${s.get("id") || defaultSample}.js`);
+
+    window.dashboard = new kshf.Browser(config);
+
+  </script>
+
+<body style="margin: 0px;">
+  <div id="kshfDashboard" style="height: 100vh; width: 100vw;"></div>
+</body>
+
+</html>
