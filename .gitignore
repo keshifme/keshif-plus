@@ -15,3 +15,4 @@ tsconfig.tsbuildinfo
 
 # Mac/OSX
 .DS_Store
+samples/keys.js

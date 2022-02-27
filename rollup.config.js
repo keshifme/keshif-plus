@@ -42,6 +42,9 @@ var config = {
       mode: ["extract", "keshif.css"],
       minimize: true,
       extensions: [".less", ".css"],
+      url:{
+        publicPath: "./assets/"
+      }
     }),
     resolve(),
   ],
