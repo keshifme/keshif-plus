@@ -72,8 +72,7 @@ For inquiries, please contact adil@keshif.me .
 Copyright (C) 2017-2022 Keshif, LLC
 
 This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation version 3.
+it under the terms of the BSD 3-Clause License.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -83,9 +82,6 @@ GNU Affero General Public License for more details.
 For full license terms, see the LICENSE file in this repository.
 
 ---
-
-- For a human-readable summary of (and not a substitute for) the license, visit
-https://choosealicense.com/licenses/agpl-3.0/ 
 
 - This software is partially based on Keshif software released in 2016, (c) University of Maryland, with license at https://github.com/adilyalcin/Keshif/blob/master/LICENSE.
 
