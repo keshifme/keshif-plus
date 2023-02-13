@@ -90,7 +90,7 @@ export class Modal {
   }
 
   /** -- */
-  static prompt(message, _default) {
+  static prompt(message: string, _default?: any) {
     return window.prompt(message, _default);
     // TO-DO: Make it a promise & modal dialogue box
   }

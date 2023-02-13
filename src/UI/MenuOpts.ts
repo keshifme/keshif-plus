@@ -269,7 +269,11 @@ export var MenuOpts = {
               );
             },
             options: [
-              { name: "YYYY", sampleValue: "2019", value: "%Y" },
+              { 
+                name: "YYYY",
+                sampleValue: "2019",
+                value: "%Y"
+              },
               {
                 name: "Serial/Sheet date",
                 sampleValue: "42010.2",
@@ -329,7 +333,11 @@ export var MenuOpts = {
               );
             },
             options: [
-              { name: "YYYY", sampleValue: "2019", value: "%Y" },
+              {
+                name: "YYYY",
+                sampleValue: "2019",
+                value: "%Y"
+              },
               {
                 name: "MM/DD/YYYY",
                 sampleValue: "12/30/2019",
@@ -444,36 +452,31 @@ export var MenuOpts = {
               {
                 id: "time_deriveYear",
                 name: "Year",
-                when: (attrib: Attrib_Timestamp) =>
-                  attrib.timeTyped.year && !attrib.derivatives.Year,
+                when: (attrib: Attrib_Timestamp) => attrib.timeTyped.year && !attrib.derivatives.Year,
                 value: "Year()",
               },
               {
                 id: "time_deriveMonth",
                 name: "Month",
-                when: (attrib: Attrib_Timestamp) =>
-                  attrib.timeTyped.month && !attrib.derivatives.Month,
+                when: (attrib: Attrib_Timestamp) => attrib.timeTyped.month && !attrib.derivatives.Month,
                 value: "Month()",
               },
               {
                 id: "time_deriveDayOfMonth",
                 name: "Day of Month",
-                when: (attrib: Attrib_Timestamp) =>
-                  attrib.timeTyped.day && !attrib.derivatives.DayOfMonth,
+                when: (attrib: Attrib_Timestamp) => attrib.timeTyped.day && !attrib.derivatives.DayOfMonth,
                 value: "DayOfMonth()",
               },
               {
                 id: "time_deriveWeekday",
                 name: "Weekday",
-                when: (attrib: Attrib_Timestamp) =>
-                  attrib.timeTyped.day && !attrib.derivatives.WeekDay,
+                when: (attrib: Attrib_Timestamp) => attrib.timeTyped.day && !attrib.derivatives.WeekDay,
                 value: "WeekDay()",
               },
               {
                 id: "time_deriveHour",
                 name: "Hour",
-                when: (attrib: Attrib_Timestamp) =>
-                  attrib.timeTyped.hour && !attrib.derivatives.Hour,
+                when: (attrib: Attrib_Timestamp) => attrib.timeTyped.hour && !attrib.derivatives.Hour,
                 value: "Hour()",
               },
             ],
@@ -520,21 +523,19 @@ export var MenuOpts = {
         id: "CompareSelectionControl",
         name: "Comparable",
         iconClass: "fa fa-clone",
-        do: (attrib: Attrib, action) => {
-          attrib.isComparable.val = action;
-        },
+        do: (attrib: Attrib, action: boolean) => attrib.isComparable.set(action),
         options: [
           {
             name: "Enable",
             value: true,
             iconClass: "far fa-check",
-            active: (attrib: Attrib) => attrib.isComparable.val,
+            active: (attrib: Attrib) => attrib.isComparable.is(true),
           },
           {
             name: "Disable",
             value: false,
             iconClass: "far fa-times",
-            active: (attrib: Attrib) => !attrib.isComparable.val,
+            active: (attrib: Attrib) => !attrib.isComparable.is(true),
           },
         ],
       },
@@ -544,12 +545,11 @@ export var MenuOpts = {
         name: "Aggregation",
         iconClass: "fa fa-cubes",
         helparticle: "5e8944dd04286364bc97d5f0",
-        when: (attrib: Attrib) =>
-          attrib.canHaveMetricFuncs && !attrib.hasTimeSeriesParent(),
+        when: (attrib: Attrib) => attrib.canHaveMetricFuncs && !attrib.hasTimeSeriesParent(),
         options: [
           {
             name: "Average",
-            do: (attrib: Attrib, action) => {
+            do: (attrib: Attrib, action: boolean) => {
               if (action) {
                 attrib.addSupportedMetricFunc("Avg");
               } else {
@@ -561,21 +561,19 @@ export var MenuOpts = {
                 name: "Enabled",
                 value: true,
                 iconClass: "far fa-check",
-                active: (attrib: Attrib) =>
-                  attrib.supportedMetricFuncs.includes("Avg"),
+                active: (attrib: Attrib) => attrib.supportedMetricFuncs.includes("Avg"),
               },
               {
                 name: "Disabled",
                 value: false,
                 iconClass: "far fa-times",
-                active: (attrib: Attrib) =>
-                  !attrib.supportedMetricFuncs.includes("Avg"),
+                active: (attrib: Attrib) => !attrib.supportedMetricFuncs.includes("Avg"),
               },
             ],
           },
           {
             name: "Sum",
-            do: (attrib: Attrib, action) => {
+            do: (attrib: Attrib, action: boolean) => {
               if (action) {
                 attrib.addSupportedMetricFunc("Sum");
               } else {
@@ -587,15 +585,13 @@ export var MenuOpts = {
                 name: "Enabled",
                 value: true,
                 iconClass: "far fa-check",
-                active: (attrib: Attrib) =>
-                  attrib.supportedMetricFuncs.includes("Sum"),
+                active: (attrib: Attrib) => attrib.supportedMetricFuncs.includes("Sum"),
               },
               {
                 name: "Disabled",
                 value: false,
                 iconClass: "far fa-times",
-                active: (attrib: Attrib) =>
-                  !attrib.supportedMetricFuncs.includes("Sum"),
+                active: (attrib: Attrib) => !attrib.supportedMetricFuncs.includes("Sum"),
               },
             ],
           },

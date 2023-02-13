@@ -1,4 +1,4 @@
-import i18n_EN from "./i18n_EN.js";
+import { i18n_EN } from "./i18n_EN.js";
 
 interface i18nI {
   //[index: string]: (string | (()=>string) );

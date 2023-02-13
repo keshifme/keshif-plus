@@ -23,8 +23,8 @@ export class RecordView_List extends RecordView {
   // ********************************************************************
 
   list_showRank: Config<boolean>;
-  list_sortVizRange: Config<string>;
-  list_ViewType: Config<string>;
+  list_sortVizRange: Config<"dynamic" | "static">;
+  list_ViewType: Config<"List" | "Grid">;
   list_sortInverse: Config<boolean>;
   list_sortColWidth: Config<number>;
   list_sortVizWidth: Config<number>;
@@ -56,13 +56,13 @@ export class RecordView_List extends RecordView {
         { name: "Hide", value: false },
         { name: "Show", value: true },
       ],
-      onSet: (v) => {
+      onSet: () => {
         if (!this.initialized) return;
         this.refreshShowRank();
       },
     });
 
-    this.list_sortVizRange = new Config<string>({
+    this.list_sortVizRange = new Config<"dynamic" | "static">({
       cfgClass: "list_sortVizRange",
       cfgTitle: "Sorting Vis Axis",
       iconClass: "fa fa-long-arrow-right",
@@ -74,13 +74,13 @@ export class RecordView_List extends RecordView {
         { name: "Static", value: "static" },
         { name: "Dynamic", value: "dynamic" },
       ],
-      onSet: (v) => {
+      onSet: () => {
         if (!this.initialized) return;
         this.refreshSortVizScale();
       },
     });
 
-    this.list_ViewType = new Config<string>({
+    this.list_ViewType = new Config<"List" | "Grid">({
       cfgClass: "list_ViewType",
       cfgTitle: "List Type",
       iconClass: "fa fa-list",
@@ -91,13 +91,13 @@ export class RecordView_List extends RecordView {
         { name: "List <i class='fa fa-bars'></i>", value: "List" },
         { name: "Grid <i class='fa fa-th'></i>", value: "Grid" },
       ],
-      onSet: (v) => {
+      onSet: async (v) => {
         this.DOM.root.attr("data-list_ViewType", v);
         if (!this.initialized) return;
         this.refreshWidthControls();
         if (v === "List") {
-          this.list_sortVizWidth?.reset();
-          this.list_sparklineVizWidth?.reset();
+          await this.list_sortVizWidth?.reset();
+          await this.list_sparklineVizWidth?.reset();
         } else {
           this.refreshSparklineViz();
         }
@@ -120,7 +120,7 @@ export class RecordView_List extends RecordView {
         this.reverseOrder();
         this.DOM.root
           ?.select(".recordReverseSortButton")
-          .classed("sortInverse", this.list_sortInverse.val);
+          .classed("sortInverse", this.list_sortInverse.is(true));
       },
     });
 
@@ -136,7 +136,7 @@ export class RecordView_List extends RecordView {
         { _type: "_range_", minValue: 40, maxValue: 120 },
         { name: "<i class='fa fa-plus'></i>", value: -199, _type: "plus" },
       ],
-      preSet: (v, obj) => {
+      preSet: async (v, obj) => {
         if (v === -99) {
           v = obj._value - 5;
         } else if (v === -199) {
@@ -167,10 +167,10 @@ export class RecordView_List extends RecordView {
       ],
       forcedValue: (obj) => {
         if (this.sortAttrib instanceof Attrib_Timestamp) return 0;
-        if (this.list_ViewType.val === "Grid" && obj._value !== 0)
-          return this.list_gridRecordWidth.val - 10;
+        if (this.list_ViewType.is("Grid") && obj._value !== 0)
+          return this.list_gridRecordWidth.get() - 10;
       },
-      preSet: (v, obj) => {
+      preSet: async (v, obj) => {
         if (v === -99) {
           v = obj._value - 5;
         } else if (v === -199) {
@@ -206,10 +206,10 @@ export class RecordView_List extends RecordView {
       ],
       forcedValue: (obj) => {
         if (!this.sortAttrib?.hasTimeSeriesParent()) return 0;
-        if (this.list_ViewType.val === "Grid" && obj._value !== 0)
-          return this.list_gridRecordWidth.val - 10; // max
+        if (this.list_ViewType.is("Grid") && obj._value !== 0)
+          return this.list_gridRecordWidth.get() - 10;
       },
-      preSet: (v, obj) => {
+      preSet: async (v, obj) => {
         if (v === -99) {
           v = obj._value - 5;
         } else if (v === -199) {
@@ -239,7 +239,7 @@ export class RecordView_List extends RecordView {
         { _type: "_range_", minValue: 100, maxValue: 400 },
         { name: "<i class='fa fa-plus'></i>", value: -199, _type: "plus" },
       ],
-      preSet: (v, obj) => {
+      preSet: async (v, obj) => {
         if (v === -99) {
           v = obj._value - 5;
         } else if (v === -199) {
@@ -281,7 +281,7 @@ export class RecordView_List extends RecordView {
   initView() {
     this.rd.refreshAttribOptions("sort");
 
-    this.DOM.root.attr("data-list_ViewType", this.list_ViewType.val);
+    this.DOM.root.attr("data-list_ViewType", this.list_ViewType.get());
 
     this.refreshSortColumnWidth();
     this.refreshSortVizWidth();
@@ -294,24 +294,24 @@ export class RecordView_List extends RecordView {
     this.refreshRecordVis();
   }
 
-  initView_DOM() {
+  async initView_DOM() {
     var browserRootStyle = this.browser.DOM.root.node().style;
 
     browserRootStyle.setProperty(
       "--list_sortColWidth",
-      this.list_sortColWidth.val + "px"
+      this.list_sortColWidth.get() + "px"
     );
     browserRootStyle.setProperty(
       "--list_sortVizWidth",
-      this.list_sortVizWidth.val + "px"
+      this.list_sortVizWidth.get() + "px"
     );
     browserRootStyle.setProperty(
       "--list_sparklineVizWidth",
-      this.list_sparklineVizWidth.val + "px"
+      this.list_sparklineVizWidth.get() + "px"
     );
     browserRootStyle.setProperty(
       "--list_gridRecordWidth",
-      this.list_gridRecordWidth.val + "px"
+      this.list_gridRecordWidth.get() + "px"
     );
 
     if (this.DOM.recordGroup_List) {
@@ -351,11 +351,9 @@ export class RecordView_List extends RecordView {
     this.rd.DOM.sortControlGroup
       .append("span")
       .attr("class", "recordReverseSortButton sortButton")
-      .classed("sortInverse", this.list_sortInverse.val)
+      .classed("sortInverse", this.list_sortInverse.is(true))
       .tooltip(i18n.ReverseOrder)
-      .on("click", () => {
-        this.list_sortInverse.val = !this.list_sortInverse.val;
-      })
+      .on("click", async () => await this.list_sortInverse.set(!this.list_sortInverse.get()) )
       .append("span")
       .attr("class", "fa");
 
@@ -579,7 +577,7 @@ export class RecordView_List extends RecordView {
 
     var sortFunc = this.getSortFunc(attrib.template.func);
 
-    var inverse = this.list_sortInverse.val;
+    var inverse = this.list_sortInverse.is(true);
 
     this.browser.records.sort((record_A, record_B) => {
       var v_a = attrib.getRecordValue(record_A);
@@ -684,14 +682,14 @@ export class RecordView_List extends RecordView {
 
   /** -- */
   refreshShowRank() {
-    this.DOM.root.classed("showRank", this.list_showRank.val);
+    this.DOM.root.classed("showRank", this.list_showRank.is(true));
     this.refreshRecordRanks();
     this.refreshWidthControls();
   }
 
   /** -- */
   refreshRecordRanks(d3_selection = null) {
-    if (!this.list_showRank.val) return; // Do not refresh if not shown...
+    if (this.list_showRank.is(false)) return;
     if (d3_selection === null) d3_selection = this.DOM.recordRanks;
     d3_selection.text((record) =>
       record.recordRank < 0 ? "" : record.recordRank + 1
@@ -719,11 +717,11 @@ export class RecordView_List extends RecordView {
   refreshWidthControls() {
     if (!this.rd.codeBy.sort) return;
 
-    var w_Rank = this.list_showRank.val ? Base.recordRankWidth : 0;
-    var w_sortCol = this.list_sortColWidth.val;
-    var w_sortViz = this.list_sortVizWidth.val;
-    var w_sparkLine = this.list_sparklineVizWidth.val
-      ? this.list_sparklineVizWidth.val + 8
+    var w_Rank = this.list_showRank.is(true) ? Base.recordRankWidth : 0;
+    var w_sortCol = this.list_sortColWidth.get();
+    var w_sortViz = this.list_sortVizWidth.get();
+    var w_sparkLine = this.list_sparklineVizWidth.get()
+      ? this.list_sparklineVizWidth.get() + 8
       : 0;
 
     this.DOM.adjustSparklineVizWidth?.style(
@@ -743,7 +741,7 @@ export class RecordView_List extends RecordView {
       150,
       Math.min(500, w_sparkLine + w_sortCol + w_sortViz + 2)
     ); // 2 pixel: margin
-    if (this.list_ViewType.val === "Grid") {
+    if (this.list_ViewType.is("Grid")) {
       w = 200;
     }
 
@@ -759,13 +757,13 @@ export class RecordView_List extends RecordView {
 
     this.listSortVizScale = d3
       .scaleLinear()
-      .range([0, this.list_sortVizWidth.val]);
+      .range([0, this.list_sortVizWidth.get()]);
 
     if (attrib.isPercentageUnit()) {
       // always 0-100 if percentage unit
       this.listSortVizScale.domain([0, 100]);
       //
-    } else if (this.list_sortVizRange.val === "dynamic") {
+    } else if (this.list_sortVizRange.is("dynamic")) {
       // dynamic - based on filtered data
       var [minV, maxV] = d3.extent(this.browser.records, (record) => {
         return record.filteredOut
@@ -774,7 +772,7 @@ export class RecordView_List extends RecordView {
       });
       this.listSortVizScale.domain([Math.min(0, minV), Math.max(0, maxV)]);
       //
-    } else if (this.list_sortVizRange.val === "static") {
+    } else if (this.list_sortVizRange.is("static")) {
       // static - based on original domain
       this.listSortVizScale.domain(this.sortAttrib.rangeOrg);
     }
@@ -829,7 +827,7 @@ export class RecordView_List extends RecordView {
   refreshSortVizWidth() {
     this.refreshSortVizScale();
 
-    this.DOM.root.classed("showSortBars", this.list_sortVizWidth.val > 0);
+    this.DOM.root.classed("showSortBars", this.list_sortVizWidth.get() > 0);
 
     this.refreshWidthControls();
   }
@@ -839,7 +837,7 @@ export class RecordView_List extends RecordView {
     if (!this.DOM.recordSparklineVizHost) return;
     this.DOM.recordSparklineVizHost.style(
       "display",
-      this.list_sparklineVizWidth.val === 0 ? "none" : null
+      this.list_sparklineVizWidth.get() === 0 ? "none" : null
     );
 
     this.refreshSparklineViz();
@@ -890,16 +888,16 @@ export class RecordView_List extends RecordView {
 
     this.DOM.recordSparklineVizHost.style(
       "display",
-      this.list_sparklineVizWidth.val === 0 ? "none" : null
+      this.list_sparklineVizWidth.get() === 0 ? "none" : null
     );
-    if (this.list_sparklineVizWidth.val === 0) return;
+    if (this.list_sparklineVizWidth.get() === 0) return;
 
     var ts = attrib.timeseriesParent;
 
     var timeScale = d3
       .scaleTime()
       .domain(ts.timeSeriesScale_Time.domain())
-      .range([0, this.list_sparklineVizWidth.val]);
+      .range([0, this.list_sparklineVizWidth.get()]);
 
     var valueScale = d3
       .scaleLinear()
@@ -978,7 +976,7 @@ export class RecordView_List extends RecordView {
 
     var __ = _.append("g")
       .attr("transform", dotPosition)
-      .on("click", (event) => {
+      .on("click", async (event) => {
         var _time = timeScale.invert(
           d3.pointer(event, event.currentTarget.parentNode)[0]
         );
@@ -992,7 +990,7 @@ export class RecordView_List extends RecordView {
           nearestTimeKey = _key;
           return false;
         });
-        this.rd.currentTimeKey.val = nearestTimeKey;
+        await this.rd.currentTimeKey.set(nearestTimeKey);
       });
 
     __.append("circle").attr("class", "activeDot").attr("r", 3);
@@ -1045,7 +1043,7 @@ export class RecordView_List extends RecordView {
   /** -- */
   updateAfterFilter() {
     this.DOM.recordGroup.node().scrollTop = 0;
-    if (this.list_sortVizRange.val === "dynamic") {
+    if (this.list_sortVizRange.is("dynamic")) {
       this.refreshSortVizScale();
     }
     this.refreshRecordVis();

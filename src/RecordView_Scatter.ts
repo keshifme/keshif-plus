@@ -12,7 +12,7 @@ import { RecordView } from "./RecordView";
 import { Util } from "./Util";
 import { Record } from "./Record";
 import { Attrib_Interval } from "./Attrib_Interval";
-import { CompareType, RecordVisCoding } from "./Types";
+import { CompareType, LinearOrLog, RecordVisCoding } from "./Types";
 import { Attrib_Numeric } from "./Attrib_Numeric";
 
 const d3 = {
@@ -35,8 +35,8 @@ export class RecordView_Scatter extends RecordView {
   configs: { [index: string]: Config<any> } = {};
 
   scatter_showTrails: Config<boolean>;
-  scatter_xAxisScale: Config<string>;
-  scatter_yAxisScale: Config<string>;
+  scatter_xAxisScale: Config<LinearOrLog | "auto">;
+  scatter_yAxisScale: Config<LinearOrLog | "auto">;
 
   private scatterZoom: any; // d3 zoom control obj
   scatterTransform: { x: number; y: number; z: number } = { x: 0, y: 0, z: 1 };
@@ -90,7 +90,7 @@ export class RecordView_Scatter extends RecordView {
       },
     });
 
-    this.scatter_xAxisScale = new Config<string>({
+    this.scatter_xAxisScale = new Config<LinearOrLog | "auto">({
       parent: this,
       cfgClass: "scatter_xAxisScale",
       cfgTitle: "X Axis Scale",
@@ -105,17 +105,17 @@ export class RecordView_Scatter extends RecordView {
       forcedValue: () => {
         if (!this.scatterXAttrib?.supportsLogScale()) return "linear";
       },
-      onSet: (v) => {
+      onSet: async (v) => {
         if (!this.scatterXAttrib) return;
         if (!this.scatterXAttrib.hasTimeSeriesParent()) {
-          this.scatterXAttrib.valueScaleType.val = v;
-        } else {
-          this.scatterXAttrib.timeseriesParent.valueScaleType.val = v;
+          await this.scatterXAttrib.valueScaleType.set(v);
+        } else if (v !== "auto"){
+          await this.scatterXAttrib.timeseriesParent.valueScaleType.set(v);
         }
       },
     });
 
-    this.scatter_yAxisScale = new Config<string>({
+    this.scatter_yAxisScale = new Config<LinearOrLog | "auto">({
       parent: this,
       cfgClass: "scatter_yAxisScale",
       cfgTitle: "Y Axis Scale",
@@ -130,12 +130,12 @@ export class RecordView_Scatter extends RecordView {
       forcedValue: () => {
         if (!this.scatterYAttrib?.supportsLogScale()) return "linear";
       },
-      onSet: (v) => {
+      onSet: async (v) => {
         if (!this.scatterYAttrib) return;
         if (!this.scatterYAttrib.hasTimeSeriesParent()) {
-          this.scatterYAttrib.valueScaleType.val = v;
-        } else {
-          this.scatterYAttrib.timeseriesParent.valueScaleType.val = v;
+          await this.scatterYAttrib.valueScaleType.set(v);
+        } else if (v !== "auto"){
+          await this.scatterYAttrib.timeseriesParent.valueScaleType.set(v);
         }
       },
     });
@@ -181,7 +181,6 @@ export class RecordView_Scatter extends RecordView {
 
     this.refreshScales();
 
-    // calls a lot of functions,
     this.zoomToFit();
 
     this.refreshQueryBox_Filter();
@@ -191,7 +190,7 @@ export class RecordView_Scatter extends RecordView {
   }
 
   /** -- */
-  initView_DOM() {
+  async initView_DOM() {
     // set CSS variables
     this.browser.DOM.root
       .node()
@@ -227,18 +226,10 @@ export class RecordView_Scatter extends RecordView {
       .append("span")
       .attr("class", "ScatterControl-SwapAxis")
       .tooltip(i18n.SwapAxis)
-      .on("mousedown", (event) => {
-        event.stopPropagation();
-      })
-      .on("mouseup", (event) => {
-        event.stopPropagation();
-      })
-      .on("dblclick", (event) => {
-        event.stopPropagation();
-      })
-      .on("wheel", (event) => {
-        event.stopPropagation();
-      })
+      .on("mousedown", (event) => event.stopPropagation() )
+      .on("mouseup", (event) => event.stopPropagation() )
+      .on("dblclick", (event) => event.stopPropagation() )
+      .on("wheel", (event) => event.stopPropagation() )
       .on("click", (event) => {
         this.swapAxis();
         event.stopPropagation();
@@ -251,9 +242,7 @@ export class RecordView_Scatter extends RecordView {
       this.DOM["recordAxis_" + a] = this.DOM.recordBase_Scatter
         .append("div")
         .attr("class", "recordAxis recordAxis_" + a)
-        .html(
-          "<div class='tickGroup'></div><div class='onRecordLine'><div class='tickLine'></div><div class='tickText'></div></div>"
-        );
+        .html("<div class='tickGroup'></div><div class='onRecordLine'><div class='tickLine'></div><div class='tickText'></div></div>");
     });
 
     this.DOM.recordGroup_Scatter = this.DOM.recordBase_Scatter
@@ -266,20 +255,13 @@ export class RecordView_Scatter extends RecordView {
       this.DOM["scatter" + axis + "ControlGroup"] = this.DOM.recordBase_Scatter
         .append("div")
         .attr("class", "recordGroup_Scatter_" + axis + "Axis_Options")
-        .on("mousedown", (event) => {
-          event.stopPropagation();
-        })
-        .on("mouseup", (event) => {
-          event.stopPropagation();
-        })
-        .on("dbclick", (event) => {
-          event.stopPropagation();
-        })
-        .on("wheel", (event) => {
-          event.stopPropagation();
-        })
+        .on("mousedown", (event) => event.stopPropagation() )
+        .on("mouseup", (event) => event.stopPropagation() )
+        .on("dbclick", (event) => event.stopPropagation() )
+        .on("wheel", (event) => event.stopPropagation() )
         .append("span")
         .attr("class", "scatter" + axis + "ControlGroup attribControlGroup");
+
       this.rd.initDOM_AttribSelect(axis === "X" ? "scatterX" : "scatterY");
     });
 
@@ -306,9 +288,7 @@ export class RecordView_Scatter extends RecordView {
           .on("mousemove", (event2) => {
             var targetPos: number = d3
               .pointer(event2, this.DOM.recordGroup_Scatter.node().parentNode)
-              .map((_, i) =>
-                this["scatterAxisScale_" + (i ? "Y" : "X")].invert(_)
-              );
+              .map((_, i) => this["scatterAxisScale_" + (i ? "Y" : "X")].invert(_) );
             if (t === "l") {
               this.scatterXAttrib.setRangeFilter_Custom(
                 targetPos[0],
@@ -352,18 +332,12 @@ export class RecordView_Scatter extends RecordView {
           event,
           this.DOM.recordGroup_Scatter.node().parentNode
         );
-        var initMin_X = this.scatterAxisScale_X(
-          this.scatterXAttrib.summaryFilter.active.minV
-        );
-        var initMax_X = this.scatterAxisScale_X(
-          this.scatterXAttrib.summaryFilter.active.maxV
-        );
-        var initMin_Y = this.scatterAxisScale_Y(
-          this.scatterYAttrib.summaryFilter.active.minV
-        );
-        var initMax_Y = this.scatterAxisScale_Y(
-          this.scatterYAttrib.summaryFilter.active.maxV
-        );
+
+        var initMin_X = this.scatterAxisScale_X( this.scatterXAttrib.summaryFilter.active.minV );
+        var initMax_X = this.scatterAxisScale_X( this.scatterXAttrib.summaryFilter.active.maxV );
+        var initMin_Y = this.scatterAxisScale_Y( this.scatterYAttrib.summaryFilter.active.minV );
+        var initMax_Y = this.scatterAxisScale_Y( this.scatterYAttrib.summaryFilter.active.maxV );
+
         d3.select("body")
           .on("mousemove", (event3) => {
             var curScreenPos = d3.pointer(
@@ -403,14 +377,14 @@ export class RecordView_Scatter extends RecordView {
     );
   }
 
-  refreshAttribScaleType(attrib: Attrib) {
+  async refreshAttribScaleType(attrib: Attrib) {
     if (!this.scatterXAttrib || !this.scatterYAttrib) return;
 
     if (
       this.scatterXAttrib === attrib ||
       this.scatterXAttrib.timeseriesParent === attrib
     ) {
-      this.scatter_xAxisScale.val = this.scatterXAttrib.valueScaleType.val;
+      await this.scatter_xAxisScale.set(this.scatterXAttrib.valueScaleType.get());
       this.refreshRecordVis();
     }
 
@@ -418,7 +392,7 @@ export class RecordView_Scatter extends RecordView {
       this.scatterYAttrib === attrib ||
       this.scatterYAttrib.timeseriesParent === attrib
     ) {
-      this.scatter_yAxisScale.val = this.scatterYAttrib.valueScaleType.val;
+      await this.scatter_yAxisScale.set(this.scatterYAttrib.valueScaleType.get());
       this.refreshRecordVis();
     }
   }
@@ -439,10 +413,10 @@ export class RecordView_Scatter extends RecordView {
       //
     } else if (t === "scatterX" || t === "scatterY") {
       if (t === "scatterX") {
-        this.scatter_xAxisScale.val = this.scatterXAttrib.valueScaleType.val;
+        this.scatter_xAxisScale.set(this.scatterXAttrib.valueScaleType.get());
       }
       if (t === "scatterY") {
-        this.scatter_yAxisScale.val = this.scatterYAttrib.valueScaleType.val;
+        this.scatter_yAxisScale.set(this.scatterYAttrib.valueScaleType.get());
       }
       this.refreshScales();
       this.refreshLabelOverlaps();
@@ -960,7 +934,7 @@ export class RecordView_Scatter extends RecordView {
         .html(attrib.getFormattedValue(record._valueCache[acc], false));
     });
 
-    if (!this.scatter_showTrails.val) return;
+    if (this.scatter_showTrails.is(false)) return;
 
     if (
       this.scatterYAttrib.hasTimeSeriesParent() &&

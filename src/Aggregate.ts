@@ -85,7 +85,7 @@ export class Aggregate {
   // ********************************************************************
 
   measure(m: MeasureType): number {
-    if (Base.browser.measureFunc.val === "Avg") {
+    if (Base.browser.measureFunc.is("Avg")) {
       var r = this[m].recCnt;
       return r === 0 ? 0 : this[m].measure / r; // avoids division by zero
     }
@@ -277,7 +277,7 @@ export class Aggregate {
 
     str += "<div class='aggrRecordCount'>";
 
-    if (browser.measureFunc.val === "Sum") {
+    if (browser.measureFunc.is("Sum")) {
       newLine = false;
       str +=
         browser.getValueLabel(
@@ -365,7 +365,7 @@ export class Aggregate {
       if (
         this.Other.measure &&
         !c.isMultiValued &&
-        this.attrib.browser.breakdownMode.val !== "dependent"
+        this.attrib.browser.breakdownMode.get() !== "dependent"
       ) {
         str += this.printCompared("Other", `(${browser.otherNameInCompare})`);
       }

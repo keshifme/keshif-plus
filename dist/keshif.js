@@ -271,337 +271,252 @@ selection.prototype.html = function (value) {
 };
 
 class i18n_EN {
-  constructor() {
-    this.LANG_NAME = "English";
-
-    this.LoadingData = "Loading data...";
-    this.CreatingBrowser = "Creating Dashboard...";
-    this.Close = "Close";
-    this.Help = "Help";
-
-    this.RemoveFilter = "Remove filter";
-    this.RemoveHighlight = "Remove highlight";
-    this.RemoveAllFilters = "Remove all filters";
-    this.LockToCompare = "Compare";
-    this.Unlock = "Remove comparison";
-    this.CompareTopCategories = "Compare top categories";
-    this.Compare = "Compare";
-
-    (this.LockCrumbMode = (stacked) =>
-      `<b>${
-        stacked ? "Stacked" : "Side-by-side"
-      } charts</b><br> are used for comparison.<br><br>
+    constructor() {
+        this.LANG_NAME = "English";
+        this.LoadingData = "Loading data...";
+        this.CreatingBrowser = "Creating Dashboard...";
+        this.Close = "Close";
+        this.Help = "Help";
+        this.RemoveFilter = "Remove filter";
+        this.RemoveHighlight = "Remove highlight";
+        this.RemoveAllFilters = "Remove all filters";
+        this.LockToCompare = "Compare";
+        this.Unlock = "Remove comparison";
+        this.CompareTopCategories = "Compare top categories";
+        this.Compare = "Compare";
+        (this.LockCrumbMode = (stacked) => `<b>${stacked ? "Stacked" : "Side-by-side"} charts</b><br> are used for comparison.<br><br>
         Click to switch to ${stacked ? "side-by-side" : "stacked"} charts.`),
-      (this.SideBySide = "Side-by-Side");
-    this.Stacked = "Stacked";
-    this.GroupView = "Group-View";
-
-    this.CollapseSummary = "Close";
-    this.OpenSummary = "Open";
-    this.ExpandSummary = "Maximize";
-    this.RemoveSummary = "Remove";
-
-    this.Confirm = "Confirm";
-    this.Cancel = "Cancel";
-    this.OK = "OK";
-    this.Delete = "Delete";
-
-    this.NoAttribute = "(None)";
-
-    this["No [Record]"] = "No";
-
-    this["Absolute (Breakdown)"] = "Absolute";
-
-    this.SetPairTitle = (v) => `${v}->Relations`;
-
-    this.DialogSideBySideCharts =
-      "<u class='learnIcon' data-helparticle='5e88ff692c7d3a7e9aea6475'>Stacked charts</u>";
-    this.DialogStackedCharts =
-      "<u class='learnIcon' data-helparticle='5e88ff692c7d3a7e9aea6475'>Stacked charts</u>";
-    this.DialogComparisonSelection =
-      "<u class='learnIcon' data-helparticle='5e8905262c7d3a7e9aea6483'>Compare-selection</u>";
-    this.DialogRelativeBreakdown =
-      "<u class='learnIcon' data-helparticle='5e8944932c7d3a7e9aea659c'>%-of-groups breakdown</u>";
-    this.DialogDependentBreakdown =
-      "<u class='learnIcon' data-helparticle='5e8944812c7d3a7e9aea659b'>%-of-compared breakdown</u>";
-
-    (this.DialogEmptyResultSet =
-      "Removing this category will create an empty result list."),
-      (this.DialogChangeCompare = (_to, _from) =>
-        `To compare by <i>${_to}</i>,<br> we need to remove the current comparison on <i>${_from}</i>.`);
-    this.DialogStackedMultiValue = (_name) =>
-      this.DialogStackedCharts +
-      ` cannot be enabled while comparing on<br> multi-valued categorical attribute:<br><i>${_name}</i>.`;
-    this.DialogSideBySideSingleValue = (_name) =>
-      this.DialogSideBySideCharts +
-      ` cannot be enabled while comparing on<br> single-valued categorical attribute:<br><i>${_name}</i><br>using ${this.DialogRelativeBreakdown}.`;
-    this.DialogCompareForRelative = `Apply ${this.DialogComparisonSelection} first before switching to ${this.DialogRelativeBreakdown}.`;
-    this.ComparedSelectionsLimit =
-      "You cannot compare across more than five data groups.";
-
-    this.ZoomLevelWarning =
-      "" +
-      "Your current browser zoom level may not be optimal for charting.<br>" +
-      "For best results, " +
-      "<span class='link attemptToFix'><i class='fa fa-magic'></i>click here to fix and refresh</span>, or<br>" +
-      "if issue persists, manually reset your browser zoom and refresh the page.<br>" +
-      "<a class='link' style='font-weight: 300' href='https://help.keshif.me/article/49-resolving-chart-display-issues'>" +
-      "More info</a>";
-
-    this.MeasureDescrLabel = (dashboard, summary) => {
-      var measureText_simple = dashboard.measureFunc_Count
-        ? ""
-        : dashboard.measureFunc +
-          " of " +
-          dashboard.measureSummary.val.printName;
-
-      var measureText = measureText_simple || dashboard.recordName;
-
-      var _all = dashboard.isFiltered() ? "filtered" : "all";
-
-      var measureText_all =
-        measureText_simple || _all + " " + dashboard.recordName;
-
-      var comparedBy = dashboard.comparedSummary
-        ? dashboard.comparedSummary.printName
-        : null;
-
-      var breakdown = dashboard.breakdownMode.val;
-
-      if (breakdown == "absolute") {
-        return measureText + (comparedBy ? " by " + comparedBy : "");
-      }
-
-      // PERCENTAGE-BASED BREAKDOWN
-
-      if (!comparedBy) {
-        return "% of " + measureText_all;
-      }
-
-      var summaryName = summary.printName;
-
-      if (breakdown == "dependent") {
-        return summaryName + " % , out of " + comparedBy + measureText_simple;
-      }
-      if (breakdown == "relative") {
-        return comparedBy + " % , out of " + summaryName + measureText_simple;
-      }
-      if (breakdown == "total") {
-        return "Combined % , out of " + measureText_all;
-      }
-    };
-
-    this.measureText = (dashboard) => {
-      if (dashboard.measureFunc_Count) return dashboard.recordName;
-      return (
-        dashboard.measureFunc + " of " + dashboard.measureSummary.val.printName
-      );
-    };
-
-    this.measureText_2 = (dashboard) => {
-      if (dashboard.measureFunc_Count) return "";
-      return (
-        dashboard.measureFunc +
-        " of " +
-        dashboard.measureSummary.val.printName +
-        " of "
-      );
-    };
-
-    this.ListButton = "List";
-    this.MapButton = "Map";
-    this.NodeButton = "Node-Link";
-    this.TimeSeriesButton = "Time";
-    this.ScatterButton = "Scatter";
-    this.RecordViewTypeTooltip = (v) =>
-      `View ${Base.browser.recordName} on <br><b>${v}</b> chart`;
-
-    this.Boost_NoSuggestions = "No suggested changes. Explore on!";
-
-    this.TooltipOne = (_v, dashboard) => `${dashboard.getValueLabel(
-      _v,
-      false,
-      1,
-      true
-    )} of
+            (this.SideBySide = "Side-by-Side");
+        this.Stacked = "Stacked";
+        this.GroupView = "Group-View";
+        this.CollapseSummary = "Close";
+        this.OpenSummary = "Open";
+        this.ExpandSummary = "Maximize";
+        this.RemoveSummary = "Remove";
+        this.Confirm = "Confirm";
+        this.Cancel = "Cancel";
+        this.OK = "OK";
+        this.Delete = "Delete";
+        this.NoAttribute = "(None)";
+        this["No [Record]"] = "No";
+        this["Absolute (Breakdown)"] = "Absolute";
+        this.SetPairTitle = (v) => `${v}->Relations`;
+        this.DialogSideBySideCharts =
+            "<u class='learnIcon' data-helparticle='5e88ff692c7d3a7e9aea6475'>Stacked charts</u>";
+        this.DialogStackedCharts =
+            "<u class='learnIcon' data-helparticle='5e88ff692c7d3a7e9aea6475'>Stacked charts</u>";
+        this.DialogComparisonSelection =
+            "<u class='learnIcon' data-helparticle='5e8905262c7d3a7e9aea6483'>Compare-selection</u>";
+        this.DialogRelativeBreakdown =
+            "<u class='learnIcon' data-helparticle='5e8944932c7d3a7e9aea659c'>%-of-groups breakdown</u>";
+        this.DialogDependentBreakdown =
+            "<u class='learnIcon' data-helparticle='5e8944812c7d3a7e9aea659b'>%-of-compared breakdown</u>";
+        (this.DialogEmptyResultSet =
+            "Removing this category will create an empty result list."),
+            (this.DialogChangeCompare = (_to, _from) => `To compare by <i>${_to}</i>,<br> we need to remove the current comparison on <i>${_from}</i>.`);
+        this.DialogStackedMultiValue = (_name) => this.DialogStackedCharts +
+            ` cannot be enabled while comparing on<br> multi-valued categorical attribute:<br><i>${_name}</i>.`;
+        this.DialogSideBySideSingleValue = (_name) => this.DialogSideBySideCharts +
+            ` cannot be enabled while comparing on<br> single-valued categorical attribute:<br><i>${_name}</i><br>using ${this.DialogRelativeBreakdown}.`;
+        this.DialogCompareForRelative = `Apply ${this.DialogComparisonSelection} first before switching to ${this.DialogRelativeBreakdown}.`;
+        this.ComparedSelectionsLimit =
+            "You cannot compare across more than five data groups.";
+        this.ZoomLevelWarning =
+            "" +
+                "Your current browser zoom level may not be optimal for charting.<br>" +
+                "For best results, " +
+                "<span class='link attemptToFix'><i class='fa fa-magic'></i>click here to fix and refresh</span>, or<br>" +
+                "if issue persists, manually reset your browser zoom and refresh the page.<br>" +
+                "<a class='link' style='font-weight: 300' href='https://help.keshif.me/article/49-resolving-chart-display-issues'>" +
+                "More info</a>";
+        this.MeasureDescrLabel = (dashboard, summary) => {
+            var _a, _b;
+            const measureText_simple = dashboard.measureFunc_Count
+                ? ""
+                : `${dashboard.measureFunc} of ${dashboard.measureSummary.get().printName}`;
+            const comparedBy = (_b = (_a = dashboard.comparedAttrib) === null || _a === void 0 ? void 0 : _a.printName) !== null && _b !== void 0 ? _b : null;
+            const breakdown = dashboard.breakdownMode.get();
+            if (breakdown == "absolute") {
+                return (measureText_simple || dashboard.recordName) + (comparedBy ? ` by ${comparedBy}` : ``);
+            }
+            // PERCENTAGE-BASED BREAKDOWN
+            const measureText_all = measureText_simple || `${dashboard.isFiltered() ? "filtered" : "all"} ${dashboard.recordName}`;
+            if (!comparedBy) {
+                return `% of ${measureText_all}`;
+            }
+            switch (breakdown) {
+                case "dependent": return `${summary.printName} % , out of ${comparedBy} ${measureText_simple}`;
+                case "relative": return `${comparedBy} % , out of ${summary.printName} ${measureText_simple}`;
+                case "total": return `Combined % , out of ${measureText_all}`;
+            }
+        };
+        this.measureText = (dashboard) => (dashboard.measureFunc_Count)
+            ? dashboard.recordName
+            : `${dashboard.measureFunc} of ${dashboard.measureSummary.get().printName}`;
+        this.measureText_2 = (dashboard) => (dashboard.measureFunc_Count)
+            ? ""
+            : `${dashboard.measureFunc} of ${dashboard.measureSummary.get().printName} of `;
+        this.ListButton = "List";
+        this.MapButton = "Map";
+        this.NodeButton = "Node-Link";
+        this.TimeSeriesButton = "Time";
+        this.ScatterButton = "Scatter";
+        this.RecordViewTypeTooltip = (v) => `View ${Base.browser.recordName} on <br><b>${v}</b> chart`;
+        this.Boost_NoSuggestions = "No suggested changes. Explore on!";
+        this.TooltipOne = (_v, dashboard) => `${dashboard.getValueLabel(_v, false, 1, true)} of
         ${dashboard.isFiltered() ? dashboard.getFilteredSummaryText() : "all"}
         ${dashboard.recordName}`;
-
-    this.Tooltip_OutOf = (_v, dashboard) => {
-      var str = "";
-      if (dashboard.absoluteBreakdown) return str;
-
-      str += "<div class='percentageExplainer'>";
-      if (dashboard.relativeBreakdown) {
-        str += "% out of <i>" + _v + "</i>";
-      } else if (dashboard.dependentBreakdown) {
-        str += "% out of <i>" + dashboard.comparedSummary.printName + "</i>";
-      } else {
-        str += "% out of all";
-      }
-      str += "</div>";
-      return str;
-    };
-
-    this.Size = "Size";
-    this.Larger = "Larger";
-    this.Smaller = "Smaller";
-    this.Pairs = "Pairs";
-
-    this.Color = "Color";
-    this.InvertColorTheme = "Invert color theme";
-    this.ChangeColorTheme = "Change color theme";
-
-    this.ReverseOrder = "Reverse order";
-    this.Reorder = "Reorder";
-    this.SwapAxis = "Swap axis";
-    this.Percentiles = "Percentiles";
-
-    this.OpenDataSource = "Open Data Source";
-    this.ShowInfoCredits = "Info";
-    this.ShowFullscreen = "Fullscreen";
-    this.PrintButton =
-      "Click to activate print style<br><b>Shift+click</b> to print.";
-
-    this.Search = "Search";
-    (this.TextSearchForRecords = `Type to search and highlight.<br><br>+
+        this.Tooltip_OutOf = (_v, dashboard) => {
+            var _a;
+            var str = "";
+            if (dashboard.absoluteBreakdown)
+                return str;
+            str += "<div class='percentageExplainer'>";
+            if (dashboard.relativeBreakdown) {
+                str += "% out of <i>" + _v + "</i>";
+            }
+            else if (dashboard.dependentBreakdown) {
+                str += "% out of <i>" + ((_a = dashboard.comparedAttrib) === null || _a === void 0 ? void 0 : _a.printName) + "</i>";
+            }
+            else {
+                str += "% out of all";
+            }
+            str += "</div>";
+            return str;
+        };
+        this.Size = "Size";
+        this.Larger = "Larger";
+        this.Smaller = "Smaller";
+        this.Pairs = "Pairs";
+        this.Color = "Color";
+        this.InvertColorTheme = "Invert color theme";
+        this.ChangeColorTheme = "Change color theme";
+        this.ReverseOrder = "Reverse order";
+        this.Reorder = "Reorder";
+        this.SwapAxis = "Swap axis";
+        this.Percentiles = "Percentiles";
+        this.OpenDataSource = "Open Data Source";
+        this.ShowInfoCredits = "Info";
+        this.ShowFullscreen = "Fullscreen";
+        this.PrintButton =
+            "Click to activate print style<br><b>Shift+click</b> to print.";
+        this.Search = "Search";
+        (this.TextSearchForRecords = `Type to search and highlight.<br><br>+
         <b><u>Enter</u></b> to filter <i class="fa fa-filter"></i>`),
-      (this.ClearTextSearch = "Clear");
-    this.Rows = "Rows";
-    this.More = "More";
-    this.ScrollToTop = "Top";
-    this.Percent = "Percent";
-    this.Absolute = "Absolute";
-    this.Relative = "Relative";
-    this.Dependent = "Dependent";
-    this.Breakdown = "Breakdown";
-    this.BreakdownBy = "Breakdown by";
-    this.Total = "Prozentuale";
-    this.SeeBreakdown = (v) =>
-      `See <b>${this[v.charAt(0).toUpperCase() + v.slice(1)]}</b> Breakdown`;
-    this.DragToFilter = "Drag";
-    this.And = "And";
-    this.Or = "Or";
-    this.Not = "Not";
-    this.NoData = "Missing data";
-    this.ValidData = "Valid data";
-    this.KeepNoData = "Keep missing data";
-    this.KeepValidData = "Keep valid data";
-
-    this.ZoomToFit = "Zoom to fit";
-    this.ZoomIn = "Zoom In";
-    this.ZoomOut = "Zoom Out";
-
-    this.MeasureScale = "Scale";
-    this.RowHeight = "Bar Height";
-    this.RowOrder = "Order";
-
-    this.Charts = "Charts";
-    this.Charts_Histogram = "Histogram";
-    this.Charts_Percentiles = "Percentiles";
-
-    this.BinScale = "Value Axis Scale";
-
-    this.BinWidth = "Bin Width";
-    this.BinWidth_Narrow = "Narrow";
-    this.BinWidth_Medium = "Medium";
-    this.BinWidth_Wide = "Wide";
-
-    this.BinHeight = "Height";
-    this.BinHeight_Compact = "Compact";
-    this.BinHeight_Short = "Short";
-    this.BinHeight_Medium = "Medium";
-    this.BinHeight_Tall = "Tall";
-
-    this.DashboardAnalyticsConfig = "Dashboard Configuration";
-    this.ViewAsMap = "View as Map";
-    this.ViewAsList = "View as List";
-    this.ViewSetMatrix = "Show/Hide pair-wise relations";
-
-    this.MissingLocations = "Missing<br>Locations";
-    this.Reset = "Reset";
-
-    this.measure_Sum = "Sum";
-    this.measure_Avg = "Average";
-    this.measure_Count = "Count";
-
-    this.Of_NumberRecord = "of";
-
-    this.AutoPlay = "Autoplay";
-    this.StopAutoPlay = "Stop Autoplay";
-
-    this.SaveSelection = "Save selection";
-    this.EditFormula = "Edit formula";
-
-    this.Attributes = "Attributes";
-    this.DatasetButton = "Attributes";
-    this.AdjustButton = "Adjust";
-
-    this.SaveShareButton = "Save";
-
-    this.CategoricalAttribute = "Categorical";
-    this.NumericAttribute = "Numeric";
-    this.TimestampAttribute = "Timestamp";
-    this.TimeseriesAttribute = "Timeseries";
-    this.LocationAttribute = "Geographic";
-    this.UnknownAttribute = "Unknown";
-    this.UniqueAttribute = "Unique";
-    this.MultiValuedAttribute = "Multi-valued";
-    this.FunctionAttribute = "Uses Custom Function";
-    this.ContentAttribute = "Content";
-
-    this.Configure = "Configure";
-    this.Derive = "Derive";
-
-    // Adjust
-    this.EditTitle = "Rename";
-    this.RemoveRecordPanel = "Remove record panel";
-
-    this.EmptyDashboardNotice = `To add data into the dashboard : <br><br>
+            (this.ClearTextSearch = "Clear");
+        this.Rows = "Rows";
+        this.More = "More";
+        this.ScrollToTop = "Top";
+        this.Percent = "Percent";
+        this.Absolute = "Absolute";
+        this.Relative = "Relative";
+        this.Dependent = "Dependent";
+        this.Breakdown = "Breakdown";
+        this.BreakdownBy = "Breakdown by";
+        this.Total = "Prozentuale";
+        this.SeeBreakdown = (v) => `See <b>${this[v.charAt(0).toUpperCase() + v.slice(1)]}</b> Breakdown`;
+        this.DragToFilter = "Drag";
+        this.And = "And";
+        this.Or = "Or";
+        this.Not = "Not";
+        this.NoData = "Missing data";
+        this.ValidData = "Valid data";
+        this.KeepNoData = "Keep missing data";
+        this.KeepValidData = "Keep valid data";
+        this.ZoomToFit = "Zoom to fit";
+        this.ZoomIn = "Zoom In";
+        this.ZoomOut = "Zoom Out";
+        this.MeasureScale = "Scale";
+        this.RowHeight = "Bar Height";
+        this.RowOrder = "Order";
+        this.Charts = "Charts";
+        this.Charts_Histogram = "Histogram";
+        this.Charts_Percentiles = "Percentiles";
+        this.BinScale = "Value Axis Scale";
+        this.BinWidth = "Bin Width";
+        this.BinWidth_Narrow = "Narrow";
+        this.BinWidth_Medium = "Medium";
+        this.BinWidth_Wide = "Wide";
+        this.BinHeight = "Height";
+        this.BinHeight_Compact = "Compact";
+        this.BinHeight_Short = "Short";
+        this.BinHeight_Medium = "Medium";
+        this.BinHeight_Tall = "Tall";
+        this.DashboardAnalyticsConfig = "Dashboard Configuration";
+        this.ViewAsMap = "View as Map";
+        this.ViewAsList = "View as List";
+        this.ViewSetMatrix = "Show/Hide pair-wise relations";
+        this.MissingLocations = "Missing<br>Locations";
+        this.Reset = "Reset";
+        this.measure_Sum = "Sum";
+        this.measure_Avg = "Average";
+        this.measure_Count = "Count";
+        this.Of_NumberRecord = "of";
+        this.AutoPlay = "Autoplay";
+        this.StopAutoPlay = "Stop Autoplay";
+        this.SaveSelection = "Save selection";
+        this.EditFormula = "Edit formula";
+        this.Attributes = "Attributes";
+        this.DatasetButton = "Attributes";
+        this.AdjustButton = "Adjust";
+        this.SaveShareButton = "Save";
+        this.CategoricalAttribute = "Categorical";
+        this.NumericAttribute = "Numeric";
+        this.TimestampAttribute = "Timestamp";
+        this.TimeseriesAttribute = "Timeseries";
+        this.LocationAttribute = "Geographic";
+        this.UnknownAttribute = "Unknown";
+        this.UniqueAttribute = "Unique";
+        this.MultiValuedAttribute = "Multi-valued";
+        this.FunctionAttribute = "Uses Custom Function";
+        this.ContentAttribute = "Content";
+        this.Configure = "Configure";
+        this.Derive = "Derive";
+        // Adjust
+        this.EditTitle = "Rename";
+        this.RemoveRecordPanel = "Remove record panel";
+        this.EmptyDashboardNotice = `To add data into the dashboard : <br><br>
           <i class='far fa-angle-double-down'></i> switch to <span style='font-weight: bolder'>Author</span> mode,<br>and <br>
           <i class='far fa-angle-double-left'></i> double-click, or
           click+drag an attribute into this canvas.
           <br> <img class='kshfLogo_K'>`;
-
-    this.LinearSequence =
-      "<span style='font-size:0.8em; opacity: 0.75'>(1,2,3,4)</span>";
-    this.Log2Sequence =
-      "<span style='font-size:0.8em; opacity: 0.75'>(1,2,4,8)</span>";
-    this.Log10Sequence =
-      "<span style='font-size:0.8em; opacity: 0.75'>(1,10,100)</span>";
-
-    this.Error_CannotFindMap = mapName => `<i class='fal fa-frown'></i> We could not find the map [${mapName}].`;
-    this.Error_CannotLoadMap = mapName => `<i class='fal fa-frown'></i> We could not load the map [${mapName}].`;
-    this.Error_CannotMatchMap = mapName => `<i class='fal fa-frown'></i> We could not match any location name with the map [${mapName}].`;
-
-    // Platform-specific
-    this.RemoveDataset = "Remove Dataset";
-    this.Bookmark = "Bookmark<br><i>Shift+Click to delete</i>";
-    // Keeping these because they are referenced from lang table to create derived summaries
-    this.Lookup_Months = {
-      0: "January",
-      1: "February",
-      2: "March",
-      3: "April",
-      4: "May",
-      5: "June",
-      6: "July",
-      7: "August",
-      8: "September",
-      9: "October",
-      10: "November",
-      11: "December",
-    };
-    this.Lookup_DaysOfWeek = {
-      0: "Sunday",
-      1: "Monday",
-      2: "Tuesday",
-      3: "Wednesday",
-      4: "Thursday",
-      5: "Friday",
-      6: "Saturday",
-    };
-  }
+        this.LinearSequence =
+            "<span style='font-size:0.8em; opacity: 0.75'>(1,2,3,4)</span>";
+        this.Log2Sequence =
+            "<span style='font-size:0.8em; opacity: 0.75'>(1,2,4,8)</span>";
+        this.Log10Sequence =
+            "<span style='font-size:0.8em; opacity: 0.75'>(1,10,100)</span>";
+        this.Error_CannotFindMap = (mapName) => `<i class='fal fa-frown'></i> We could not find the map [${mapName}].`;
+        this.Error_CannotLoadMap = (mapName) => `<i class='fal fa-frown'></i> We could not load the map [${mapName}].`;
+        this.Error_CannotMatchMap = (mapName) => `<i class='fal fa-frown'></i> We could not match any location name with the map [${mapName}].`;
+        // Platform-specific
+        this.RemoveDataset = "Remove Dataset";
+        this.Bookmark = "Bookmark<br><i>Shift+Click to delete</i>";
+        // Keeping these because they are referenced from lang table to create derived summaries
+        this.Lookup_Months = {
+            0: "January",
+            1: "February",
+            2: "March",
+            3: "April",
+            4: "May",
+            5: "June",
+            6: "July",
+            7: "August",
+            8: "September",
+            9: "October",
+            10: "November",
+            11: "December",
+        };
+        this.Lookup_DaysOfWeek = {
+            0: "Sunday",
+            1: "Monday",
+            2: "Tuesday",
+            3: "Wednesday",
+            4: "Thursday",
+            5: "Friday",
+            6: "Saturday",
+        };
+    }
 }
 
 let ActiveLanguage = null; // internal variable (singleton, always created);
@@ -1333,7 +1248,7 @@ class Aggregate {
     // Access to key data
     // ********************************************************************
     measure(m) {
-        if (Base.browser.measureFunc.val === "Avg") {
+        if (Base.browser.measureFunc.is("Avg")) {
             var r = this[m].recCnt;
             return r === 0 ? 0 : this[m].measure / r; // avoids division by zero
         }
@@ -1492,7 +1407,7 @@ class Aggregate {
         }
         str += "<div class='aggrTooltip'>";
         str += "<div class='aggrRecordCount'>";
-        if (browser.measureFunc.val === "Sum") {
+        if (browser.measureFunc.is("Sum")) {
             newLine = false;
             str +=
                 browser.getValueLabel(browser.getMeasureValue(this, "Active", "absolute"), false, 1, false) +
@@ -1550,7 +1465,7 @@ class Aggregate {
             let c = browser.comparedAttrib;
             if (this.Other.measure &&
                 !c.isMultiValued &&
-                this.attrib.browser.breakdownMode.val !== "dependent") {
+                this.attrib.browser.breakdownMode.get() !== "dependent") {
                 str += this.printCompared("Other", `(${browser.otherNameInCompare})`);
             }
             str += "</table>";
@@ -1928,10 +1843,10 @@ class Attrib {
             },
             onSet: () => {
                 var _a;
-                if (this.aggr_initialized) {
-                    this.updateChartScale_Measure(true);
-                    (_a = this.block) === null || _a === void 0 ? void 0 : _a.refreshViz_All();
-                }
+                if (!this.aggr_initialized)
+                    return;
+                this.updateChartScale_Measure(true);
+                (_a = this.block) === null || _a === void 0 ? void 0 : _a.refreshViz_All();
             },
         });
     }
@@ -2045,8 +1960,8 @@ class Attrib {
             return; // not included already
         this._metricFuncs = this._metricFuncs.filter((_) => _ != t);
         if (this.attribID === ((_a = this.measureSummary) === null || _a === void 0 ? void 0 : _a.attribID) &&
-            this.browser.measureFunc.val === t) {
-            this.browser.measureFunc.val = "Count";
+            this.browser.measureFunc.is(t)) {
+            this.browser.measureFunc.set("Count");
             this.browser.measureFunc.refresh();
         }
         else {
@@ -2104,7 +2019,7 @@ class Attrib {
         return this.browser.records;
     }
     get breakdownMode() {
-        return this.browser.breakdownMode.val;
+        return this.browser.breakdownMode.get();
     }
     get relativeBreakdown() {
         return this.browser.relativeBreakdown;
@@ -2122,7 +2037,7 @@ class Attrib {
         return this.browser.percentBreakdown;
     }
     get stackedCompare() {
-        return this.browser.stackedCompare.val;
+        return this.browser.stackedCompare.is(true);
     }
     get stackedChart() {
         return this.browser.stackedChart;
@@ -2131,7 +2046,7 @@ class Attrib {
         return this.browser.vizActive(key);
     }
     get measureFunc() {
-        return this.browser.measureFunc.val;
+        return this.browser.measureFunc.get();
     }
     get activeComparisons() {
         return this.browser.activeComparisons;
@@ -2140,15 +2055,15 @@ class Attrib {
         return this.browser.activeComparisonsCount;
     }
     get measureSummary() {
-        return this.browser.measureSummary.val;
+        return this.browser.measureSummary.get();
     }
     /** -- */
     get measureScale_Log() {
-        return this.measureScaleType.val === "log";
+        return this.measureScaleType.is("log");
     }
     /** -- */
     get measureScale_Linear() {
-        return this.measureScaleType.val === "linear";
+        return this.measureScaleType.is("linear");
     }
     /** -- */
     get measureExtent_Self() {
@@ -2173,10 +2088,10 @@ class Attrib {
         if (!((_a = this.block) === null || _a === void 0 ? void 0 : _a.panel)) {
             return this.measureExtent_Self;
         }
-        if (this.axisScaleType.val === "fit") {
+        if (this.axisScaleType.is("fit")) {
             return this.measureExtent_Self;
         }
-        if (this.axisScaleType.val === "full") {
+        if (this.axisScaleType.is("full")) {
             if (this.absoluteBreakdown) {
                 return [0, this.browser.allRecordsAggr.measure("Active")];
             }
@@ -2184,15 +2099,14 @@ class Attrib {
                 return [0, 100];
             }
         }
-        if (this.axisScaleType.val === "sync") {
+        if (this.axisScaleType.is("sync")) {
             return (_b = this.block) === null || _b === void 0 ? void 0 : _b.panel.syncedMeasureExtent;
         }
         // fallback, just in case
         return this.measureExtent_Self;
     }
     refreshScale_Measure(v = null) {
-        if (v == null)
-            v = this.measureScaleType.val;
+        v !== null && v !== void 0 ? v : (v = this.measureScaleType.get());
         this.chartScale_Measure_prev = this.chartScale_Measure
             ? this.chartScale_Measure.copy().clamp(false)
             : null;
@@ -2255,7 +2169,7 @@ class Attrib {
         }
         // Active will be max if visible & using count or positive-sum's
         if ((this.absoluteBreakdown || this.totalBreakdown) &&
-            this.browser.showWholeAggr.val &&
+            this.browser.showWholeAggr.is(true) &&
             this.browser.measureWithPositiveValues()) {
             return this.getPeakAggr(peakFunc, "Active");
         }
@@ -2301,19 +2215,21 @@ class Attrib {
     /** -- */
     applyConfig(blockCfg) {
         var _a;
-        if (blockCfg.noNugget) {
-            this.browser.removeAttribFromGroupIndex(this);
-        }
-        if (blockCfg.isComparable === false) {
-            this.isComparable.val = false;
-        }
-        if (blockCfg.metricFuncs) {
-            this._metricFuncs = blockCfg.metricFuncs;
-        }
-        this.axisScaleType.val = blockCfg.axisScaleType;
-        (_a = this.block) === null || _a === void 0 ? void 0 : _a.setCollapsed(blockCfg.collapsed === true);
-        this.description = blockCfg.description;
-        this.initializeAggregates();
+        return __awaiter(this, void 0, void 0, function* () {
+            if (blockCfg.noNugget) {
+                this.browser.removeAttribFromGroupIndex(this);
+            }
+            if (blockCfg.isComparable === false) {
+                yield this.isComparable.set(false);
+            }
+            if (blockCfg.metricFuncs) {
+                this._metricFuncs = blockCfg.metricFuncs;
+            }
+            yield this.axisScaleType.set(blockCfg.axisScaleType);
+            (_a = this.block) === null || _a === void 0 ? void 0 : _a.setCollapsed(blockCfg.collapsed === true);
+            this.description = blockCfg.description;
+            this.initializeAggregates();
+        });
     }
     isExportable() {
         return true;
@@ -2340,132 +2256,120 @@ class ConfigS {
 class Config {
     /** -- */
     constructor(_cfg) {
-        var _a;
-        this.lookup = new Map();
+        var _a, _b, _c, _d, _e;
         // disables export setting
         this.noExport = false;
+        this.lookup = new Map();
         Object.assign(this, _cfg);
-        this._value = _cfg.default;
-        if (!this.UI) {
-            this.UI = { disabled: false };
-        }
-        this.forcedValue =
-            this.forcedValue ||
-                (() => {
-                    return null;
-                }); // no forced value set
-        this.onSet =
-            this.onSet ||
-                (() => {
-                    return null;
-                }); // no action with on set
-        this.isActive =
-            this.isActive ||
-                ((d) => {
-                    if (d._type === "_range_") {
-                        return this.val > 0;
-                    }
-                    return d.value === this.val;
-                });
-        if (this.itemOptions) {
-            this.itemOptions
-                .filter((_) => _.value !== null)
-                .forEach((_) => this.lookup.set(_.value, _.name));
-        }
-        this.onSet(this.val, this);
-        if ((_a = this === null || this === void 0 ? void 0 : this.parent) === null || _a === void 0 ? void 0 : _a.configs)
+        (_a = this.UI) !== null && _a !== void 0 ? _a : (this.UI = { disabled: false });
+        (_b = this.isActive) !== null && _b !== void 0 ? _b : (this.isActive = (d) => {
+            if (d._type === "_range_") {
+                return this.get() > 0;
+            }
+            return this.is(d.value);
+        });
+        (_c = this.itemOptions) === null || _c === void 0 ? void 0 : _c.filter((option) => option.value !== null).forEach((option) => this.lookup.set(option.value, option.name));
+        if ((_d = this === null || this === void 0 ? void 0 : this.parent) === null || _d === void 0 ? void 0 : _d.configs)
             this.parent.configs[this.cfgClass] = this;
+        this._prevValue = _cfg.default;
+        this._value = _cfg.default;
+        // TODO: This function may be async, but we are in a constructor...
+        (_e = this.onSet) === null || _e === void 0 ? void 0 : _e.call(this, this.get(), this);
     }
-    /** Value getter */
-    get val() {
-        var forced = this.forcedValue(this);
-        if (forced != null)
-            return forced;
-        if (this.onRead)
-            return this.onRead(this._value);
-        return this._value;
-    }
-    /** -- */
+    /** Current value to string */
     toString() {
-        var v = this.val;
+        var v = this.get();
         return i18n[this.lookup.get(v) || v];
     }
-    /** Value setter */
-    set val(v) {
-        var _a;
-        if (v == null)
-            return; // cannot set to null or undefined. (false is ok)
-        var forced = this.forcedValue(this);
-        if (forced == null) {
-            if (forced === v)
-                return; // cannot set it to current value. no change
-        }
-        if (this.preSet) {
-            try {
-                v = this.preSet(v, this);
-            }
-            catch (error) {
-                if ((_a = this.parent) === null || _a === void 0 ? void 0 : _a.finalized) {
-                    Modal.alert(error); // show alert only after dashboard loading
-                }
-                return;
-            }
-        }
-        if (v == null)
-            return;
-        if (this._value === v)
-            return;
-        this.setVal_Direct(v);
+    /** Value getter */
+    get() {
+        var _a, _b, _c;
+        // If we have a forcedValue function that returns a non-null value, that's our current value;
+        var forced = (_a = this.forcedValue) === null || _a === void 0 ? void 0 : _a.call(this, this);
+        if (forced != null)
+            return forced;
+        // We may run an onRead function to customize the value, or directly return the value itself.
+        return (_c = (_b = this.onRead) === null || _b === void 0 ? void 0 : _b.call(this, this._value)) !== null && _c !== void 0 ? _c : this._value;
     }
-    /** -- */
-    setVal_Direct(v) {
-        var _a;
-        this._value = v;
-        this.onSet(this.val, this);
-        if ((_a = this.parent) === null || _a === void 0 ? void 0 : _a.refreshConfigs) {
-            this.parent.refreshConfigs();
-        }
-        else {
-            this.refresh();
-        }
+    is(v) {
+        return this.get() === v;
+    }
+    /** Value setter - onSet function may be async*/
+    set(v) {
+        var _a, _b, _c, _d;
+        return __awaiter(this, void 0, void 0, function* () {
+            if (v == null)
+                return; // cannot set to null or undefined. (false is ok)
+            var forced = (_a = this.forcedValue) === null || _a === void 0 ? void 0 : _a.call(this, this);
+            if (forced !== null && forced === v)
+                return; // trying to set to current forced value. No need.
+            if (this.preSet) {
+                try {
+                    v = yield this.preSet(v, this);
+                }
+                catch (error) {
+                    if ((_b = this.parent) === null || _b === void 0 ? void 0 : _b.finalized) {
+                        Modal.alert(error); // show alert only after dashboard loading
+                    }
+                    return;
+                }
+            }
+            if (v == null)
+                return; // preSet can return null, preventing change and raising no error
+            if (this._value === v)
+                return; // prevent setting it to current value - no change
+            this._prevValue = this._value;
+            this._value = v;
+            yield ((_c = this.onSet) === null || _c === void 0 ? void 0 : _c.call(this, this.get(), this));
+            if ((_d = this.parent) === null || _d === void 0 ? void 0 : _d.refreshConfigs) {
+                this.parent.refreshConfigs();
+            }
+            else {
+                this.refresh();
+            }
+        });
+    }
+    // sets the value to previous value
+    undoChange() {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.set(this._prevValue);
+        });
     }
     /** -- */
     refresh() {
-        if (this.onRefresh) {
-            this.onRefresh(this);
-        }
-        if (this.DOM) {
-            if (this.forcedValue) {
-                var v = this.forcedValue(this);
-                this.DOM.root.classed("forced", v != null);
-                if (v != null)
-                    this.onSet(v, this);
-            }
-            if (this.isActive) {
-                this.DOM.configOptions.classed("active", this.isActive);
-            }
-            if (this.DOM.noUiSlider) {
-                this.DOM.noUiSlider.setHandle(0, this._value, false);
-            }
-            if (this.itemOptions) {
-                this.itemOptions
-                    .filter((_) => _.DOM && _.activeWhen)
-                    .forEach((_) => {
+        var _a, _b, _c, _d;
+        return __awaiter(this, void 0, void 0, function* () {
+            (_a = this.onRefreshDOM) === null || _a === void 0 ? void 0 : _a.call(this, this);
+            if (this.DOM) {
+                // we have custom forced value function
+                if (this.forcedValue) {
+                    var v = this.forcedValue(this);
+                    this.DOM.root.classed("forced", v != null);
+                    if (v != null)
+                        yield ((_b = this.onSet) === null || _b === void 0 ? void 0 : _b.call(this, v, this));
+                }
+                if (this.isActive) {
+                    this.DOM.configOptions.classed("active", this.isActive);
+                }
+                (_c = this.DOM.noUiSlider) === null || _c === void 0 ? void 0 : _c.setHandle(0, this._value, false);
+                (_d = this.itemOptions) === null || _d === void 0 ? void 0 : _d.filter((_) => _.DOM && _.activeWhen).forEach((_) => {
                     _.DOM.classList[!_.activeWhen() ? "add" : "remove"]("disabled");
                 });
             }
-        }
+        });
     }
-    /** -- */
+    /** Calls oNSet and refresh... */
     reset() {
-        var _a;
-        this.onSet(this.val, this);
-        if ((_a = this.parent) === null || _a === void 0 ? void 0 : _a.refreshConfigs) {
-            this.parent.refreshConfigs(); // refresh all configs of the parent
-        }
-        else {
-            this.refresh();
-        }
+        var _a, _b;
+        return __awaiter(this, void 0, void 0, function* () {
+            yield ((_a = this.onSet) === null || _a === void 0 ? void 0 : _a.call(this, this.get(), this));
+            if ((_b = this.parent) === null || _b === void 0 ? void 0 : _b.refreshConfigs) {
+                this.parent.refreshConfigs(); // refresh all configs of the parent
+            }
+            else {
+                yield this.refresh();
+            }
+        });
     }
     addUISeperator(DOM) {
         var _a;
@@ -2479,32 +2383,26 @@ class Config {
     }
     /** -- */
     insertControl(DOM) {
-        var _a;
+        var _a, _b;
         if ((_a = this.UI) === null || _a === void 0 ? void 0 : _a.disabled)
             return;
         this.addUISeperator(DOM);
         this.DOM = {};
-        this.DOM.root = DOM.append("tr").attr("class", "configItem configItem_" + this.cfgClass);
-        this.DOM.root
-            .append("td")
+        this.DOM.root = DOM.append("tr")
+            .attr("class", "configItem configItem_" + this.cfgClass);
+        this.DOM.root.append("td")
             .attr("class", "configItem_Header")
             .append("span")
             .html(i18n[this.cfgTitle]);
+        let icon = this.DOM.root.append("td")
+            .attr("class", "configItem_Icon")
+            .append("span");
+        // We can use a css class, or iconXML.
         if (this.iconClass) {
-            this.DOM.root
-                .append("td")
-                .attr("class", "configItem_Icon")
-                .append("span")
-                .attr("class", "icon " + this.iconClass);
+            icon.attr("class", "icon " + this.iconClass);
         }
         else {
-            this.DOM.root
-                .append("td")
-                .attr("class", "configItem_Icon")
-                .append("span")
-                .attr("class", "icon")
-                .append("span")
-                .html(this.iconXML);
+            icon.attr("class", "icon").append("span").html(this.iconXML);
         }
         var _ = this.DOM.root
             .append("td")
@@ -2522,9 +2420,7 @@ class Config {
         this.DOM.configOptions
             .filter((_) => _.value !== undefined)
             .html((d) => i18n[d.name])
-            .on("click", (_event, d) => {
-            this.val = d.value;
-        });
+            .on("click", (_event, d) => __awaiter(this, void 0, void 0, function* () { return yield this.set(d.value); }));
         this.DOM.configOptions
             .filter((_) => _._type === "_range_")
             .append("span")
@@ -2540,9 +2436,7 @@ class Config {
                 },
                 start: this.default,
             });
-            nodes[i].noUiSlider.on("set", (v) => {
-                this.val = v;
-            });
+            nodes[i].noUiSlider.on("set", (v) => __awaiter(this, void 0, void 0, function* () { return yield this.set(v); }));
         });
         this.DOM.root
             .append("td")
@@ -2554,8 +2448,7 @@ class Config {
             placement: "bottom",
         });
         Modal.createHelpScoutLinks(this.DOM.root);
-        if (this.onDOM)
-            this.onDOM(this.DOM);
+        (_b = this.onDOM) === null || _b === void 0 ? void 0 : _b.call(this, this.DOM);
         this.refresh();
     }
     exportValue() {
@@ -3566,9 +3459,9 @@ class Attrib_Interval extends Attrib {
     }
     // returns filtered range if filtered. Otherwise, original range
     get rangeActive() {
-        if (this.summaryFilter.isFiltered && this.block.zoomed.val)
-            return [this.summaryFilter.active.minV, this.summaryFilter.active.maxV];
-        return this.rangeOrg;
+        return (this.summaryFilter.isFiltered && this.block.zoomed.is(true))
+            ? [this.summaryFilter.active.minV, this.summaryFilter.active.maxV]
+            : this.rangeOrg;
     }
     // in numbers, if time-series key, uses timeseries extent automatically
     getRecordValueExtent() {
@@ -3690,18 +3583,23 @@ class Attrib_Interval extends Attrib {
         return !this.aggr_initialized;
     }
     applyConfig(blockCfg) {
-        super.applyConfig(blockCfg);
-        this.block.showHistogram.val = blockCfg.showHistogram;
-        this.block.optimumBinWidth.val = blockCfg.optimumBinWidth;
-        this.block.maxHeightRatio.val = blockCfg.maxHeightRatio;
-        this.measureScaleType.val = blockCfg.measureScaleType;
-        this.block.zoomed.val = blockCfg.zoomed;
-        if (blockCfg.filter) {
-            this.summaryFilter.importFilter(blockCfg.filter);
-        }
-        else if (this.isFiltered()) {
-            this.summaryFilter.clearFilter();
-        }
+        const _super = Object.create(null, {
+            applyConfig: { get: () => super.applyConfig }
+        });
+        return __awaiter(this, void 0, void 0, function* () {
+            _super.applyConfig.call(this, blockCfg);
+            yield this.block.showHistogram.set(blockCfg.showHistogram);
+            yield this.block.optimumBinWidth.set(blockCfg.optimumBinWidth);
+            yield this.block.maxHeightRatio.set(blockCfg.maxHeightRatio);
+            yield this.measureScaleType.set(blockCfg.measureScaleType);
+            yield this.block.zoomed.set(blockCfg.zoomed);
+            if (blockCfg.filter) {
+                this.summaryFilter.importFilter(blockCfg.filter);
+            }
+            else if (this.isFiltered()) {
+                this.summaryFilter.clearFilter();
+            }
+        });
     }
 }
 
@@ -3771,7 +3669,7 @@ class Block {
         this.DOM.root
             .attr("class", "kshfSummary " + this.attrib.blockClassName)
             .attr("summary_id", this.attrib.attribID) // can be used to customize a specific summary using CSS
-            .classed("disableCompareLock", !this.attrib.isComparable.val)
+            .classed("disableCompareLock", !this.attrib.isComparable.is(true))
             .classed("filtered", this.attrib.isFiltered())
             .datum(this);
         // can be extended by sub-classes
@@ -4138,12 +4036,16 @@ class Block {
     }
     // -- TODO: incomplete / check references, not used much
     refreshViz(sT) {
+        if (this.attrib.type === "content")
+            return;
         return sT === "Active"
             ? this.refreshViz_Active()
             : this.refreshViz_Compare(sT, 0, 0, null);
     }
     /** -- */
     refreshViz_Compare_All() {
+        if (this.attrib.type === "content")
+            return;
         var compared = this.browser.activeComparisons;
         var totalC = this.browser.activeComparisonsCount;
         compared.forEach((cT, i) => this.refreshViz_Compare(cT, i, totalC, compared.slice(0, i)));
@@ -4287,9 +4189,9 @@ class Block {
             this.attrib.noValueAggr.setAggrGlyph(nodes[i]);
         })
             .on("mouseover", () => {
-            if (!this.browser.mouseOverCompare.val)
-                return;
             if (this.browser.adjustMode)
+                return;
+            if (this.browser.mouseOverCompare.is(false))
                 return;
             this.browser.setSelect_Compare(this.attrib.noValueAggr);
         })
@@ -4365,7 +4267,7 @@ class Block {
     }
     refreshMeasureDescrLabel() {
         var _a;
-        (_a = this.DOM.root) === null || _a === void 0 ? void 0 : _a.selectAll(".measureDescrLabel").html(i18n.MeasureDescrLabel(this.browser, this));
+        (_a = this.DOM.root) === null || _a === void 0 ? void 0 : _a.selectAll(".measureDescrLabel").html(i18n.MeasureDescrLabel(this.browser, this.attrib));
     }
     // Utility method for subclasses
     insertAggrLockButton(dom, placement) {
@@ -4446,28 +4348,27 @@ class Block_Interval extends Block {
                 if (!this.attrib.isFiltered())
                     return false;
             },
-            onSet: (v) => {
+            onSet: (v) => __awaiter(this, void 0, void 0, function* () {
                 var _a;
-                let attrib = this.attrib;
-                if (!attrib.aggr_initialized)
-                    return; // not initialized yet
+                if (!this.attrib.aggr_initialized)
+                    return;
                 this.attrib.refreshValueScale();
                 if (this.DOM.inited) {
                     this.DOM.summaryInterval.classed("zoomed", v);
                     this.DOM.zoomControl.attr("sign", v ? "minus" : "plus");
                 }
                 this.noRefreshVizAxis = true;
-                var tempScale_prev = attrib.chartScale_Measure.copy().clamp(false);
+                var tempScale_prev = this.attrib.chartScale_Measure.copy().clamp(false);
                 if (this.attrib.type !== "timestamp")
                     this.attrib.refreshScaleType(); // linear vs log
-                attrib.updateScaleAndBins();
+                this.attrib.updateScaleAndBins();
                 this.refreshHeight();
                 this.noRefreshVizAxis = false;
-                attrib.chartScale_Measure_prev = tempScale_prev;
+                this.attrib.chartScale_Measure_prev = tempScale_prev;
                 this.refreshViz_Axis();
-                (_a = this.browser.recordDisplay) === null || _a === void 0 ? void 0 : _a.refreshAttribScaleType(this);
-                attrib.updateScaleAndBins();
-            },
+                yield ((_a = this.browser.recordDisplay) === null || _a === void 0 ? void 0 : _a.refreshAttribScaleType(this));
+                this.attrib.updateScaleAndBins();
+            }),
         });
         // ******************************************************
         // Interval Bin width
@@ -4489,8 +4390,8 @@ class Block_Interval extends Block {
                 { name: "4x", value: 180, max: 100000 },
                 { name: "<i class='fa fa-plus'></i>", value: -199, _type: "plus" },
             ],
-            isActive: (d) => d.value <= this.optimumBinWidth.val && d.max > this.optimumBinWidth.val,
-            preSet: (v, obj) => {
+            isActive: (d) => d.value <= this.optimumBinWidth.get() && d.max > this.optimumBinWidth.get(),
+            preSet: (v, obj) => __awaiter(this, void 0, void 0, function* () {
                 if (v === -99) {
                     v = obj._value - 5;
                 }
@@ -4498,7 +4399,7 @@ class Block_Interval extends Block {
                     v = obj._value + 5;
                 }
                 return Math.max(45, Math.min(180, v));
-            },
+            }),
             onSet: () => this.attrib.updateScaleAndBins(),
         });
         // ******************************************************
@@ -4523,13 +4424,14 @@ class Block_Interval extends Block {
                 { name: "<i class='fa fa-plus'></i>", value: -199, _type: "plus" },
             ],
             isActive: (d) => {
-                var v = this.maxHeightRatio.val;
+                var v = this.maxHeightRatio.get();
                 if (this.attrib.type === "timestamp")
                     v *= 3;
                 return d.value <= v && d.max > v;
             },
+            // if timestamp, the returned value is divided by 3.
             onRead: (v) => (this.attrib.type === "timestamp" ? v / 3 : v),
-            preSet: (v, obj) => {
+            preSet: (v, obj) => __awaiter(this, void 0, void 0, function* () {
                 if (v === -99) {
                     v = obj._value - 0.05;
                 }
@@ -4537,7 +4439,7 @@ class Block_Interval extends Block {
                     v = obj._value + 0.05;
                 }
                 return Math.max(0.08, Math.min(1.5, v));
-            },
+            }),
             onSet: () => {
                 if (!this.attrib.aggr_initialized)
                     return;
@@ -4619,14 +4521,14 @@ class Block_Interval extends Block {
     // Height & width
     // ********************************************************************
     get height_hist_max() {
-        return Math.max(Base.height_HistMin, this.width_histogram * this.maxHeightRatio.val); // Maximim possible histogram height
+        return Math.max(Base.height_HistMin, this.width_histogram * this.maxHeightRatio.get()); // Maximim possible histogram height
     }
     get height_RangeMax() {
         if (this.attrib.isEmpty())
             return this.height_Header;
         return (this.height_Header +
             this.height_Extra_max +
-            (this.showHistogram.val ? this.height_hist_max : 0));
+            (this.showHistogram.get() ? this.height_hist_max : 0));
     }
     get height_RangeMin() {
         if (this.attrib.isEmpty())
@@ -4644,7 +4546,7 @@ class Block_Interval extends Block {
     }
     get height_Extra() {
         return (this.height_Extra_base +
-            (this.showHistogram.val ? Base.height_HistBottomGap : 0) +
+            (this.showHistogram.get() ? Base.height_HistBottomGap : 0) +
             4); // 4 is some gap
     }
     get height_Extra_max() {
@@ -4653,7 +4555,7 @@ class Block_Interval extends Block {
     get height_Content() {
         return !this.isVisible()
             ? 0
-            : (this.showHistogram.val ? this.height_hist : 0) + this.height_Extra;
+            : (this.showHistogram.get() ? this.height_hist : 0) + this.height_Extra;
     }
     chartAxis_Measure_TickSkip() {
         return this.height_hist / 30;
@@ -4671,7 +4573,7 @@ class Block_Interval extends Block {
         super.refreshHeight();
         if (this.attrib.isEmpty() || !this.inDashboard || !this.DOM.inited)
             return;
-        var _h = this.showHistogram.val ? this.height_hist + 23 : 10;
+        var _h = this.showHistogram.get() ? this.height_hist + 23 : 10;
         this.DOM.valueTickGroup.style("height", this.height_Ticklabels + "px");
         this.DOM.rangeHandle
             .style("height", _h + "px")
@@ -5093,8 +4995,10 @@ class Block_Interval extends Block {
                 instance.reference.tippy.setContent(zoomIn ? "Zoom into filtered range" : "Zoom out");
             },
         })
-            .attr("sign", this.zoomed.val ? "minus" : "plus")
-            .on("click", (event) => this.zoomed.setVal_Direct(event.currentTarget.getAttribute("sign") === "plus"));
+            .attr("sign", this.zoomed.is(true) ? "minus" : "plus")
+            .on("click", (event) => __awaiter(this, void 0, void 0, function* () {
+            yield this.zoomed.set(event.currentTarget.getAttribute("sign") === "plus");
+        }));
         var controlLine = this.DOM.intervalSlider
             .append("div")
             .attr("class", "controlLine")
@@ -5229,9 +5133,9 @@ class Block_Interval extends Block {
     }
     onAggrHighlight(aggr) {
         var _a;
-        if (!this.browser.mouseOverCompare.val)
-            return;
         if (this.browser.adjustMode)
+            return;
+        if (this.browser.mouseOverCompare.is(false))
             return;
         if (!this.browser.can_setSelect_Compare(aggr))
             return;
@@ -5266,12 +5170,12 @@ class Block_Interval extends Block {
     refreshChartsVisibleOption() {
         if (!this.DOM.inited)
             return;
-        this.DOM.root.classed("chartVisibleHistogram", this.showHistogram.val ? true : null);
+        this.DOM.root.classed("chartVisibleHistogram", this.showHistogram.is(true));
     }
     onClearFilter() {
         this.attrib.noValueAggr.filtered = false;
         this.attrib.summaryFilter.active = null;
-        this.zoomed.val = false;
+        this.zoomed.set(false);
         this.refreshIntervalSlider();
     }
     // extended by Block_Numeric to add minor ticks when using log scale
@@ -5400,7 +5304,7 @@ class Block_Numeric extends Block_Interval {
     }
     /** -- */
     get height_Percentile() {
-        return this.showPercentiles.val ? Base.height_Percentile : 0;
+        return this.showPercentiles.is(true) ? Base.height_Percentile : 0;
     }
     /** -- */
     get height_Extra_base() {
@@ -5415,7 +5319,7 @@ class Block_Numeric extends Block_Interval {
         if (!this.inDashboard) {
             return this.width_histogram / 10;
         }
-        var v = this.optimumBinWidth.val;
+        var v = this.optimumBinWidth.get();
         if (this.attrib.unitName) {
             v += (v * (2 + this.attrib.unitName.length * 8)) / 45;
         }
@@ -5495,12 +5399,12 @@ class Block_Numeric extends Block_Interval {
     }
     zoomableStatus() {
         if (this.attrib.stepTicks) {
-            return this.zoomed.val ? "minus" : "";
+            return this.zoomed.is(true) ? "minus" : "";
         }
         return "plus";
     }
     hasStaticHeight() {
-        return !this.showHistogram.val;
+        return this.showHistogram.is(false);
     }
     /** -- */
     initDOM(beforeDOM) {
@@ -5513,7 +5417,7 @@ class Block_Numeric extends Block_Interval {
         if (!this.DOM.inited)
             return;
         super.refreshChartsVisibleOption();
-        this.DOM.root.classed("chartVisiblePercentile", this.showPercentiles.val ? true : null);
+        this.DOM.root.classed("chartVisiblePercentile", this.showPercentiles.is(true));
     }
     insertMinorTicks(ticks) {
         if (this.attrib.isValueScale_Log) {
@@ -5624,7 +5528,7 @@ class Block_Numeric extends Block_Interval {
                 .on("mouseover", (_event, qb) => {
                 if (this.browser.comparedAttrib && !this.attrib.isComparedAttrib())
                     return;
-                if (!this.browser.mouseOverCompare.val)
+                if (this.browser.mouseOverCompare.is(false))
                     return;
                 this.highlightRangeLimits_Active = true;
                 var aggr = this.attrib.createAggregate(this.quantile_val[sT + qb[0]], this.quantile_val[sT + qb[1]]);
@@ -5659,11 +5563,11 @@ class Block_Numeric extends Block_Interval {
     }
     /** - */
     refreshViz_Percentiles(distr) {
-        if (this.showPercentiles.val === false)
-            return;
         if (!this.DOM.percentileGroup)
             return;
         if (!this.valueScale)
+            return;
+        if (this.showPercentiles.is(false))
             return;
         var percentileChart = this.DOM.percentileGroup.select(".percentileChart_" + distr);
         percentileChart
@@ -5686,7 +5590,7 @@ class Block_Numeric extends Block_Interval {
     updatePercentiles(sT = null) {
         if (sT === "Other")
             return;
-        if (!this.showPercentiles.val)
+        if (this.showPercentiles.is(false))
             return;
         if (!sT) {
             this.browser.activeComparisons.forEach((t) => this.updatePercentiles(t));
@@ -5740,7 +5644,7 @@ class Attrib_Numeric extends Attrib_Interval {
             ],
             forcedValue: () => {
                 if (this.timeseriesParent)
-                    return this.timeseriesParent.valueScaleType.val; // use parent's config
+                    return this.timeseriesParent.valueScaleType.get();
                 if (this.stepTicks)
                     return "linear";
                 if (!this.supportsLogScale())
@@ -5748,15 +5652,15 @@ class Attrib_Numeric extends Attrib_Interval {
                 if (this.valueScaleType._value === "auto")
                     return this.autoScaleType;
             },
-            onSet: () => {
+            onSet: () => __awaiter(this, void 0, void 0, function* () {
                 var _a;
                 if (!this.aggr_initialized)
                     return;
                 this.block.noRefreshVizAxis = true;
-                this.applyScaleType();
+                yield this.applyScaleType();
                 this.block.noRefreshVizAxis = false;
-                (_a = this.browser.recordDisplay) === null || _a === void 0 ? void 0 : _a.refreshAttribScaleType(this);
-            },
+                yield ((_a = this.browser.recordDisplay) === null || _a === void 0 ? void 0 : _a.refreshAttribScaleType(this));
+            }),
         });
         this.finishTemplateSpecial();
         // TODO: maintain good order for UI, delete showHistogram index and add it at appropriate position
@@ -5786,10 +5690,10 @@ class Attrib_Numeric extends Attrib_Interval {
     // Range and Scale...
     // ********************************************************************
     get isValueScale_Log() {
-        return this.valueScaleType.val === "log";
+        return this.valueScaleType.is("log");
     }
     get isValueScale_Linear() {
-        return this.valueScaleType.val === "linear";
+        return this.valueScaleType.is("linear");
     }
     supportsLogScale() {
         return !this.hasNegativeValues();
@@ -5856,7 +5760,7 @@ class Attrib_Numeric extends Attrib_Interval {
         if (["text", "textBrief"].includes(_type))
             return true;
         this.initializeAggregates();
-        if (!this.isComparable.val)
+        if (!this.isComparable.get())
             return false;
         if (["sort", "scatterX", "scatterY", "color"].includes(_type))
             return true;
@@ -5983,15 +5887,17 @@ class Attrib_Numeric extends Attrib_Interval {
     /** -- */
     applyScaleType() {
         var _a;
-        if (!this.sortedRecords)
-            return;
-        this.initializeAggregates();
-        // remove records with value:0 (because log(0) is invalid)
-        if (this.isValueScale_Log && this.rangeOrg[0] <= 0) {
-            this.keepOnlyPositiveRecords();
-        }
-        this.updateScaleAndBins();
-        (_a = this.browser.recordDisplay) === null || _a === void 0 ? void 0 : _a.refreshAttribScaleType(this);
+        return __awaiter(this, void 0, void 0, function* () {
+            if (!this.sortedRecords)
+                return;
+            this.initializeAggregates();
+            // remove records with value:0 (because log(0) is invalid)
+            if (this.isValueScale_Log && this.rangeOrg[0] <= 0) {
+                this.keepOnlyPositiveRecords();
+            }
+            this.updateScaleAndBins();
+            yield ((_a = this.browser.recordDisplay) === null || _a === void 0 ? void 0 : _a.refreshAttribScaleType(this));
+        });
     }
     getValueScaleObj() {
         return Util.getD3Scale(this.isValueScale_Log);
@@ -6058,16 +5964,21 @@ class Attrib_Numeric extends Attrib_Interval {
     // ********************************************************************
     /** -- */
     applyConfig(blockCfg) {
-        super.applyConfig(blockCfg);
-        this.measurable.valueDomain = blockCfg.valueDomain;
-        this.block.showPercentiles.val = blockCfg.showPercentiles;
-        this.valueScaleType.val = blockCfg.valueScaleType;
-        if (blockCfg.unitName) {
-            this.unitName = blockCfg.unitName;
-        }
-        if (blockCfg.skipZero) {
-            this.setSkipZero();
-        }
+        const _super = Object.create(null, {
+            applyConfig: { get: () => super.applyConfig }
+        });
+        return __awaiter(this, void 0, void 0, function* () {
+            _super.applyConfig.call(this, blockCfg);
+            this.measurable.valueDomain = blockCfg.valueDomain;
+            yield this.block.showPercentiles.set(blockCfg.showPercentiles);
+            yield this.valueScaleType.set(blockCfg.valueScaleType);
+            if (blockCfg.unitName) {
+                this.unitName = blockCfg.unitName;
+            }
+            if (blockCfg.skipZero) {
+                this.setSkipZero();
+            }
+        });
     }
     // not exportable if this is just a timekey - it inherits properties from its parent
     isExportable() {
@@ -6153,12 +6064,9 @@ class AttribDropdown {
             text = i18n.NoAttribute;
         }
         else if (attrib === "_measure_") {
-            if (this.browser.measureFunc.val === "Count") {
-                text = this.browser.recordName;
-            }
-            else {
-                text = this.browser.measureSummary.val.printName;
-            }
+            text = (this.browser.measureFunc.is("Count"))
+                ? this.browser.recordName
+                : this.browser.measureSummary.get().printName;
         }
         else {
             text = attrib.printName;
@@ -6243,9 +6151,7 @@ class AttribDropdown {
                 }
                 if (_.item == this.activeAttrib)
                     return true;
-                return (_.item === "Count" &&
-                    this.activeAttrib === "_measure_" &&
-                    this.browser.measureFunc.val === "Count");
+                return (_.item === "Count" && this.activeAttrib === "_measure_" && this.browser.measureFunc.is("Count"));
             })
                 .classed("collapsed", true)
                 .attr("data-id", (_) => {
@@ -6277,10 +6183,10 @@ class AttribDropdown {
                     .attr("class", "optionName")
                     .html((_) => _.name);
             })
-                .on("click", (event, _) => {
+                .on("click", (event, _) => __awaiter(this, void 0, void 0, function* () {
                 if (measuring) {
                     if (_.measureType) {
-                        this.browser.measureFunc.val = _.measureType;
+                        yield this.browser.measureFunc.set(_.measureType);
                         this.recordDisplay.setAttrib(this._type, "_measure_", true);
                     }
                     else {
@@ -6297,7 +6203,7 @@ class AttribDropdown {
                 // Attrib selection
                 this.recordDisplay.setAttrib(this._type, _.item, true);
                 this.hide();
-            });
+            }));
             listItems
                 .append("div")
                 .attr("class", "subItems")
@@ -6549,13 +6455,18 @@ class Attrib_RecordGeo extends Attrib {
         this.aggr_initialized = true;
     }
     applyConfig(blockCfg) {
-        super.applyConfig(blockCfg);
-        if (blockCfg.recordGeo) {
-            this.recordGeoMap = Base.maps.get(blockCfg.recordGeo);
-            if (!this.recordGeoMap) {
-                this.recordGeoMap = null;
+        const _super = Object.create(null, {
+            applyConfig: { get: () => super.applyConfig }
+        });
+        return __awaiter(this, void 0, void 0, function* () {
+            _super.applyConfig.call(this, blockCfg);
+            if (blockCfg.recordGeo) {
+                this.recordGeoMap = Base.maps.get(blockCfg.recordGeo);
+                if (!this.recordGeoMap) {
+                    this.recordGeoMap = null;
+                }
             }
-        }
+        });
     }
     /** -- */
     getRecordBounds(onlyIncluded) {
@@ -6583,7 +6494,7 @@ class Attrib_RecordGeo extends Attrib {
             if (this.pointClusterRadius === 0) {
                 return;
             }
-            if (Supercluster) {
+            if (!Supercluster) {
                 Supercluster = yield import('./vendor_mapping.js').then(function (n) { return n.s; });
             }
             this.PointCluster = new Supercluster({
@@ -6717,23 +6628,23 @@ class Attrib_Timeseries extends Attrib {
                 if (!this.supportsLogScale())
                     return "linear";
             },
-            preSet: (v) => {
+            preSet: (v) => __awaiter(this, void 0, void 0, function* () {
                 if (v !== "log" && v !== "linear")
                     return;
                 // don't set to log if it's not applicable
                 return v;
-            },
-            onSet: (v) => {
+            }),
+            onSet: (v) => __awaiter(this, void 0, void 0, function* () {
                 if (!this.timeSeriesScale_Value)
                     return;
                 for (var c in this.timeKeyAttribs) {
                     var s = this.timeKeyAttribs[c];
                     if (s.timeKey)
-                        s.applyScaleType();
+                        yield s.applyScaleType();
                 }
                 this.timeSeriesScale_Value = Util.getD3Scale(v === "log").domain(this.getExtent_Value());
-                this.browser.recordDisplay.refreshAttribScaleType(this);
-            },
+                yield this.browser.recordDisplay.refreshAttribScaleType(this);
+            }),
         });
         this.numberFormat = (x) => {
             if (this.hasFloat && x < 1000) {
@@ -6755,7 +6666,7 @@ class Attrib_Timeseries extends Attrib {
         if (this.isEmpty())
             return false;
         this.initializeAggregates();
-        if (!this.isComparable.val)
+        if (this.isComparable.is(false))
             return false;
         if (coding === "timeSeries")
             return true;
@@ -6810,7 +6721,7 @@ class Attrib_Timeseries extends Attrib {
             attrib.attribName = `${this.attribName} <i class="far fa-calendar-day"></i> ${attrib.timeKey._time_src}`;
         }
         // Refresh other places which is linked to this timeseries variable
-        if (this.browser.recordChartType.val === "timeseries") {
+        if (this.browser.recordChartType.is("timeseries")) {
             this.browser.recordDisplay.refreshAttribOptions("timeSeries");
         }
         this.browser.recordDisplay.refreshAttribOptions("sort");
@@ -6871,12 +6782,7 @@ class Attrib_Timeseries extends Attrib {
         // Set scale
         var deviation = d3$f.deviation(allRecordValues);
         var activeRange = valueDomain[1] - valueDomain[0];
-        if (deviation / activeRange < 0.12 && valueDomain[0] > 0) {
-            this.valueScaleType.val = "log";
-        }
-        else {
-            this.valueScaleType.val = "linear";
-        }
+        this.valueScaleType.set((deviation / activeRange < 0.12 && valueDomain[0] > 0) ? "log" : "linear");
         // Currently static settings once a timeseries is selected
         this.timeSeriesScale_Time = d3$f.scaleTime().domain(timeDomain);
         this.timeSeriesScale_Value = Util.getD3Scale(this.isValueScale_Log);
@@ -6994,10 +6900,10 @@ class Attrib_Timeseries extends Attrib {
     }
     /** -- */
     get isValueScale_Log() {
-        return this.valueScaleType.val === "log";
+        return this.valueScaleType.is("log");
     }
     get isValueScale_Linear() {
-        return this.valueScaleType.val === "linear";
+        return this.valueScaleType.is("linear");
     }
     // No-ops
     createSummaryFilter() { }
@@ -7064,23 +6970,26 @@ class Attrib_Timeseries extends Attrib {
     }
     /** -- */
     applyConfig(blockCfg) {
-        super.applyConfig(blockCfg);
-        this.measurable.valueDomain = blockCfg.valueDomain;
-        if (blockCfg.valueScaleType) {
-            this.valueScaleType.val = blockCfg.valueScaleType;
-        }
-        if (blockCfg.unitName) {
-            this.unitName = blockCfg.unitName;
-        }
+        const _super = Object.create(null, {
+            applyConfig: { get: () => super.applyConfig }
+        });
+        return __awaiter(this, void 0, void 0, function* () {
+            _super.applyConfig.call(this, blockCfg);
+            this.measurable.valueDomain = blockCfg.valueDomain;
+            if (blockCfg.valueScaleType) {
+                yield this.valueScaleType.set(blockCfg.valueScaleType);
+            }
+            if (blockCfg.unitName) {
+                this.unitName = blockCfg.unitName;
+            }
+        });
     }
     /** -- */
     exportConfig() {
-        var config = super.exportConfig();
-        var c = {
+        return Object.assign(super.exportConfig(), {
             unitName: this.unitName,
-            valueScaleType: this.valueScaleType.val,
-        };
-        return Object.assign(config, c);
+            valueScaleType: this.valueScaleType.get(),
+        });
     }
     /** -- */
     renderRecordValue(v, d3_selection, timeKeys = null) {
@@ -7317,7 +7226,7 @@ class Block_Categorical extends Block {
             this.browser.updateLayout();
         };
         if (this._aggrs.length > 500 &&
-            this.attrib.minAggrSize.val === 1 &&
+            this.attrib.minAggrSize.get() === 1 &&
             !force) {
             Modal.confirm("<div style='text-align:center'>There are many (" +
                 this._aggrs.length.toLocaleString() +
@@ -7327,9 +7236,7 @@ class Block_Categorical extends Block {
                 ".<br>" +
                 "Adding all can make your dashboard slower.<br><br>" +
                 "Would you like to hide categories with 5 or less records?</div>", "Hide small categories", "Show all categories")
-                .then(() => {
-                this.attrib.minAggrSize.val = 5;
-            })
+                .then(() => __awaiter(this, void 0, void 0, function* () { return yield this.attrib.minAggrSize.set(5); }))
                 .finally(() => _do());
         }
         else {
@@ -7413,7 +7320,7 @@ class Block_Categorical extends Block {
         return this.height_ListWithoutCats + this._aggrs.length * this.heightCat;
     }
     get heightCat() {
-        return this.attrib.barHeight.val;
+        return this.attrib.barHeight.get();
     }
     get height_Dropdown() {
         return 42;
@@ -7800,8 +7707,8 @@ class Block_Categorical extends Block {
         if (this.browser.percentBreakdown) {
             widthPerTick += 11; // %
         }
-        else if (this.browser.measureFunc.val !== "Count") {
-            var unitName = (_a = this.browser.measureSummary.val) === null || _a === void 0 ? void 0 : _a.unitName;
+        else if (this.browser.measureFunc.get() !== "Count") {
+            var unitName = (_a = this.browser.measureSummary.get()) === null || _a === void 0 ? void 0 : _a.unitName;
             if (unitName)
                 widthPerTick += 2 + unitName.length * 9;
         }
@@ -8682,7 +8589,7 @@ class Block_Categorical extends Block {
             return;
         var _top = this.height_bar_topGap;
         var barHeight = this.barHeight_Full;
-        if (this.browser.stackedCompare.val && !this.panel.hiddenCatBars()) {
+        if (this.browser.stackedCompare.get() && !this.panel.hiddenCatBars()) {
             var baseline = this.measureLineZero;
             var maxWidth = this.width_CatChart;
             var endOfBar = !this.browser.isCompared();
@@ -9112,7 +9019,7 @@ class Aggregate_Category extends Aggregate {
         };
     }
     get posY() {
-        return this.orderIndex * this.attrib.barHeight.val;
+        return this.orderIndex * this.attrib.barHeight.get();
     }
     get transformPos() {
         return `translate(${this.posX}px, ${this.posY}px)`;
@@ -9196,7 +9103,7 @@ class Block_Set extends Block {
         return this.attrib.parent;
     }
     get rowHeight() {
-        return this.setListSummary.barHeight.val;
+        return this.setListSummary.barHeight.get();
     }
     /** -- */
     get setPairCount_Total() {
@@ -9844,7 +9751,7 @@ class Block_Set extends Block {
     }
     /** -- */
     refreshRow_LineWidths() {
-        var setPairDiameter = this.setListSummary.barHeight.val;
+        var setPairDiameter = this.setListSummary.barHeight.get();
         var totalWidth = this.getWidth();
         // vertical lines
         this.DOM.line_vert.each((d, i, nodes) => {
@@ -10343,11 +10250,11 @@ class Attrib_Categorical extends Attrib {
                 { name: "6x", value: 80, max: 120 },
                 { name: "<i class='fa fa-plus'></i>", value: -100, _type: "plus" }, // special value
             ],
-            isActive: (d) => d.value && d.value <= this.barHeight.val && d.max > this.barHeight.val,
+            isActive: (d) => d.value && d.value <= this.barHeight.get() && d.max > this.barHeight.get(),
             onDOM: (DOM) => {
                 DOM.root.classed("catSummary_ListOnly", true);
             },
-            preSet: (v, opt) => {
+            preSet: (v, opt) => __awaiter(this, void 0, void 0, function* () {
                 if (v === -99) {
                     v = opt._value - 1;
                 }
@@ -10355,8 +10262,8 @@ class Attrib_Categorical extends Attrib {
                     v = opt._value + 1;
                 }
                 return Math.min(85, Math.max(10, v));
-            },
-            onSet: (d) => {
+            }),
+            onSet: () => {
                 if (this.block.isView_List) {
                     this.block.refreshHeight_Category();
                 }
@@ -10380,23 +10287,23 @@ class Attrib_Categorical extends Attrib {
                 },
             ],
             UI: { disabled: true },
-            isActive: (d) => d.value ? this.minAggrSize.val > 1 : this.minAggrSize.val === 1,
+            isActive: (d) => d.value
+                ? this.minAggrSize.get() > 1
+                : this.minAggrSize.get() === 1,
             onDOM: (DOM) => {
                 DOM.root
                     .select(".minAggrSizeInput")
-                    .attr("value", this.minAggrSize.val)
+                    .attr("value", this.minAggrSize.get())
                     .attr("max", d3$c.max(this._aggrs, (_cat) => _cat.records.length))
                     .on("input", (event) => {
                     if (_timer)
                         window.clearTimeout(_timer);
-                    _timer = window.setTimeout(() => {
-                        this.minAggrSize.val = Math.max(2, 1 * event.currentTarget.value);
-                    }, 500);
+                    _timer = window.setTimeout(() => __awaiter(this, void 0, void 0, function* () {
+                        yield this.minAggrSize.set(Math.max(2, 1 * event.currentTarget.value));
+                    }), 500);
                 });
             },
-            preSet: (v, obj) => {
-                return Math.max(1, v);
-            },
+            preSet: (v) => __awaiter(this, void 0, void 0, function* () { return Math.max(1, v); }),
             onSet: (v) => this.setMinAggrSize(v),
         });
         this.setSortingOption();
@@ -10591,11 +10498,11 @@ class Attrib_Categorical extends Attrib {
     }
     onAggrHighlight(aggr) {
         var _a;
-        if (!this.browser.mouseOverCompare.val)
-            return;
         if (this.browser.adjustMode)
             return;
         if (!this.isCatSelectable(aggr))
+            return;
+        if (this.browser.mouseOverCompare.is(false))
             return;
         (_a = aggr.DOM.matrixRow) === null || _a === void 0 ? void 0 : _a.setAttribute("selection", "selected");
         // Comes after setting select type of the category - visual feedback on selection...
@@ -11028,22 +10935,24 @@ class Attrib_Categorical extends Attrib {
         this.mapTable = null;
     }
     setCatGeo_(template) {
-        if (!this.uniqueCategories()) {
-            this.setCatGeo(template);
-            this.block.catViewAs("map");
-        }
-        else {
-            // Per-record map: Define new summary
-            this.browser.recordDisplay.setAttrib("geo", this.browser.createAttrib("_REGION", 
-            // replace [*] to [*.]
-            template
-                .replace("[*]", "[*." + this.template + "]")
-                .replace("[UPPERCASE(*)]", "[UPPERCASE(*." + this.template + ")]"), "recordGeo"));
-            if (this.browser.viewRecAs === "none") {
-                this.browser.recordChartType.val = "map";
+        return __awaiter(this, void 0, void 0, function* () {
+            if (!this.uniqueCategories()) {
+                this.setCatGeo(template);
+                this.block.catViewAs("map");
             }
-            this.browser.refreshAttribList();
-        }
+            else {
+                // Per-record map: Define new summary
+                this.browser.recordDisplay.setAttrib("geo", this.browser.createAttrib("_REGION", 
+                // replace [*] with [*.]
+                template
+                    .replace("[*]", "[*." + this.template + "]")
+                    .replace("[UPPERCASE(*)]", "[UPPERCASE(*." + this.template + ")]"), "recordGeo"));
+                if (this.browser.recordChartType.is("none")) {
+                    yield this.browser.recordChartType.set("map");
+                }
+                this.browser.refreshAttribList();
+            }
+        });
     }
     setCatLabel(template = {}) {
         var _a, _b;
@@ -11122,51 +11031,56 @@ class Attrib_Categorical extends Attrib {
     // Export / import
     // ********************************************************************
     applyConfig(blockCfg) {
-        super.applyConfig(blockCfg);
-        if (blockCfg.mapInitView) {
-            this.mapInitView = blockCfg.mapInitView;
-        }
-        if (blockCfg.mapConfig) {
-            this.mapConfig = blockCfg.mapConfig;
-        }
-        this.measureScaleType.val = blockCfg.measureScaleType;
-        this.barHeight.val = blockCfg.barHeight;
-        this.minAggrSize.val = blockCfg.minAggrSize;
-        if (blockCfg.catLabel) {
-            this.setCatLabel(blockCfg.catLabel);
-        }
-        if (blockCfg.catGeo) {
-            this.setCatGeo(blockCfg.catGeo);
-        }
-        if (blockCfg.invertedColorTheme) {
-            this.block.catMap_invertColorTheme(blockCfg.invertedColorTheme);
-        }
-        if (blockCfg.splitOnSelfCompare === false) {
-            this.block.splitOnSelfCompare = false;
-        }
-        if (["SingleSelect", "MultiSelect"].includes(blockCfg.dropdown_type)) {
-            this.block.dropdown_type = blockCfg.dropdown_type;
-        }
-        if (blockCfg.filter) {
-            this.summaryFilter.importFilter(blockCfg.filter);
-        }
-        else if (this.isFiltered()) {
-            this.summaryFilter.clearFilter();
-        }
-        // SORTING RELATED CONFIGURATION
-        if (blockCfg.catSortInverse) {
-            this.catSortInverse = true;
-        }
-        if (blockCfg.catSortBy) {
-            this.setSortingOption(blockCfg.catSortBy);
-        }
-        if (blockCfg.viewAs) {
-            // map vs list
-            this.block.catViewAs(blockCfg.viewAs);
-        }
-        if (blockCfg.showSetMatrix) {
-            this.block.showSetMatrix(blockCfg.showSetMatrix);
-        }
+        const _super = Object.create(null, {
+            applyConfig: { get: () => super.applyConfig }
+        });
+        return __awaiter(this, void 0, void 0, function* () {
+            _super.applyConfig.call(this, blockCfg);
+            if (blockCfg.mapInitView) {
+                this.mapInitView = blockCfg.mapInitView;
+            }
+            if (blockCfg.mapConfig) {
+                this.mapConfig = blockCfg.mapConfig;
+            }
+            yield this.measureScaleType.set(blockCfg.measureScaleType);
+            yield this.barHeight.set(blockCfg.barHeight);
+            yield this.minAggrSize.set(blockCfg.minAggrSize);
+            if (blockCfg.catLabel) {
+                this.setCatLabel(blockCfg.catLabel);
+            }
+            if (blockCfg.catGeo) {
+                this.setCatGeo(blockCfg.catGeo);
+            }
+            if (blockCfg.invertedColorTheme) {
+                this.block.catMap_invertColorTheme(blockCfg.invertedColorTheme);
+            }
+            if (blockCfg.splitOnSelfCompare === false) {
+                this.block.splitOnSelfCompare = false;
+            }
+            if (["SingleSelect", "MultiSelect"].includes(blockCfg.dropdown_type)) {
+                this.block.dropdown_type = blockCfg.dropdown_type;
+            }
+            if (blockCfg.filter) {
+                this.summaryFilter.importFilter(blockCfg.filter);
+            }
+            else if (this.isFiltered()) {
+                this.summaryFilter.clearFilter();
+            }
+            // SORTING RELATED CONFIGURATION
+            if (blockCfg.catSortInverse) {
+                this.catSortInverse = true;
+            }
+            if (blockCfg.catSortBy) {
+                this.setSortingOption(blockCfg.catSortBy);
+            }
+            if (blockCfg.viewAs) {
+                // map vs list
+                this.block.catViewAs(blockCfg.viewAs);
+            }
+            if (blockCfg.showSetMatrix) {
+                this.block.showSetMatrix(blockCfg.showSetMatrix);
+            }
+        });
     }
     exportConfig() {
         var config = super.exportConfig();
@@ -11231,7 +11145,9 @@ class RecordView {
     refreshRecordSizes() { }
     refreshRecordColors() { }
     refreshLabelOverlaps() { }
-    refreshAttribScaleType(attrib) { }
+    refreshAttribScaleType(attrib) {
+        return __awaiter(this, void 0, void 0, function* () { });
+    }
     onRecordMouseOver(record) { }
     onRecordMouseLeave(record) { }
     // can be extended in sub-classes
@@ -11260,7 +11176,7 @@ class RecordView {
         return true;
     }
     stepTimeAnimation(stepSize) {
-        if (!this.rd.currentTimeKey.val)
+        if (this.rd.currentTimeKey.get() == null)
             return false;
         // Iterates over potential time-series keys.
         // When it finds one,starts animation, and returns (executed only for one coding)
@@ -11279,7 +11195,7 @@ class RecordView {
                     this.rd.stopTimeseriesAnimation();
                 }
                 else {
-                    this.rd.currentTimeKey.val = attrib.timeKey;
+                    this.rd.currentTimeKey.set(attrib.timeKey);
                     attrib = a;
                 }
             }, this.animStepDelayMs);
@@ -11468,14 +11384,8 @@ class RecordView_Timeseries extends RecordView {
                 { name: "#-Change", value: "ChangeAbs" },
                 { name: "%-Change", value: "ChangePct" },
             ],
-            preSet: (v) => {
-                if (v === "Change")
-                    return "ChangePct"; // old value
-                return v;
-            },
-            onSet: (v) => {
-                this.refreshTimeSeriesPlotType();
-            },
+            preSet: (v) => __awaiter(this, void 0, void 0, function* () { return v === "Change" ? "ChangePct" /* old value*/ : v; }),
+            onSet: () => this.refreshTimeSeriesPlotType(),
         });
         this.timeSeriesChangeVsTimeKey = new Config({
             parent: this,
@@ -11488,22 +11398,21 @@ class RecordView_Timeseries extends RecordView {
                 var _ = DOM.root.select(".configItem_Options");
                 DOM.keySelect = _.append("select")
                     .attr("class", "keySelect")
-                    .on("change", (event) => {
-                    this.timeSeriesChangeVsTimeKey.val =
-                        event.currentTarget.selectedOptions[0].__data__._time_src;
-                });
+                    .on("change", (event) => __awaiter(this, void 0, void 0, function* () {
+                    yield this.timeSeriesChangeVsTimeKey.set(event.currentTarget.selectedOptions[0].__data__._time_src);
+                }));
             },
-            onRefresh: (cfg) => {
-                if (!cfg._value)
+            onRefreshDOM: (cfg) => {
+                if (!cfg.get())
                     return; // nothing to do!
                 cfg.DOM.root.classed("hidden", !this.isTimeseriesChange());
                 cfg.DOM.keySelect
                     .selectAll("option")
                     .data(this.timeKeys_Active || [], (d) => d._time_src)
                     .join((enter) => enter.append("option").text((d) => d._time_src), (update) => update, (exit) => exit.remove())
-                    .attr("selected", (d) => d._time_src === cfg._value._time_src ? true : null);
+                    .attr("selected", (d) => d._time_src === cfg.get()._time_src ? true : null);
             },
-            preSet: (v, obj) => {
+            preSet: (v, obj) => __awaiter(this, void 0, void 0, function* () {
                 if (!this.timeseriesAttrib)
                     return; // NOT SET now
                 if (typeof v === "string") {
@@ -11513,7 +11422,7 @@ class RecordView_Timeseries extends RecordView {
                 if (!v)
                     return this.timeseriesAttrib.timeKeys[0];
                 return v;
-            },
+            }),
             onSet: (v, obj) => {
                 this.refreshScaleValue();
                 this.refreshKeyLine();
@@ -11540,9 +11449,7 @@ class RecordView_Timeseries extends RecordView {
                 if (this.timeseriesAttrib.timeKeys.length < 3)
                     return "limits";
             },
-            onSet: (v) => {
-                this.refreshTimeRange();
-            },
+            onSet: () => this.refreshTimeRange(),
         });
         this.ts_valueAxisScale = new Config({
             cfgClass: "ts_valueAxisScale",
@@ -11557,16 +11464,16 @@ class RecordView_Timeseries extends RecordView {
             ],
             noExport: true,
             forcedValue: () => {
-                if (this.ts_Type.val !== "Value")
+                if (this.ts_Type.get() !== "Value")
                     return "linear";
                 if (this.timeseriesAttrib && !this.timeseriesAttrib.supportsLogScale())
                     return "linear";
             },
-            onSet: (v) => {
+            onSet: (v) => __awaiter(this, void 0, void 0, function* () {
                 if (this.timeseriesAttrib) {
-                    this.timeseriesAttrib.valueScaleType.val = v;
+                    yield this.timeseriesAttrib.valueScaleType.set(v);
                 }
-            },
+            }),
         });
         // Timeseries-only?
         this.fitValueAxis = new Config({
@@ -11583,7 +11490,7 @@ class RecordView_Timeseries extends RecordView {
             forcedValue: () => {
                 if (!this.browser.isFiltered())
                     return false; // full
-                if (this.ts_Type.val === "Rank")
+                if (this.ts_Type.is("Rank"))
                     return false; // full
                 if (this.isTimeseriesChange())
                     return true; // fit
@@ -11608,7 +11515,7 @@ class RecordView_Timeseries extends RecordView {
                 { name: "Nearest Time-Key", value: "time" },
                 // {name: "Filter", value: "filter" },
             ],
-            onSet: (v, obj) => {
+            onSet: (v) => {
                 // TODO
                 // this.visMouseMode.val = (v==='filter')?'filter':'pan';
             },
@@ -11697,7 +11604,7 @@ class RecordView_Timeseries extends RecordView {
             if (!_ts || _ts.isEmpty())
                 return false;
             if (this.isTimeseriesChange()) {
-                var _compareKey = this.timeSeriesChangeVsTimeKey.val._time_src;
+                var _compareKey = this.timeSeriesChangeVsTimeKey.get()._time_src;
                 var _index = _ts._keyIndex[_compareKey];
                 return _index != null && _index._value != null;
             }
@@ -11714,319 +11621,319 @@ class RecordView_Timeseries extends RecordView {
     }
     /** -- */
     initView_DOM() {
-        if (this.DOM.recordBase_Timeseries) {
-            this.DOM.recordGroup =
-                this.DOM.recordBase_Timeseries.select(".recordGroup");
-            this.DOM.kshfRecords = this.DOM.recordGroup.selectAll(".kshfRecord");
-            return;
-        }
-        var me = this;
-        let prevClosestRecord = null;
-        let prevClosestTime = null;
-        var changeFormat = d3$a.format("+.2");
-        function refreshDotTooltip(d) {
-            var _c, _d;
-            var record = d.DOM.parentNode.__data__;
-            var recordText = me.textBriefAttrib.getRecordValue(record) || "";
-            var recordValue = me.timeseriesAttrib.getFormattedValue(d._value);
-            var _recordRank = me.ts_Type.val === "Rank"
-                ? ` <span class='extraInfo'>(#${d._rank})</span>`
-                : "";
-            var recordChange = "";
-            if (me.isTimeseriesChange()) {
-                var _key = me.timeSeriesChangeVsTimeKey.val._time_src;
-                var ref = (_d = (_c = me.timeseriesAttrib.getRecordValue(record)) === null || _c === void 0 ? void 0 : _c._keyIndex[_key]) === null || _d === void 0 ? void 0 : _d._value;
-                var _v = changeFormat((100 * (d._value - ref)) / (ref || 1)) + "%"; // avoid divide by zero
-                if (me.ts_Type.val === "ChangeAbs") {
-                    _v = me.timeseriesAttrib.getFormattedValue(d._value - ref);
+        return __awaiter(this, void 0, void 0, function* () {
+            if (this.DOM.recordBase_Timeseries) {
+                this.DOM.recordGroup =
+                    this.DOM.recordBase_Timeseries.select(".recordGroup");
+                this.DOM.kshfRecords = this.DOM.recordGroup.selectAll(".kshfRecord");
+                return;
+            }
+            var me = this;
+            let prevClosestRecord = null;
+            let prevClosestTime = null;
+            var changeFormat = d3$a.format("+.2");
+            function refreshDotTooltip(d) {
+                var _c, _d;
+                var record = d.DOM.parentNode.__data__;
+                var recordText = me.textBriefAttrib.getRecordValue(record) || "";
+                var recordValue = me.timeseriesAttrib.getFormattedValue(d._value);
+                var _recordRank = me.ts_Type.is("Rank")
+                    ? ` <span class='extraInfo'>(#${d._rank})</span>`
+                    : "";
+                var recordChange = "";
+                if (me.isTimeseriesChange()) {
+                    var _key = me.timeSeriesChangeVsTimeKey.get()._time_src;
+                    var ref = (_d = (_c = me.timeseriesAttrib.getRecordValue(record)) === null || _c === void 0 ? void 0 : _c._keyIndex[_key]) === null || _d === void 0 ? void 0 : _d._value;
+                    var _v = changeFormat((100 * (d._value - ref)) / (ref || 1)) + "%"; // avoid divide by zero
+                    if (me.ts_Type.is("ChangeAbs")) {
+                        _v = me.timeseriesAttrib.getFormattedValue(d._value - ref);
+                    }
+                    recordChange = ` <span class='extraInfo'>(${_v} vs. ${_key})</span>`;
                 }
-                recordChange = ` <span class='extraInfo'>(${_v} vs. ${_key})</span>`;
+                var x;
+                var fullValue = recordValue + _recordRank + recordChange;
+                if (me.timeSeriesSelectMode.is("time")) {
+                    x = `<span class='asdsdadsada'>${recordText}: <b>${fullValue}</b></span>`;
+                }
+                else {
+                    x =
+                        `<span class='mapItemName'>${recordText}</span>` +
+                            "<div class='recordColorInfo'>" +
+                            "<div class='mapTooltipLabel'>" +
+                            `<b>${me.timeseriesAttrib.attribName}</b>` +
+                            ` <i class='fal fa-calendar'></i> ${d._time_src}` +
+                            "</div><br>" +
+                            `<span class='mapTooltipValue'>${fullValue}</span>` +
+                            "</div>";
+                }
+                d.DOM.tippy.popper.children[0].children[0].innerHTML =
+                    purify.sanitize(x);
             }
-            var x;
-            var fullValue = recordValue + _recordRank + recordChange;
-            if (me.timeSeriesSelectMode.val === "time") {
-                x = `<span class='asdsdadsada'>${recordText}: <b>${fullValue}</b></span>`;
+            var spacer_left = new LabelSpacer();
+            var spacer_right = new LabelSpacer();
+            function pofff(c, record, _placement = "right") {
+                if (!c.DOM)
+                    return; // no tooltip
+                c.DOM.tippy = tippy(c.DOM, Object.assign({}, d3$a.selection.tippyDefaultConfig, {
+                    theme: "dark kshf-tooltip kshf-record",
+                    placement: _placement,
+                    animation: "fade",
+                    trigger: "manual",
+                    delay: 0,
+                    duration: [500, 100],
+                    appendTo: Base.browser.DOM.root.node(),
+                }));
+                refreshDotTooltip(c);
+                c.DOM.tippy.show();
             }
-            else {
-                x =
-                    `<span class='mapItemName'>${recordText}</span>` +
-                        "<div class='recordColorInfo'>" +
-                        "<div class='mapTooltipLabel'>" +
-                        `<b>${me.timeseriesAttrib.attribName}</b>` +
-                        ` <i class='fal fa-calendar'></i> ${d._time_src}` +
-                        "</div><br>" +
-                        `<span class='mapTooltipValue'>${fullValue}</span>` +
-                        "</div>";
-            }
-            d.DOM.tippy.popper.children[0].children[0].innerHTML =
-                purify.sanitize(x);
-        }
-        var spacer_left = new LabelSpacer();
-        var spacer_right = new LabelSpacer();
-        function pofff(c, record, _placement = "right") {
-            if (!c.DOM)
-                return; // no tooltip
-            c.DOM.tippy = tippy(c.DOM, Object.assign({}, d3$a.selection.tippyDefaultConfig, {
-                theme: "dark kshf-tooltip kshf-record",
-                placement: _placement,
-                animation: "fade",
-                trigger: "manual",
-                delay: 0,
-                duration: [500, 100],
-                appendTo: Base.browser.DOM.root.node(),
-            }));
-            refreshDotTooltip(c);
-            c.DOM.tippy.show();
-        }
-        this.DOM.recordBase_Timeseries = this.DOM.recordDisplayWrapper
-            .append("div")
-            .attr("class", "recordBase_Timeseries");
-        this.refreshTimeSeriesChartWidth();
-        // Y & X axis
-        ["Y", "X"].forEach((a) => {
-            var _ = this.DOM.recordBase_Timeseries
+            this.DOM.recordBase_Timeseries = this.DOM.recordDisplayWrapper
                 .append("div")
-                .attr("class", "recordAxis recordAxis_" + a);
-            _.append("div").attr("class", "tickGroup");
-            _.append("div")
-                .attr("class", "keyLine")
-                .style("display", this.isTimeseriesChange() ? "block" : null);
-        });
-        // X-axis min/max time key setting
-        ["min", "max"].forEach((limit) => {
-            var __ = this.DOM.recordBase_Timeseries
-                .append("span")
-                .attr("class", "timeLimit timeLimit-" + limit);
-            __.append("select").on("change", (event) => {
-                this.setTimeRange({
-                    [limit]: event.currentTarget.selectedOptions[0].__data__._index,
-                });
+                .attr("class", "recordBase_Timeseries");
+            this.refreshTimeSeriesChartWidth();
+            // Y & X axis
+            ["Y", "X"].forEach((a) => {
+                var _ = this.DOM.recordBase_Timeseries
+                    .append("div")
+                    .attr("class", "recordAxis recordAxis_" + a);
+                _.append("div").attr("class", "tickGroup");
+                _.append("div")
+                    .attr("class", "keyLine")
+                    .style("display", this.isTimeseriesChange() ? "block" : null);
             });
-            __.append("span").attr("class", limit === "min"
-                ? "far fa-angle-double-right"
-                : "far fa-angle-double-left");
-        });
-        this.refreshTimeSeriesRangeOpts();
-        // ******************************************************
-        this.DOM.recordGroup = this.DOM.recordBase_Timeseries
-            .append("svg")
-            .attr("class", "recordGroup recordGroup_Timeseries")
-            .attr("xmlns", "http://www.w3.org/2000/svg")
-            .on("click", () => {
-            if (this.rd.visMouseMode === "filter")
-                return;
-            if (prevClosestRecord) {
-                hideAllPoppers();
-                this.browser.recordDetailsPopup.updateRecordDetailPanel(prevClosestRecord);
-                this.browser.recordDetailsPopup.updateFocusedTimeKey(prevClosestTime);
-            }
-            this.rd.setDimmed(false);
-        })
-            .on("mouseleave", () => {
-            if (this.rd.visMouseMode === "filter")
-                return;
-            if (this.timeSeriesSelectMode.val === "time") {
-                hideAllPoppers();
-                this.browser.records.forEach((record) => {
-                    var _c, _d, _e;
-                    // remove "visible" from dots
-                    if (record.filteredOut)
-                        return;
-                    if (!prevClosestTime)
-                        return;
-                    (_e = (_d = (_c = this.timeseriesAttrib.getRecordValue(record)) === null || _c === void 0 ? void 0 : _c._keyIndex[prevClosestTime._time_src]) === null || _d === void 0 ? void 0 : _d.DOM) === null || _e === void 0 ? void 0 : _e.classList.remove("visible");
+            // X-axis min/max time key setting
+            ["min", "max"].forEach((limit) => {
+                var __ = this.DOM.recordBase_Timeseries
+                    .append("span")
+                    .attr("class", "timeLimit timeLimit-" + limit);
+                __.append("select").on("change", (event) => {
+                    this.setTimeRange({
+                        [limit]: event.currentTarget.selectedOptions[0].__data__._index,
+                    });
                 });
-                prevClosestTime = null;
-            }
-            this.rd.onRecordMouseLeave(prevClosestRecord);
-            prevClosestRecord = null;
-        })
-            .on("mousemove", (event) => {
-            var _c, _d;
-            if (this.rd.visMouseMode === "filter")
-                return;
-            var _m = d3$a.pointer(event);
-            if (_m[1] > event.currentTarget.offsetHeight || _m[1] < 0) {
-                // out of chart bounds
-                if (this.timeSeriesSelectMode.val === "record") {
-                    this.rd.onRecordMouseLeave(prevClosestRecord);
-                    prevClosestRecord = null;
+                __.append("span").attr("class", limit === "min"
+                    ? "far fa-angle-double-right"
+                    : "far fa-angle-double-left");
+            });
+            this.refreshTimeSeriesRangeOpts();
+            // ******************************************************
+            this.DOM.recordGroup = this.DOM.recordBase_Timeseries
+                .append("svg")
+                .attr("class", "recordGroup recordGroup_Timeseries")
+                .attr("xmlns", "http://www.w3.org/2000/svg")
+                .on("click", () => {
+                if (this.rd.visMouseMode === "filter")
+                    return;
+                if (prevClosestRecord) {
+                    hideAllPoppers();
+                    this.browser.recordDetailsPopup.updateRecordDetailPanel(prevClosestRecord);
+                    this.browser.recordDetailsPopup.updateFocusedTimeKey(prevClosestTime);
                 }
-                if (this.timeSeriesSelectMode.val === "time" && prevClosestTime) {
+                this.rd.setDimmed(false);
+            })
+                .on("mouseleave", () => {
+                if (this.rd.visMouseMode === "filter")
+                    return;
+                if (this.timeSeriesSelectMode.is("time")) {
                     hideAllPoppers();
                     this.browser.records.forEach((record) => {
                         var _c, _d, _e;
+                        // remove "visible" from dots
                         if (record.filteredOut)
                             return;
                         if (!prevClosestTime)
                             return;
-                        (_e = (_d = (_c = this.timeseriesAttrib
-                            .getRecordValue(record)) === null || _c === void 0 ? void 0 : _c._keyIndex[prevClosestTime._time_src]) === null || _d === void 0 ? void 0 : _d.DOM) === null || _e === void 0 ? void 0 : _e.classList.remove("visible");
-                    });
-                }
-                return;
-            }
-            var _m_Time = this.scale_Time.invert(_m[0]);
-            var _compareKey = this.timeSeriesChangeVsTimeKey.val
-                ? this.timeSeriesChangeVsTimeKey.val._time_src
-                : null;
-            var closestTimeKey = null;
-            if (_m_Time.getTime() <= this.scale_Time.domain()[1].getTime() &&
-                _m_Time.getTime() >= this.scale_Time.domain()[0].getTime()) {
-                var closestTimeDist = 999999999999999;
-                this.timeKeys_Active.every((timeKey) => {
-                    var _dist = Math.abs(timeKey._time.getTime() - _m_Time.getTime());
-                    if (_dist < closestTimeDist) {
-                        closestTimeKey = timeKey;
-                        closestTimeDist = _dist;
-                        return true;
-                    }
-                    return false; // getting farther away. We already found the closest
-                });
-            }
-            // Select closest time
-            if (this.timeSeriesSelectMode.val === "time") {
-                if (closestTimeKey === prevClosestTime)
-                    return;
-                if (prevClosestTime) {
-                    hideAllPoppers();
-                    this.browser.records.forEach((record) => {
-                        var _c, _d, _e;
-                        if (record.filteredOut)
-                            return;
                         (_e = (_d = (_c = this.timeseriesAttrib.getRecordValue(record)) === null || _c === void 0 ? void 0 : _c._keyIndex[prevClosestTime._time_src]) === null || _d === void 0 ? void 0 : _d.DOM) === null || _e === void 0 ? void 0 : _e.classList.remove("visible");
                     });
+                    prevClosestTime = null;
                 }
-                if (closestTimeKey) {
-                    spacer_right.clear();
-                    spacer_left.clear();
-                    this.browser.records.forEach((record) => {
-                        var _c, _d;
-                        if (!this.recordInView(record) || record.filteredOut)
-                            return;
-                        var c = (_c = this.timeseriesAttrib.getRecordValue(record)) === null || _c === void 0 ? void 0 : _c._keyIndex[closestTimeKey._time_src];
-                        if (!c)
-                            return;
-                        c.DOM.classList.add("visible"); // timeSeriesDot
-                        var placement;
-                        var ref = this.isTimeseriesChange()
-                            ? (_d = this.timeseriesAttrib.getRecordValue(record)) === null || _d === void 0 ? void 0 : _d._keyIndex[_compareKey]._value
-                            : 0;
-                        var top = this.y_Generator(c, ref);
-                        if (spacer_right.isEmpty(top)) {
-                            placement = "right";
-                            spacer_right.insertUsed(top, 30, record);
+                this.rd.onRecordMouseLeave(prevClosestRecord);
+                prevClosestRecord = null;
+            })
+                .on("mousemove", (event) => {
+                var _c, _d, _e;
+                if (this.rd.visMouseMode === "filter")
+                    return;
+                var _m = d3$a.pointer(event);
+                if (_m[1] > event.currentTarget.offsetHeight || _m[1] < 0) {
+                    // out of chart bounds
+                    if (this.timeSeriesSelectMode.is("record")) {
+                        this.rd.onRecordMouseLeave(prevClosestRecord);
+                        prevClosestRecord = null;
+                    }
+                    if (this.timeSeriesSelectMode.is("time") && prevClosestTime) {
+                        hideAllPoppers();
+                        this.browser.records.forEach((record) => {
+                            var _c, _d, _e;
+                            if (record.filteredOut)
+                                return;
+                            if (!prevClosestTime)
+                                return;
+                            (_e = (_d = (_c = this.timeseriesAttrib
+                                .getRecordValue(record)) === null || _c === void 0 ? void 0 : _c._keyIndex[prevClosestTime._time_src]) === null || _d === void 0 ? void 0 : _d.DOM) === null || _e === void 0 ? void 0 : _e.classList.remove("visible");
+                        });
+                    }
+                    return;
+                }
+                var _m_Time = this.scale_Time.invert(_m[0]);
+                var _compareKey = ((_c = this.timeSeriesChangeVsTimeKey.get()) === null || _c === void 0 ? void 0 : _c._time_src) || null;
+                var closestTimeKey = null;
+                if (_m_Time.getTime() <= this.scale_Time.domain()[1].getTime() &&
+                    _m_Time.getTime() >= this.scale_Time.domain()[0].getTime()) {
+                    var closestTimeDist = 999999999999999;
+                    this.timeKeys_Active.every((timeKey) => {
+                        var _dist = Math.abs(timeKey._time.getTime() - _m_Time.getTime());
+                        if (_dist < closestTimeDist) {
+                            closestTimeKey = timeKey;
+                            closestTimeDist = _dist;
+                            return true;
                         }
-                        else if (spacer_left.isEmpty(top)) {
-                            placement = "left";
-                            spacer_left.insertUsed(top, 30, record);
-                        }
-                        else {
-                            return;
-                        }
-                        pofff(c, record, placement);
+                        return false; // getting farther away. We already found the closest
                     });
                 }
+                // Select closest time
+                if (this.timeSeriesSelectMode.is("time")) {
+                    if (closestTimeKey === prevClosestTime)
+                        return;
+                    if (prevClosestTime) {
+                        hideAllPoppers();
+                        this.browser.records.forEach((record) => {
+                            var _c, _d, _e;
+                            if (record.filteredOut)
+                                return;
+                            (_e = (_d = (_c = this.timeseriesAttrib.getRecordValue(record)) === null || _c === void 0 ? void 0 : _c._keyIndex[prevClosestTime._time_src]) === null || _d === void 0 ? void 0 : _d.DOM) === null || _e === void 0 ? void 0 : _e.classList.remove("visible");
+                        });
+                    }
+                    if (closestTimeKey) {
+                        spacer_right.clear();
+                        spacer_left.clear();
+                        this.browser.records.forEach((record) => {
+                            var _c, _d;
+                            if (!this.recordInView(record) || record.filteredOut)
+                                return;
+                            var c = (_c = this.timeseriesAttrib.getRecordValue(record)) === null || _c === void 0 ? void 0 : _c._keyIndex[closestTimeKey._time_src];
+                            if (!c)
+                                return;
+                            c.DOM.classList.add("visible"); // timeSeriesDot
+                            var placement;
+                            var ref = this.isTimeseriesChange()
+                                ? (_d = this.timeseriesAttrib.getRecordValue(record)) === null || _d === void 0 ? void 0 : _d._keyIndex[_compareKey]._value
+                                : 0;
+                            var top = this.y_Generator(c, ref);
+                            if (spacer_right.isEmpty(top)) {
+                                placement = "right";
+                                spacer_right.insertUsed(top, 30, record);
+                            }
+                            else if (spacer_left.isEmpty(top)) {
+                                placement = "left";
+                                spacer_left.insertUsed(top, 30, record);
+                            }
+                            else {
+                                return;
+                            }
+                            pofff(c, record, placement);
+                        });
+                    }
+                    prevClosestTime = closestTimeKey;
+                    return;
+                }
+                // Select closest point
+                var closestRecord = null;
+                if (!closestTimeKey) {
+                    this.rd.onRecordMouseLeave(prevClosestRecord);
+                    prevClosestRecord = null;
+                    return;
+                }
+                var closestValueDist = 999999999999999;
+                this.browser.records.forEach((record) => {
+                    var _c, _d;
+                    if (!this.recordInView(record) || record.filteredOut)
+                        return;
+                    var _ = (_c = this.timeseriesAttrib.getRecordValue(record)) === null || _c === void 0 ? void 0 : _c._keyIndex[closestTimeKey._time_src];
+                    if (!_)
+                        return;
+                    var ref = this.isTimeseriesChange()
+                        ? (_d = this.timeseriesAttrib.getRecordValue(record)) === null || _d === void 0 ? void 0 : _d._keyIndex[_compareKey]._value
+                        : 0;
+                    var _v = this.y_Generator(_, ref);
+                    var _dist = Math.abs(_v - _m[1]);
+                    if (_dist < 50 && _dist < closestValueDist) {
+                        closestRecord = record;
+                        closestValueDist = _dist;
+                    }
+                });
+                if (prevClosestRecord !== closestRecord) {
+                    this.rd.onRecordMouseLeave(prevClosestRecord);
+                    prevClosestRecord = null;
+                    if (closestRecord) {
+                        this.rd.onRecordMouseOver(closestRecord);
+                        var c = (_d = this.timeseriesAttrib.getRecordValue(closestRecord)) === null || _d === void 0 ? void 0 : _d._keyIndex[closestTimeKey._time_src];
+                        if (c) {
+                            pofff(c);
+                        }
+                    }
+                    prevClosestRecord = closestRecord;
+                }
+                else if (closestRecord) {
+                    // maybe record is the same, but the time changed?
+                    if (prevClosestTime !== closestTimeKey) {
+                        hideAllPoppers();
+                        var c = (_e = this.timeseriesAttrib.getRecordValue(closestRecord)) === null || _e === void 0 ? void 0 : _e._keyIndex[closestTimeKey._time_src];
+                        if (c) {
+                            pofff(c);
+                        }
+                    }
+                }
                 prevClosestTime = closestTimeKey;
-                return;
-            }
-            // Select closest point
-            var closestRecord = null;
-            if (!closestTimeKey) {
-                this.rd.onRecordMouseLeave(prevClosestRecord);
-                prevClosestRecord = null;
-                return;
-            }
-            var closestValueDist = 999999999999999;
-            this.browser.records.forEach((record) => {
-                var _c, _d;
-                if (!this.recordInView(record) || record.filteredOut)
-                    return;
-                var _ = (_c = this.timeseriesAttrib.getRecordValue(record)) === null || _c === void 0 ? void 0 : _c._keyIndex[closestTimeKey._time_src];
-                if (!_)
-                    return;
-                var ref = this.isTimeseriesChange()
-                    ? (_d = this.timeseriesAttrib.getRecordValue(record)) === null || _d === void 0 ? void 0 : _d._keyIndex[_compareKey]._value
-                    : 0;
-                var _v = this.y_Generator(_, ref);
-                var _dist = Math.abs(_v - _m[1]);
-                if (_dist < 50 && _dist < closestValueDist) {
-                    closestRecord = record;
-                    closestValueDist = _dist;
-                }
+                this.rd.setDimmed(!!prevClosestRecord);
             });
-            if (prevClosestRecord !== closestRecord) {
-                this.rd.onRecordMouseLeave(prevClosestRecord);
-                prevClosestRecord = null;
-                if (closestRecord) {
-                    this.rd.onRecordMouseOver(closestRecord);
-                    var c = (_c = this.timeseriesAttrib.getRecordValue(closestRecord)) === null || _c === void 0 ? void 0 : _c._keyIndex[closestTimeKey._time_src];
-                    if (c) {
-                        pofff(c);
-                    }
-                }
-                prevClosestRecord = closestRecord;
-            }
-            else if (closestRecord) {
-                // maybe record is the same, but the time changed?
-                if (prevClosestTime !== closestTimeKey) {
-                    hideAllPoppers();
-                    var c = (_d = this.timeseriesAttrib.getRecordValue(closestRecord)) === null || _d === void 0 ? void 0 : _d._keyIndex[closestTimeKey._time_src];
-                    if (c) {
-                        pofff(c);
-                    }
-                }
-            }
-            prevClosestTime = closestTimeKey;
-            this.rd.setDimmed(!!prevClosestRecord);
+            this.DOM.recordLineClippath = this.DOM.recordGroup
+                .append("clipPath")
+                .attr("id", "recordLineClippath")
+                .append("rect")
+                .attr("x", 0)
+                .attr("y", 0)
+                .attr("height", 4000);
+            // annotations
+            this.DOM.ts_annotations = this.DOM.recordBase_Timeseries
+                .append("span")
+                .attr("class", "ts_annotations");
+            this.DOM.recordBase_Timeseries
+                .append("div")
+                .attr("class", "TimeseriesColorInfo")
+                .html(i18n["Line colors are random"]);
+            // ******************************************************
+            this.DOM.timeSeriesControlGroup = this.DOM.recordBase_Timeseries
+                .append("div")
+                .attr("class", "timeSeriesControlGroup attribControlGroup");
+            this.rd.initDOM_AttribSelect("timeSeries");
+            // ******************************************************
+            this.DOM.timeAnimationClearRange.on("click", () => this.setTimeRange({ min: 0, max: 10000 })); // max is just a very large number
+            noUiSlider.create(this.DOM.timeseriesRange.node(), {
+                start: [50, 50],
+                connect: true,
+                step: 1,
+                behaviour: "tap-drag",
+                margin: 1,
+                range: {
+                    min: 0,
+                    max: 100,
+                },
+            });
+            this.timeseriesRange = this.DOM.timeseriesRange.node().noUiSlider;
+            var _update_2 = (_values, _handle, unencoded) => {
+                if (this.timeseriesRange_noUpdate)
+                    return;
+                unencoded = unencoded.map((_) => Math.round(_));
+                this.timeseriesRange_noUpdate = true;
+                this.setTimeRange({ min: unencoded[0], max: unencoded[1] });
+                delete this.timeseriesRange_noUpdate;
+            };
+            this.timeseriesRange.on("set", _update_2);
         });
-        this.DOM.recordLineClippath = this.DOM.recordGroup
-            .append("clipPath")
-            .attr("id", "recordLineClippath")
-            .append("rect")
-            .attr("x", 0)
-            .attr("y", 0)
-            .attr("height", 4000);
-        // annotations
-        this.DOM.ts_annotations = this.DOM.recordBase_Timeseries
-            .append("span")
-            .attr("class", "ts_annotations");
-        this.DOM.recordBase_Timeseries
-            .append("div")
-            .attr("class", "TimeseriesColorInfo")
-            .html(i18n["Line colors are random"]);
-        // ******************************************************
-        this.DOM.timeSeriesControlGroup = this.DOM.recordBase_Timeseries
-            .append("div")
-            .attr("class", "timeSeriesControlGroup attribControlGroup");
-        this.rd.initDOM_AttribSelect("timeSeries");
-        // ******************************************************
-        this.DOM.timeAnimationClearRange.on("click", () => this.setTimeRange({ min: 0, max: 10000 })); // max is just a very large number
-        noUiSlider.create(this.DOM.timeseriesRange.node(), {
-            start: [50, 50],
-            connect: true,
-            step: 1,
-            behaviour: "tap-drag",
-            margin: 1,
-            range: {
-                min: 0,
-                max: 100,
-            },
-        });
-        this.timeseriesRange = this.DOM.timeseriesRange.node().noUiSlider;
-        var _update_2 = (_values, _handle, unencoded) => {
-            if (this.timeseriesRange_noUpdate)
-                return;
-            unencoded = unencoded.map((_) => Math.round(_));
-            this.timeseriesRange_noUpdate = true;
-            this.setTimeRange({ min: unencoded[0], max: unencoded[1] });
-            delete this.timeseriesRange_noUpdate;
-        };
-        this.timeseriesRange.on("set", _update_2);
     }
     /** -- */
     isTimeseriesChange() {
-        return this.ts_Type.val === "ChangePct" || this.ts_Type.val === "ChangeAbs";
+        return this.ts_Type.is("ChangePct") || this.ts_Type.is("ChangeAbs");
     }
     extendRecordDOM(newRecords) {
         newRecords.append("path");
@@ -12061,16 +11968,15 @@ class RecordView_Timeseries extends RecordView {
     }
     /** -- */
     refreshTimeRange() {
+        var _c, _d;
         this.refreshScaleTime();
         this.refreshTimeseriesTicks();
-        if (this.timeSeriesChangeVsTimeKey.val &&
-            this.timeRange.min._time > this.timeSeriesChangeVsTimeKey.val._time) {
-            this.timeSeriesChangeVsTimeKey.val = this.timeRange.min;
+        if (this.timeRange.min._time > ((_c = this.timeSeriesChangeVsTimeKey.get()) === null || _c === void 0 ? void 0 : _c._time)) {
+            this.timeSeriesChangeVsTimeKey.set(this.timeRange.min);
             this.refreshTimeSeriesRangeOpts(); // updates combobox for vs.
         }
-        else if (this.timeSeriesChangeVsTimeKey.val &&
-            this.timeRange.max._time < this.timeSeriesChangeVsTimeKey.val._time) {
-            this.timeSeriesChangeVsTimeKey.val = this.timeRange.max;
+        else if (this.timeRange.max._time < ((_d = this.timeSeriesChangeVsTimeKey.get()) === null || _d === void 0 ? void 0 : _d._time)) {
+            this.timeSeriesChangeVsTimeKey.set(this.timeRange.max);
             this.refreshTimeSeriesRangeOpts(); // updates combobox for vs.
         }
         else {
@@ -12094,13 +12000,15 @@ class RecordView_Timeseries extends RecordView {
         });
     }
     refreshAttribScaleType(attrib) {
-        if (attrib instanceof Attrib_Timeseries &&
-            this.timeseriesAttrib === attrib) {
-            this.ts_valueAxisScale.val = attrib.valueScaleType.val; // apply it back to the attribute
-            if (this.ts_Type.val === "Value") {
-                this.refreshScaleValue();
+        return __awaiter(this, void 0, void 0, function* () {
+            if (attrib instanceof Attrib_Timeseries &&
+                this.timeseriesAttrib === attrib) {
+                yield this.ts_valueAxisScale.set(attrib.valueScaleType.get()); // apply it back to the attribute
+                if (this.ts_Type.is("Value")) {
+                    this.refreshScaleValue();
+                }
             }
-        }
+        });
     }
     finishSetAttrib(t) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -12118,13 +12026,12 @@ class RecordView_Timeseries extends RecordView {
                     !this.timeseriesAttrib.timeKeys.some((_) => _._time_src === this.timeRange.max._time_src)) {
                     this.setTimeRange({ min: 0, max: 10000 });
                 }
-                this.ts_valueAxisScale.val = this.timeseriesAttrib.valueScaleType.val;
-                if (this.ts_Type.val === "Rank") {
+                yield this.ts_valueAxisScale.set(this.timeseriesAttrib.valueScaleType.get());
+                if (this.ts_Type.is("Rank")) {
                     this.timeseriesAttrib.computeRecordRanks();
                 }
-                if (!this.timeSeriesChangeVsTimeKey.val) {
-                    this.timeSeriesChangeVsTimeKey.val =
-                        this.rd.config.timeSeriesChangeVsTimeKey;
+                if (!this.timeSeriesChangeVsTimeKey.get()) {
+                    yield this.timeSeriesChangeVsTimeKey.set(this.rd.config.timeSeriesChangeVsTimeKey);
                 }
                 this.refreshScaleTime();
                 this.refreshScaleValue();
@@ -12157,13 +12064,13 @@ class RecordView_Timeseries extends RecordView {
         var timeKeys = this.timeseriesAttrib.timeKeys;
         this.timeKeys_Active = timeKeys.filter((key) => key._time >= this.timeRange.min._time &&
             key._time <= this.timeRange.max._time);
-        if (this.ts_timeKeysStep.val === "limits") {
+        if (this.ts_timeKeysStep.is("limits")) {
             this.timeKeys_Active = [
                 this.timeKeys_Active[0],
                 this.timeKeys_Active[this.timeKeys_Active.length - 1],
             ];
             if (this.isTimeseriesChange()) {
-                this.timeKeys_Active.splice(1, 0, this.timeSeriesChangeVsTimeKey.val);
+                this.timeKeys_Active.splice(1, 0, this.timeSeriesChangeVsTimeKey.get());
             }
         }
         this.timeSeriesChangeVsTimeKey.refresh();
@@ -12204,7 +12111,7 @@ class RecordView_Timeseries extends RecordView {
         if (!this.timeseriesAttrib)
             return;
         // RANK    *****************************************************
-        if (this.ts_Type.val === "Rank") {
+        if (this.ts_Type.is("Rank")) {
             var timeDomain = this.scale_Time.domain();
             var inTimeDomain = (d) => true;
             if (timeDomain) {
@@ -12226,11 +12133,11 @@ class RecordView_Timeseries extends RecordView {
             this.scale_Value = d3$a.scaleLinear().domain([maxNumRecords, 1]);
         }
         // VALUE   *****************************************************
-        if (this.ts_Type.val === "Value") {
+        if (this.ts_Type.is("Value")) {
             this.scale_Value = this.timeseriesAttrib.timeSeriesScale_Value
                 .copy()
                 .nice();
-            var new_domain = this.timeseriesAttrib.getExtent_Value(this.fitValueAxis.val, // onlyFiltered
+            var new_domain = this.timeseriesAttrib.getExtent_Value(this.fitValueAxis.get(), // onlyFiltered
             this.scale_Time.domain() // in current domain
             );
             var _domain = this.scale_Value.domain();
@@ -12240,17 +12147,17 @@ class RecordView_Timeseries extends RecordView {
         }
         // CHANGE   *****************************************************
         if (this.isTimeseriesChange()) {
-            if (!this.timeSeriesChangeVsTimeKey.val) {
-                this.timeSeriesChangeVsTimeKey.val = this.timeKeys_Active[0];
+            if (!this.timeSeriesChangeVsTimeKey.get()) {
+                this.timeSeriesChangeVsTimeKey.set(this.timeKeys_Active[0]);
             }
-            var _key = this.timeSeriesChangeVsTimeKey.val._time_src;
+            var _key = this.timeSeriesChangeVsTimeKey.get()._time_src;
             var timeDomain = this.scale_Time.domain();
             var inTimeDomain = (d) => d._time >= timeDomain[0] && d._time <= timeDomain[1];
             var vizVal;
-            if (this.ts_Type.val === "ChangeAbs") {
+            if (this.ts_Type.is("ChangeAbs")) {
                 vizVal = (v, ref) => v._value - ref;
             }
-            else if (this.ts_Type.val === "ChangePct") {
+            else if (this.ts_Type.is("ChangePct")) {
                 vizVal = (v, ref) => 100 * ((v._value - ref) / ref);
             }
             var x = this.browser.records.map((record) => {
@@ -12280,7 +12187,7 @@ class RecordView_Timeseries extends RecordView {
             ChangePct: (d, ref) => this.scale_Value(ref ? (100 * (d._value - ref)) / ref : 0),
             ChangeAbs: (d, ref) => this.scale_Value(d._value - ref),
             Rank: (d) => this.scale_Value(d._rank),
-        }[this.ts_Type.val];
+        }[this.ts_Type.get()];
     }
     /** VALUE AXIS */
     refreshTicks_AxisY() {
@@ -12291,10 +12198,10 @@ class RecordView_Timeseries extends RecordView {
             _scale.base(10);
         var ticks = _scale.ticks(targetNumTicks);
         // if the values are integer only, keep only integer values here.
-        if (!this.timeseriesAttrib.hasFloat || this.ts_Type.val === "Rank") {
+        if (!this.timeseriesAttrib.hasFloat || this.ts_Type.is("Rank")) {
             ticks = ticks.filter((d) => d % 1 === 0);
         }
-        if (this.ts_Type.val === "Rank") {
+        if (this.ts_Type.is("Rank")) {
             ticks.unshift(1);
             ticks = ticks
                 .sort((a, b) => b - a)
@@ -12310,7 +12217,7 @@ class RecordView_Timeseries extends RecordView {
             ChangePct: (tick) => (tick > 0 ? "+" : "") + d3$a.format(".3s")(tick) + "%",
             ChangeAbs: (tick) => (tick > 0 ? "+" : "") + this.timeseriesAttrib.printAbbr(tick, true),
             Value: (tick) => this.timeseriesAttrib.getFormattedValue(tick, true),
-        }[this.ts_Type.val];
+        }[this.ts_Type.get()];
         var timeAxisDOM = this.DOM.root.select(".recordBase_Timeseries .recordAxis_Y > .tickGroup");
         var visiblePos = 0;
         timeAxisDOM
@@ -12353,8 +12260,8 @@ class RecordView_Timeseries extends RecordView {
             .each((tick) => {
             tick._histogram = this.timeseriesAttrib.timeKeyAttribs[tick._time_src];
         })
-            .classed("isFiltered", (tick) => { var _c; return ((_c = tick._histogram) === null || _c === void 0 ? void 0 : _c.isFiltered()) && this.ts_Type.val === "Value"; })
-            .filter((tick) => { var _c; return ((_c = tick._histogram) === null || _c === void 0 ? void 0 : _c.isFiltered()) && this.ts_Type.val === "Value"; })
+            .classed("isFiltered", (tick) => { var _c; return ((_c = tick._histogram) === null || _c === void 0 ? void 0 : _c.isFiltered()) && this.ts_Type.is("Value"); })
+            .filter((tick) => { var _c; return ((_c = tick._histogram) === null || _c === void 0 ? void 0 : _c.isFiltered()) && this.ts_Type.is("Value"); })
             .selectAll(".filterArea")
             .style("height", (event) => {
             var d = _DOM.parentNode.__data__;
@@ -12416,11 +12323,11 @@ class RecordView_Timeseries extends RecordView {
     refreshKeyLine() {
         if (!this.timeseriesAttrib)
             return;
-        if (!this.timeSeriesChangeVsTimeKey.val)
+        if (!this.timeSeriesChangeVsTimeKey.get())
             return;
         this.DOM.root
             .select(".recordAxis_X > .keyLine")
-            .style("transform", `translateX(${this.scale_Time(this.timeSeriesChangeVsTimeKey.val._time)})`);
+            .style("transform", `translateX(${this.scale_Time(this.timeSeriesChangeVsTimeKey.get()._time)})`);
     }
     /** -- */
     onRecordMouseLeave() {
@@ -12469,7 +12376,7 @@ class RecordView_Timeseries extends RecordView {
                     var targetPos = me.scale_Value.invert(d3$a.pointer(event, DOM)[1]);
                     var _min = initPos > targetPos ? targetPos : initPos;
                     var _max = initPos > targetPos ? initPos : targetPos;
-                    if (me.ts_Type.val === "Rank") {
+                    if (me.ts_Type.is("Rank")) {
                         var _minRank = Math.floor(_min);
                         var _maxRank = Math.ceil(_max);
                         me.browser.records.forEach((r) => {
@@ -12653,13 +12560,13 @@ class RecordView_Timeseries extends RecordView {
         this.updateRecordVisibility();
         this.updateDotVisibility();
         this.fitValueAxis.refresh();
-        if (this.ts_Type.val === "Rank") {
+        if (this.ts_Type.is("Rank")) {
             this.timeseriesAttrib.computeRecordRanks();
             this.refreshScaleValue();
             //
         }
-        else if (this.ts_Type.val === "Value") {
-            if (!this.browser.isFiltered() || this.fitValueAxis.val) {
+        else if (this.ts_Type.is("Value")) {
+            if (!this.browser.isFiltered() || this.fitValueAxis.get()) {
                 // resets to default scale
                 this.refreshScaleValue();
             }
@@ -12732,14 +12639,13 @@ class RecordView_Timeseries extends RecordView {
     }
     /** -- */
     refreshLabelOverlaps() {
+        var _c;
         if (!this.timeseriesAttrib)
             return;
         var maxTime = this.scale_Time.domain()[1].getTime();
         var lastTime = this.timeseriesAttrib.timeKeys.find((tk) => tk._time.getTime() === maxTime)._time_src;
         var spacer = new LabelSpacer();
-        var _compareKey = this.timeSeriesChangeVsTimeKey.val
-            ? this.timeSeriesChangeVsTimeKey.val._time_src
-            : null;
+        var _compareKey = ((_c = this.timeSeriesChangeVsTimeKey.get()) === null || _c === void 0 ? void 0 : _c._time_src) || null;
         this.browser.records.forEach((record) => {
             var _c;
             record._view._labelHidden = true;
@@ -12807,7 +12713,7 @@ class RecordView_Timeseries extends RecordView {
             return;
         this.DOM.root.attr("data-ts_Type", this.ts_Type);
         this.refreshYGenerator();
-        if (this.ts_Type.val === "Rank") {
+        if (this.ts_Type.is("Rank")) {
             this.timeseriesAttrib.computeRecordRanks();
         }
         if (this.isTimeseriesChange()) {
@@ -12827,6 +12733,7 @@ class RecordView_Timeseries extends RecordView {
     }
     /** -- */
     refreshRecordVis() {
+        var _c;
         if (!this.ts_Type)
             return;
         if (!this.timeseriesAttrib)
@@ -12849,13 +12756,11 @@ class RecordView_Timeseries extends RecordView {
         var drawMaxTime = timeKeys[Math.min(this.timeRange.max._index + 5, timeKeys.length - 1)]
             ._time;
         var inWiderTimeDomain = (d) => d._time >= drawMinTime && d._time <= drawMaxTime;
-        var _compareKey = this.timeSeriesChangeVsTimeKey.val
-            ? this.timeSeriesChangeVsTimeKey.val._time_src
-            : "";
+        var _compareKey = ((_c = this.timeSeriesChangeVsTimeKey.get()) === null || _c === void 0 ? void 0 : _c._time_src) || "";
         var _refVal;
         var lineGenerator = d3$a
             .line()
-            .curve(this.ts_Type.val === "Rank" ? d3$a.curveLinear : d3$a.curveMonotoneX)
+            .curve(this.ts_Type.is("Rank") ? d3$a.curveLinear : d3$a.curveMonotoneX)
             .x(x_Generator)
             .y((d) => this.y_Generator(d, _refVal))
             .defined((d) => {
@@ -12866,7 +12771,7 @@ class RecordView_Timeseries extends RecordView {
         });
         var topGap = 15;
         this.scale_Value.rangeRound([this.rd.curHeight - (topGap + 100), topGap]);
-        var slopeOnly = this.ts_timeKeysStep.val === "limits";
+        var slopeOnly = this.ts_timeKeysStep.is("limits");
         var timeKeys_src = {};
         this.timeKeys_Active.forEach((_) => {
             timeKeys_src[_._time_src] = true;
@@ -12996,6 +12901,8 @@ class RecordView_Map extends RecordView {
     refreshRecordSizes() {
         if (this.geoAttrib.geoType !== "Point")
             return;
+        if (!this.DOM.recordGroup)
+            return;
         var pathSelection = this.DOM.recordGroup
             .selectAll(".kshfRecord > path")
             .transition()
@@ -13044,126 +12951,131 @@ class RecordView_Map extends RecordView {
         this.rd.refreshSizeLegend(); // needed to reset usesSizeAttrib class
     }
     initView_DOM() {
-        // Do not initialize twice
-        if (this.DOM.recordBase_Map) {
-            this.DOM.recordGroup = this.DOM.recordMap_SVG.select(".recordGroup");
-            this.DOM.kshfRecords = this.DOM.recordGroup.selectAll(".kshfRecord");
-            this.DOM.kshfRecords_Path = this.DOM.recordGroup.selectAll(".kshfRecord > path.glyph_Main");
-            this.leafletRecordMap.invalidateSize(); // chart area may have changed
-            return;
-        }
-        var me = this;
-        this.DOM.recordBase_Map = this.rd.DOM.recordDisplayWrapper
-            .append("div")
-            .attr("class", "recordBase_Map");
-        this.mapConfig = Util.mergeConfig(Base.map, this.rd.config.mapConfig || {});
-        function resetPointSizes() {
-            if (this.geoAttrib.geoType === "Point") {
-                if (!this.rd.config.mapUsePins) {
-                    this.DOM.recordGroup
-                        .selectAll(".kshfRecord > path")
-                        .attr("d", Util.getCirclePath());
-                }
-                else {
-                    this.DOM.recordGroup
-                        .selectAll(".kshfRecord > path")
-                        .attr("transform", "scale(0.0001)");
+        return __awaiter(this, void 0, void 0, function* () {
+            // Do not initialize twice
+            if (this.DOM.recordBase_Map) {
+                this.DOM.recordGroup = this.DOM.recordMap_SVG.select(".recordGroup");
+                this.DOM.kshfRecords = this.DOM.recordGroup.selectAll(".kshfRecord");
+                this.DOM.kshfRecords_Path = this.DOM.recordGroup.selectAll(".kshfRecord > path.glyph_Main");
+                this.leafletRecordMap.invalidateSize(); // chart area may have changed
+                return;
+            }
+            if (!window.L) {
+                yield import('./vendor_mapping.js').then(function (n) { return n.l; });
+            }
+            var me = this;
+            this.DOM.recordBase_Map = this.rd.DOM.recordDisplayWrapper
+                .append("div")
+                .attr("class", "recordBase_Map");
+            this.mapConfig = Util.mergeConfig(Base.map, this.rd.config.mapConfig || {});
+            function resetPointSizes() {
+                if (this.geoAttrib.geoType === "Point") {
+                    if (!this.rd.config.mapUsePins) {
+                        this.DOM.recordGroup
+                            .selectAll(".kshfRecord > path")
+                            .attr("d", Util.getCirclePath());
+                    }
+                    else {
+                        this.DOM.recordGroup
+                            .selectAll(".kshfRecord > path")
+                            .attr("transform", "scale(0.0001)");
+                    }
                 }
             }
-        }
-        this.leafletRecordMap = L.map(this.DOM.recordBase_Map.node(), this.mapConfig.leafConfig)
-            .on("viewreset", function () {
-            if (!this._zoomInit_)
-                return;
-            this._zoomInit_ = null;
-            me.rd.DOM.recordDisplayWrapper.classed("dragging", false);
-            me.refreshRecordVis();
-        })
-            .on("movestart", function () {
-            me.rd.DOM.recordDisplayWrapper.classed("dragging", true);
-            me.browser.DOM.root.classed("noPointerEvents", true);
-            resetPointSizes.call(me);
-            this._zoomInit_ = this.getZoom();
-        })
-            .on("moveend", function () {
-            me.rd.DOM.recordDisplayWrapper.classed("dragging", false);
-            me.browser.DOM.root.classed("noPointerEvents", false);
-            me.rd.refreshViz_Compare_All();
-            me.rd.refreshRecordVis();
-            this._zoomInit_ = null;
-        })
-            // When zoom is triggered by fly, the leaflet-zoom-anim is not set.
-            .on("zoomstart", () => {
-            resetPointSizes.call(this);
-            var _ = d3$9.select(this.leafletRecordMap.getPane("mapPane"));
-            _.classed("leaflet-zoom-anim", true);
-        })
-            .on("zoomend", () => {
-            var _ = d3$9.select(this.leafletRecordMap.getPane("mapPane"));
-            _.classed("leaflet-zoom-anim", false);
-        });
-        if (!this.mapConfig.tileConfig.disabled) {
-            let leafletTileLayer = new L.TileLayer(this.mapConfig.tileTemplate, this.mapConfig.tileConfig);
-            this.leafletRecordMap.addLayer(leafletTileLayer);
-        }
-        this.leafletRecordMap.attributionControl.setPosition("topright");
-        this.recordGeoPath = d3$9.geoPath().projection(d3$9.geoTransform({
-            point: function (x, y) {
-                var point = me.leafletRecordMap.latLngToLayerPoint(new L.latLng(y, x));
-                this.stream.point(point.x, point.y);
-            },
-        }));
-        this.recordGeoPath.pointRadius(this.rd.recordPointSize.val);
-        this.DOM.recordBase_Map.select(".leaflet-tile-pane");
-        this.DOM.recordMap_SVG = d3$9
-            .select(this.leafletRecordMap.getPanes().overlayPane)
-            .append("svg")
-            .attr("xmlns", "http://www.w3.org/2000/svg")
-            .attr("class", "recordMap_SVG");
-        var _defs = this.DOM.recordMap_SVG.append("defs");
-        _defs
-            .append("filter")
-            .attr("id", "pointDropShadow")
-            .attr("height", "200%")
-            .attr("width", "200%")
-            .call((filter) => {
-            filter
-                .append("feGaussianBlur")
-                .attr("in", "SourceAlpha")
-                .attr("stdDeviation", 3);
-            filter
-                .append("feOffset")
-                .attr("dx", 2)
-                .attr("dy", 2)
-                .attr("result", "offsetblur");
-            filter
-                .append("feComponentTransfer")
-                .append("feFuncA")
-                .attr("type", "linear")
-                .attr("slope", 0.5);
-            filter.append("feMerge").call((merge) => {
-                merge.append("feMergeNode");
-                merge.append("feMergeNode").attr("in", "SourceGraphic");
+            this.leafletRecordMap = L.map(this.DOM.recordBase_Map.node(), this.mapConfig.leafConfig)
+                .on("viewreset", function () {
+                if (!this._zoomInit_)
+                    return;
+                this._zoomInit_ = null;
+                me.rd.DOM.recordDisplayWrapper.classed("dragging", false);
+                me.refreshRecordVis();
+            })
+                .on("movestart", function () {
+                me.rd.DOM.recordDisplayWrapper.classed("dragging", true);
+                me.browser.DOM.root.classed("noPointerEvents", true);
+                resetPointSizes.call(me);
+                this._zoomInit_ = this.getZoom();
+            })
+                .on("moveend", function () {
+                me.rd.DOM.recordDisplayWrapper.classed("dragging", false);
+                me.browser.DOM.root.classed("noPointerEvents", false);
+                me.rd.refreshViz_Compare_All();
+                me.rd.refreshRecordVis();
+                this._zoomInit_ = null;
+            })
+                // When zoom is triggered by fly, the leaflet-zoom-anim is not set.
+                .on("zoomstart", () => {
+                resetPointSizes.call(this);
+                var _ = d3$9.select(this.leafletRecordMap.getPane("mapPane"));
+                _.classed("leaflet-zoom-anim", true);
+            })
+                .on("zoomend", () => {
+                var _ = d3$9.select(this.leafletRecordMap.getPane("mapPane"));
+                _.classed("leaflet-zoom-anim", false);
             });
+            if (!this.mapConfig.tileConfig.disabled) {
+                let leafletTileLayer = new L.TileLayer(this.mapConfig.tileTemplate, this.mapConfig.tileConfig);
+                this.leafletRecordMap.addLayer(leafletTileLayer);
+            }
+            this.leafletRecordMap.attributionControl.setPosition("topright");
+            this.recordGeoPath = d3$9.geoPath().projection(d3$9.geoTransform({
+                point: function (x, y) {
+                    var point = me.leafletRecordMap.latLngToLayerPoint(new L.latLng(y, x));
+                    this.stream.point(point.x, point.y);
+                },
+            }));
+            this.recordGeoPath.pointRadius(this.rd.recordPointSize.get());
+            this.DOM.recordBase_Map.select(".leaflet-tile-pane");
+            this.DOM.recordMap_SVG = d3$9
+                .select(this.leafletRecordMap.getPanes().overlayPane)
+                .append("svg")
+                .attr("xmlns", "http://www.w3.org/2000/svg")
+                .attr("class", "recordMap_SVG");
+            var _defs = this.DOM.recordMap_SVG.append("defs");
+            _defs
+                .append("filter")
+                .attr("id", "pointDropShadow")
+                .attr("height", "200%")
+                .attr("width", "200%")
+                .call((filter) => {
+                filter
+                    .append("feGaussianBlur")
+                    .attr("in", "SourceAlpha")
+                    .attr("stdDeviation", 3);
+                filter
+                    .append("feOffset")
+                    .attr("dx", 2)
+                    .attr("dy", 2)
+                    .attr("result", "offsetblur");
+                filter
+                    .append("feComponentTransfer")
+                    .append("feFuncA")
+                    .attr("type", "linear")
+                    .attr("slope", 0.5);
+                filter.append("feMerge").call((merge) => {
+                    merge.append("feMergeNode");
+                    merge.append("feMergeNode").attr("in", "SourceGraphic");
+                });
+            });
+            // The fill pattern definition in SVG, used to denote geo-objects with no data.
+            // http://stackoverflow.com/questions/17776641/fill-rect-with-pattern
+            _defs
+                .append("pattern")
+                .attr("id", "diagonalHatch")
+                .attr("patternUnits", "userSpaceOnUse")
+                .attr("width", 4)
+                .attr("height", 4)
+                .append("path")
+                .attr("d", "M-1,1 l2,-2 M0,4 l4,-4 M3,5 l2,-2")
+                .attr("stroke", "gray")
+                .attr("stroke-width", 1);
+            this.DOM.clusterGroup = this.DOM.recordMap_SVG
+                .append("g")
+                .attr("class", "leaflet-zoom-hide clusterGroup");
+            this.DOM.recordGroup = this.DOM.recordMap_SVG
+                .append("g")
+                .attr("class", "leaflet-zoom-hide recordGroup");
         });
-        // The fill pattern definition in SVG, used to denote geo-objects with no data.
-        // http://stackoverflow.com/questions/17776641/fill-rect-with-pattern
-        _defs
-            .append("pattern")
-            .attr("id", "diagonalHatch")
-            .attr("patternUnits", "userSpaceOnUse")
-            .attr("width", 4)
-            .attr("height", 4)
-            .append("path")
-            .attr("d", "M-1,1 l2,-2 M0,4 l4,-4 M3,5 l2,-2")
-            .attr("stroke", "gray")
-            .attr("stroke-width", 1);
-        this.DOM.clusterGroup = this.DOM.recordMap_SVG
-            .append("g")
-            .attr("class", "leaflet-zoom-hide clusterGroup");
-        this.DOM.recordGroup = this.DOM.recordMap_SVG
-            .append("g")
-            .attr("class", "leaflet-zoom-hide recordGroup");
     }
     finishSetAttrib(t) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -13198,7 +13110,7 @@ class RecordView_Map extends RecordView {
             return;
         // update rendering of point clusters
         if (this.rd.hasAggregates()) {
-            var sideBySide = !this.browser.stackedCompare.val;
+            var sideBySide = this.browser.stackedCompare.is(false);
             // compute "offset" for each aggregate
             this.geoAttrib._aggrs.forEach((aggr) => {
                 var _offset = 0;
@@ -13588,16 +13500,16 @@ class RecordView_Scatter extends RecordView {
                 if (!((_a = this.scatterXAttrib) === null || _a === void 0 ? void 0 : _a.supportsLogScale()))
                     return "linear";
             },
-            onSet: (v) => {
+            onSet: (v) => __awaiter(this, void 0, void 0, function* () {
                 if (!this.scatterXAttrib)
                     return;
                 if (!this.scatterXAttrib.hasTimeSeriesParent()) {
-                    this.scatterXAttrib.valueScaleType.val = v;
+                    yield this.scatterXAttrib.valueScaleType.set(v);
                 }
-                else {
-                    this.scatterXAttrib.timeseriesParent.valueScaleType.val = v;
+                else if (v !== "auto") {
+                    yield this.scatterXAttrib.timeseriesParent.valueScaleType.set(v);
                 }
-            },
+            }),
         });
         this.scatter_yAxisScale = new Config({
             parent: this,
@@ -13616,16 +13528,16 @@ class RecordView_Scatter extends RecordView {
                 if (!((_a = this.scatterYAttrib) === null || _a === void 0 ? void 0 : _a.supportsLogScale()))
                     return "linear";
             },
-            onSet: (v) => {
+            onSet: (v) => __awaiter(this, void 0, void 0, function* () {
                 if (!this.scatterYAttrib)
                     return;
                 if (!this.scatterYAttrib.hasTimeSeriesParent()) {
-                    this.scatterYAttrib.valueScaleType.val = v;
+                    yield this.scatterYAttrib.valueScaleType.set(v);
                 }
-                else {
-                    this.scatterYAttrib.timeseriesParent.valueScaleType.val = v;
+                else if (v !== "auto") {
+                    yield this.scatterYAttrib.timeseriesParent.valueScaleType.set(v);
                 }
-            },
+            }),
         });
         ["scatter_showTrails", "scatter_xAxisScale", "scatter_yAxisScale"].forEach((t) => {
             this[t].val = config[t];
@@ -13677,7 +13589,6 @@ class RecordView_Scatter extends RecordView {
         this.rd.refreshAttribOptions("scatterY");
         this.rd.refreshRecordDOM();
         this.refreshScales();
-        // calls a lot of functions,
         this.zoomToFit();
         this.refreshQueryBox_Filter();
         this.rd.updateRecordSizeScale();
@@ -13685,175 +13596,163 @@ class RecordView_Scatter extends RecordView {
     }
     /** -- */
     initView_DOM() {
-        // set CSS variables
-        this.browser.DOM.root
-            .node()
-            .style.setProperty("--width_scatter_margin_left", Base.width_scatter_margin_left + "px");
-        this.browser.DOM.root
-            .node()
-            .style.setProperty("--height_scatter_margin_bottom", Base.height_scatter_margin_bottom + "px");
-        if (this.DOM.recordBase_Scatter) {
-            this.DOM.recordGroup = this.DOM.recordBase_Scatter.select(".recordGroup");
-            this.DOM.kshfRecords =
-                this.DOM.recordGroup_Scatter.selectAll(".kshfRecord");
-            this.DOM.kshfRecords_Path = this.DOM.recordGroup.selectAll(".kshfRecord > path.glyph_Main");
-            this.DOM.linkGroup = this.DOM.recordGroup_Scatter.select(".linkGroup");
-            return; // Do not initialize twice
-        }
-        this.DOM.recordBase_Scatter = this.DOM.recordDisplayWrapper
-            .append("div")
-            .attr("class", "recordBase_Scatter")
-            .call(this.scatterZoom);
-        this.DOM.recordBase_Scatter
-            .append("span")
-            .attr("class", "ScatterControl-SwapAxis")
-            .tooltip(i18n.SwapAxis)
-            .on("mousedown", (event) => {
-            event.stopPropagation();
-        })
-            .on("mouseup", (event) => {
-            event.stopPropagation();
-        })
-            .on("dblclick", (event) => {
-            event.stopPropagation();
-        })
-            .on("wheel", (event) => {
-            event.stopPropagation();
-        })
-            .on("click", (event) => {
-            this.swapAxis();
-            event.stopPropagation();
-        })
-            .append("i")
-            .attr("class", "far fa-exchange");
-        // recordAxis_X, recordAxis_Y
-        ["X", "Y"].forEach((a) => {
-            this.DOM["recordAxis_" + a] = this.DOM.recordBase_Scatter
+        return __awaiter(this, void 0, void 0, function* () {
+            // set CSS variables
+            this.browser.DOM.root
+                .node()
+                .style.setProperty("--width_scatter_margin_left", Base.width_scatter_margin_left + "px");
+            this.browser.DOM.root
+                .node()
+                .style.setProperty("--height_scatter_margin_bottom", Base.height_scatter_margin_bottom + "px");
+            if (this.DOM.recordBase_Scatter) {
+                this.DOM.recordGroup = this.DOM.recordBase_Scatter.select(".recordGroup");
+                this.DOM.kshfRecords =
+                    this.DOM.recordGroup_Scatter.selectAll(".kshfRecord");
+                this.DOM.kshfRecords_Path = this.DOM.recordGroup.selectAll(".kshfRecord > path.glyph_Main");
+                this.DOM.linkGroup = this.DOM.recordGroup_Scatter.select(".linkGroup");
+                return; // Do not initialize twice
+            }
+            this.DOM.recordBase_Scatter = this.DOM.recordDisplayWrapper
                 .append("div")
-                .attr("class", "recordAxis recordAxis_" + a)
-                .html("<div class='tickGroup'></div><div class='onRecordLine'><div class='tickLine'></div><div class='tickText'></div></div>");
-        });
-        this.DOM.recordGroup_Scatter = this.DOM.recordBase_Scatter
-            .append("div")
-            .attr("class", "recordGroup_Scatter_Wrapper")
-            .append("div")
-            .attr("class", "recordGroup_Scatter");
-        ["X", "Y"].forEach((axis) => {
-            this.DOM["scatter" + axis + "ControlGroup"] = this.DOM.recordBase_Scatter
-                .append("div")
-                .attr("class", "recordGroup_Scatter_" + axis + "Axis_Options")
-                .on("mousedown", (event) => {
-                event.stopPropagation();
-            })
-                .on("mouseup", (event) => {
-                event.stopPropagation();
-            })
-                .on("dbclick", (event) => {
-                event.stopPropagation();
-            })
-                .on("wheel", (event) => {
-                event.stopPropagation();
-            })
+                .attr("class", "recordBase_Scatter")
+                .call(this.scatterZoom);
+            this.DOM.recordBase_Scatter
                 .append("span")
-                .attr("class", "scatter" + axis + "ControlGroup attribControlGroup");
-            this.rd.initDOM_AttribSelect(axis === "X" ? "scatterX" : "scatterY");
-        });
-        var _svg = this.DOM.recordGroup_Scatter
-            .append("svg")
-            .attr("xmlns", "http://www.w3.org/2000/svg");
-        this.DOM.recordGroup = _svg.append("g").attr("class", "recordGroup");
-        this.DOM.recordTrail = _svg.append("g").attr("class", "recordTrail");
-        this.DOM.recordTrail_Path = this.DOM.recordTrail
-            .append("path")
-            .attr("class", "recordTrail_Path");
-        this.insertQueryBoxes(this.DOM.recordGroup_Scatter, 
-        // setSizeCb
-        (event, t) => {
-            if (event.which !== 1)
-                return; // only respond to left-click
-            this.DOM.recordDisplayWrapper
-                .classed("dragging", true)
-                .classed("drawSelecting", true);
-            d3$8.select("body")
-                .on("mousemove", (event2) => {
-                var targetPos = d3$8
-                    .pointer(event2, this.DOM.recordGroup_Scatter.node().parentNode)
-                    .map((_, i) => this["scatterAxisScale_" + (i ? "Y" : "X")].invert(_));
-                if (t === "l") {
-                    this.scatterXAttrib.setRangeFilter_Custom(targetPos[0], this.scatterXAttrib.summaryFilter.active.maxV);
-                }
-                if (t === "r") {
-                    this.scatterXAttrib.setRangeFilter_Custom(this.scatterXAttrib.summaryFilter.active.minV, targetPos[0]);
-                }
-                if (t === "t") {
-                    this.scatterYAttrib.setRangeFilter_Custom(this.scatterYAttrib.summaryFilter.active.minV, targetPos[1]);
-                }
-                if (t === "b") {
-                    this.scatterYAttrib.setRangeFilter_Custom(targetPos[1], this.scatterYAttrib.summaryFilter.active.minV);
-                }
-                this.refreshQueryBox_Filter();
+                .attr("class", "ScatterControl-SwapAxis")
+                .tooltip(i18n.SwapAxis)
+                .on("mousedown", (event) => event.stopPropagation())
+                .on("mouseup", (event) => event.stopPropagation())
+                .on("dblclick", (event) => event.stopPropagation())
+                .on("wheel", (event) => event.stopPropagation())
+                .on("click", (event) => {
+                this.swapAxis();
+                event.stopPropagation();
             })
-                .on("mouseup", () => {
+                .append("i")
+                .attr("class", "far fa-exchange");
+            // recordAxis_X, recordAxis_Y
+            ["X", "Y"].forEach((a) => {
+                this.DOM["recordAxis_" + a] = this.DOM.recordBase_Scatter
+                    .append("div")
+                    .attr("class", "recordAxis recordAxis_" + a)
+                    .html("<div class='tickGroup'></div><div class='onRecordLine'><div class='tickLine'></div><div class='tickText'></div></div>");
+            });
+            this.DOM.recordGroup_Scatter = this.DOM.recordBase_Scatter
+                .append("div")
+                .attr("class", "recordGroup_Scatter_Wrapper")
+                .append("div")
+                .attr("class", "recordGroup_Scatter");
+            ["X", "Y"].forEach((axis) => {
+                this.DOM["scatter" + axis + "ControlGroup"] = this.DOM.recordBase_Scatter
+                    .append("div")
+                    .attr("class", "recordGroup_Scatter_" + axis + "Axis_Options")
+                    .on("mousedown", (event) => event.stopPropagation())
+                    .on("mouseup", (event) => event.stopPropagation())
+                    .on("dbclick", (event) => event.stopPropagation())
+                    .on("wheel", (event) => event.stopPropagation())
+                    .append("span")
+                    .attr("class", "scatter" + axis + "ControlGroup attribControlGroup");
+                this.rd.initDOM_AttribSelect(axis === "X" ? "scatterX" : "scatterY");
+            });
+            var _svg = this.DOM.recordGroup_Scatter
+                .append("svg")
+                .attr("xmlns", "http://www.w3.org/2000/svg");
+            this.DOM.recordGroup = _svg.append("g").attr("class", "recordGroup");
+            this.DOM.recordTrail = _svg.append("g").attr("class", "recordTrail");
+            this.DOM.recordTrail_Path = this.DOM.recordTrail
+                .append("path")
+                .attr("class", "recordTrail_Path");
+            this.insertQueryBoxes(this.DOM.recordGroup_Scatter, 
+            // setSizeCb
+            (event, t) => {
+                if (event.which !== 1)
+                    return; // only respond to left-click
                 this.DOM.recordDisplayWrapper
-                    .classed("dragging", false)
-                    .classed("drawSelecting", false);
-                d3$8.select("body").on("mousemove", null).on("mouseup", null);
+                    .classed("dragging", true)
+                    .classed("drawSelecting", true);
+                d3$8.select("body")
+                    .on("mousemove", (event2) => {
+                    var targetPos = d3$8
+                        .pointer(event2, this.DOM.recordGroup_Scatter.node().parentNode)
+                        .map((_, i) => this["scatterAxisScale_" + (i ? "Y" : "X")].invert(_));
+                    if (t === "l") {
+                        this.scatterXAttrib.setRangeFilter_Custom(targetPos[0], this.scatterXAttrib.summaryFilter.active.maxV);
+                    }
+                    if (t === "r") {
+                        this.scatterXAttrib.setRangeFilter_Custom(this.scatterXAttrib.summaryFilter.active.minV, targetPos[0]);
+                    }
+                    if (t === "t") {
+                        this.scatterYAttrib.setRangeFilter_Custom(this.scatterYAttrib.summaryFilter.active.minV, targetPos[1]);
+                    }
+                    if (t === "b") {
+                        this.scatterYAttrib.setRangeFilter_Custom(targetPos[1], this.scatterYAttrib.summaryFilter.active.minV);
+                    }
+                    this.refreshQueryBox_Filter();
+                })
+                    .on("mouseup", () => {
+                    this.DOM.recordDisplayWrapper
+                        .classed("dragging", false)
+                        .classed("drawSelecting", false);
+                    d3$8.select("body").on("mousemove", null).on("mouseup", null);
+                });
+                event.preventDefault();
+                event.stopPropagation();
+            }, 
+            // drag callback
+            (event) => {
+                if (event.which !== 1)
+                    return; // only respond to left-click
+                this.DOM.recordDisplayWrapper.classed("dragging", true);
+                var initScreenPos = d3$8.pointer(event, this.DOM.recordGroup_Scatter.node().parentNode);
+                var initMin_X = this.scatterAxisScale_X(this.scatterXAttrib.summaryFilter.active.minV);
+                var initMax_X = this.scatterAxisScale_X(this.scatterXAttrib.summaryFilter.active.maxV);
+                var initMin_Y = this.scatterAxisScale_Y(this.scatterYAttrib.summaryFilter.active.minV);
+                var initMax_Y = this.scatterAxisScale_Y(this.scatterYAttrib.summaryFilter.active.maxV);
+                d3$8.select("body")
+                    .on("mousemove", (event3) => {
+                    var curScreenPos = d3$8.pointer(event3, this.DOM.recordGroup_Scatter.node().parentNode);
+                    var diffX = initScreenPos[0] - curScreenPos[0];
+                    var diffY = initScreenPos[1] - curScreenPos[1];
+                    this.scatterYAttrib.setRangeFilter_Custom(this.scatterAxisScale_Y.invert(initMin_Y - diffY), this.scatterAxisScale_Y.invert(initMax_Y - diffY));
+                    this.scatterXAttrib.setRangeFilter_Custom(this.scatterAxisScale_X.invert(initMin_X - diffX), this.scatterAxisScale_X.invert(initMax_X - diffX));
+                    this.refreshQueryBox_Filter();
+                })
+                    .on("mouseup", () => {
+                    this.DOM.recordDisplayWrapper.classed("dragging", false);
+                    d3$8.select("body").on("mousemove", null).on("mouseup", null);
+                });
+                event.preventDefault();
+                event.stopPropagation();
+            }, 
+            // click callback
+            (event, d) => {
+                if (d === "Filter") {
+                    this.scatterXAttrib.summaryFilter.clearFilter();
+                    this.scatterYAttrib.summaryFilter.clearFilter();
+                }
+                else {
+                    this.browser.clearSelect_Compare(d);
+                    this.displayQueryBox(d, false);
+                }
+                event.currentTarget.tippy.hide();
             });
-            event.preventDefault();
-            event.stopPropagation();
-        }, 
-        // drag callback
-        (event) => {
-            if (event.which !== 1)
-                return; // only respond to left-click
-            this.DOM.recordDisplayWrapper.classed("dragging", true);
-            var initScreenPos = d3$8.pointer(event, this.DOM.recordGroup_Scatter.node().parentNode);
-            var initMin_X = this.scatterAxisScale_X(this.scatterXAttrib.summaryFilter.active.minV);
-            var initMax_X = this.scatterAxisScale_X(this.scatterXAttrib.summaryFilter.active.maxV);
-            var initMin_Y = this.scatterAxisScale_Y(this.scatterYAttrib.summaryFilter.active.minV);
-            var initMax_Y = this.scatterAxisScale_Y(this.scatterYAttrib.summaryFilter.active.maxV);
-            d3$8.select("body")
-                .on("mousemove", (event3) => {
-                var curScreenPos = d3$8.pointer(event3, this.DOM.recordGroup_Scatter.node().parentNode);
-                var diffX = initScreenPos[0] - curScreenPos[0];
-                var diffY = initScreenPos[1] - curScreenPos[1];
-                this.scatterYAttrib.setRangeFilter_Custom(this.scatterAxisScale_Y.invert(initMin_Y - diffY), this.scatterAxisScale_Y.invert(initMax_Y - diffY));
-                this.scatterXAttrib.setRangeFilter_Custom(this.scatterAxisScale_X.invert(initMin_X - diffX), this.scatterAxisScale_X.invert(initMax_X - diffX));
-                this.refreshQueryBox_Filter();
-            })
-                .on("mouseup", () => {
-                this.DOM.recordDisplayWrapper.classed("dragging", false);
-                d3$8.select("body").on("mousemove", null).on("mouseup", null);
-            });
-            event.preventDefault();
-            event.stopPropagation();
-        }, 
-        // click callback
-        (event, d) => {
-            if (d === "Filter") {
-                this.scatterXAttrib.summaryFilter.clearFilter();
-                this.scatterYAttrib.summaryFilter.clearFilter();
-            }
-            else {
-                this.browser.clearSelect_Compare(d);
-                this.displayQueryBox(d, false);
-            }
-            event.currentTarget.tippy.hide();
         });
     }
     refreshAttribScaleType(attrib) {
-        if (!this.scatterXAttrib || !this.scatterYAttrib)
-            return;
-        if (this.scatterXAttrib === attrib ||
-            this.scatterXAttrib.timeseriesParent === attrib) {
-            this.scatter_xAxisScale.val = this.scatterXAttrib.valueScaleType.val;
-            this.refreshRecordVis();
-        }
-        if (this.scatterYAttrib === attrib ||
-            this.scatterYAttrib.timeseriesParent === attrib) {
-            this.scatter_yAxisScale.val = this.scatterYAttrib.valueScaleType.val;
-            this.refreshRecordVis();
-        }
+        return __awaiter(this, void 0, void 0, function* () {
+            if (!this.scatterXAttrib || !this.scatterYAttrib)
+                return;
+            if (this.scatterXAttrib === attrib ||
+                this.scatterXAttrib.timeseriesParent === attrib) {
+                yield this.scatter_xAxisScale.set(this.scatterXAttrib.valueScaleType.get());
+                this.refreshRecordVis();
+            }
+            if (this.scatterYAttrib === attrib ||
+                this.scatterYAttrib.timeseriesParent === attrib) {
+                yield this.scatter_yAxisScale.set(this.scatterYAttrib.valueScaleType.get());
+                this.refreshRecordVis();
+            }
+        });
     }
     refreshAttribUnitName(attrib) {
         this.refreshScatterTicks();
@@ -13870,10 +13769,10 @@ class RecordView_Scatter extends RecordView {
             }
             else if (t === "scatterX" || t === "scatterY") {
                 if (t === "scatterX") {
-                    this.scatter_xAxisScale.val = this.scatterXAttrib.valueScaleType.val;
+                    this.scatter_xAxisScale.set(this.scatterXAttrib.valueScaleType.get());
                 }
                 if (t === "scatterY") {
-                    this.scatter_yAxisScale.val = this.scatterYAttrib.valueScaleType.val;
+                    this.scatter_yAxisScale.set(this.scatterYAttrib.valueScaleType.get());
                 }
                 this.refreshScales();
                 this.refreshLabelOverlaps();
@@ -14316,7 +14215,7 @@ class RecordView_Scatter extends RecordView {
                 .select(".onRecordLine > .tickText")
                 .html(attrib.getFormattedValue(record._valueCache[acc], false));
         });
-        if (!this.scatter_showTrails.val)
+        if (this.scatter_showTrails.is(false))
             return;
         if (this.scatterYAttrib.hasTimeSeriesParent() &&
             this.scatterXAttrib.hasTimeSeriesParent()) {
@@ -14517,7 +14416,7 @@ class Block_Timestamp extends Block_Interval {
                         .toJSDate();
                     if ((d === "min" && selectedDate < me.attrib.summaryFilter.active.minV) ||
                         (d === "max" && selectedDate > me.attrib.summaryFilter.active.maxV)) {
-                        me.zoomed.val = false;
+                        me.zoomed.set(false);
                     }
                     var minV = me.attrib.summaryFilter.active.minV;
                     var maxV = me.attrib.summaryFilter.active.minV;
@@ -14534,16 +14433,16 @@ class Block_Timestamp extends Block_Interval {
         pikaday.show();
     }
     getScaleNicing() {
-        return this.width_histogram / (this.inDashboard ? this.optimumBinWidth.val : 10) * 1;
+        return this.width_histogram / (this.inDashboard ? this.optimumBinWidth.get() : 10) * 1;
     }
     hasStaticHeight() {
-        return !this.showHistogram.val;
+        return this.showHistogram.is(false);
     }
     zoomableStatus() {
         if (this.attrib.stepTicks) {
             if (this.attrib.timeTyped.finestRes() ===
                 this.attrib.timeTyped.activeRes.type) {
-                return this.zoomed.val ? "minus" : "";
+                return this.zoomed.get() ? "minus" : "";
             }
         }
         return "plus";
@@ -14750,7 +14649,7 @@ class RecordView_List extends RecordView {
                 { name: "Hide", value: false },
                 { name: "Show", value: true },
             ],
-            onSet: (v) => {
+            onSet: () => {
                 if (!this.initialized)
                     return;
                 this.refreshShowRank();
@@ -14768,7 +14667,7 @@ class RecordView_List extends RecordView {
                 { name: "Static", value: "static" },
                 { name: "Dynamic", value: "dynamic" },
             ],
-            onSet: (v) => {
+            onSet: () => {
                 if (!this.initialized)
                     return;
                 this.refreshSortVizScale();
@@ -14785,20 +14684,20 @@ class RecordView_List extends RecordView {
                 { name: "List <i class='fa fa-bars'></i>", value: "List" },
                 { name: "Grid <i class='fa fa-th'></i>", value: "Grid" },
             ],
-            onSet: (v) => {
+            onSet: (v) => __awaiter(this, void 0, void 0, function* () {
                 var _a, _b;
                 this.DOM.root.attr("data-list_ViewType", v);
                 if (!this.initialized)
                     return;
                 this.refreshWidthControls();
                 if (v === "List") {
-                    (_a = this.list_sortVizWidth) === null || _a === void 0 ? void 0 : _a.reset();
-                    (_b = this.list_sparklineVizWidth) === null || _b === void 0 ? void 0 : _b.reset();
+                    yield ((_a = this.list_sortVizWidth) === null || _a === void 0 ? void 0 : _a.reset());
+                    yield ((_b = this.list_sparklineVizWidth) === null || _b === void 0 ? void 0 : _b.reset());
                 }
                 else {
                     this.refreshSparklineViz();
                 }
-            },
+            }),
         });
         this.list_sortInverse = new Config({
             cfgClass: "list_sortInverse",
@@ -14816,7 +14715,7 @@ class RecordView_List extends RecordView {
                 if (!this.initialized)
                     return;
                 this.reverseOrder();
-                (_a = this.DOM.root) === null || _a === void 0 ? void 0 : _a.select(".recordReverseSortButton").classed("sortInverse", this.list_sortInverse.val);
+                (_a = this.DOM.root) === null || _a === void 0 ? void 0 : _a.select(".recordReverseSortButton").classed("sortInverse", this.list_sortInverse.is(true));
             },
         });
         this.list_sortColWidth = new Config({
@@ -14831,7 +14730,7 @@ class RecordView_List extends RecordView {
                 { _type: "_range_", minValue: 40, maxValue: 120 },
                 { name: "<i class='fa fa-plus'></i>", value: -199, _type: "plus" },
             ],
-            preSet: (v, obj) => {
+            preSet: (v, obj) => __awaiter(this, void 0, void 0, function* () {
                 if (v === -99) {
                     v = obj._value - 5;
                 }
@@ -14839,7 +14738,7 @@ class RecordView_List extends RecordView {
                     v = obj._value + 5;
                 }
                 return Math.max(40, Math.min(120, v));
-            },
+            }),
             onSet: (v) => {
                 this.browser.DOM.root
                     .node()
@@ -14863,10 +14762,10 @@ class RecordView_List extends RecordView {
             forcedValue: (obj) => {
                 if (this.sortAttrib instanceof Attrib_Timestamp)
                     return 0;
-                if (this.list_ViewType.val === "Grid" && obj._value !== 0)
-                    return this.list_gridRecordWidth.val - 10;
+                if (this.list_ViewType.is("Grid") && obj._value !== 0)
+                    return this.list_gridRecordWidth.get() - 10;
             },
-            preSet: (v, obj) => {
+            preSet: (v, obj) => __awaiter(this, void 0, void 0, function* () {
                 if (v === -99) {
                     v = obj._value - 5;
                 }
@@ -14876,7 +14775,7 @@ class RecordView_List extends RecordView {
                 if (v < 40)
                     return 0;
                 return Math.min(400, v);
-            },
+            }),
             onSet: (v) => {
                 if (!this.initialized)
                     return;
@@ -14905,10 +14804,10 @@ class RecordView_List extends RecordView {
                 var _a;
                 if (!((_a = this.sortAttrib) === null || _a === void 0 ? void 0 : _a.hasTimeSeriesParent()))
                     return 0;
-                if (this.list_ViewType.val === "Grid" && obj._value !== 0)
-                    return this.list_gridRecordWidth.val - 10; // max
+                if (this.list_ViewType.is("Grid") && obj._value !== 0)
+                    return this.list_gridRecordWidth.get() - 10;
             },
-            preSet: (v, obj) => {
+            preSet: (v, obj) => __awaiter(this, void 0, void 0, function* () {
                 if (v === -99) {
                     v = obj._value - 5;
                 }
@@ -14918,7 +14817,7 @@ class RecordView_List extends RecordView {
                 if (v < 50)
                     return 0;
                 return Math.min(300, v);
-            },
+            }),
             onSet: (v) => {
                 if (!this.initialized)
                     return;
@@ -14940,7 +14839,7 @@ class RecordView_List extends RecordView {
                 { _type: "_range_", minValue: 100, maxValue: 400 },
                 { name: "<i class='fa fa-plus'></i>", value: -199, _type: "plus" },
             ],
-            preSet: (v, obj) => {
+            preSet: (v, obj) => __awaiter(this, void 0, void 0, function* () {
                 if (v === -99) {
                     v = obj._value - 5;
                 }
@@ -14948,7 +14847,7 @@ class RecordView_List extends RecordView {
                     v = obj._value + 5;
                 }
                 return Math.max(100, Math.min(500, v));
-            },
+            }),
             onSet: (v) => {
                 if (!this.initialized)
                     return;
@@ -14989,7 +14888,7 @@ class RecordView_List extends RecordView {
     /** -- */
     initView() {
         this.rd.refreshAttribOptions("sort");
-        this.DOM.root.attr("data-list_ViewType", this.list_ViewType.val);
+        this.DOM.root.attr("data-list_ViewType", this.list_ViewType.get());
         this.refreshSortColumnWidth();
         this.refreshSortVizWidth();
         this.refreshSparklineVizWidth();
@@ -14998,96 +14897,96 @@ class RecordView_List extends RecordView {
         this.refreshRecordVis();
     }
     initView_DOM() {
-        var browserRootStyle = this.browser.DOM.root.node().style;
-        browserRootStyle.setProperty("--list_sortColWidth", this.list_sortColWidth.val + "px");
-        browserRootStyle.setProperty("--list_sortVizWidth", this.list_sortVizWidth.val + "px");
-        browserRootStyle.setProperty("--list_sparklineVizWidth", this.list_sparklineVizWidth.val + "px");
-        browserRootStyle.setProperty("--list_gridRecordWidth", this.list_gridRecordWidth.val + "px");
-        if (this.DOM.recordGroup_List) {
-            this.DOM.recordGroup = this.DOM.recordGroup_List.select(".recordGroup");
-            this.DOM.kshfRecords = this.DOM.recordGroup.selectAll(".kshfRecord");
-            this.DOM.tableHeaderGroup
-                .node()
-                .insertBefore(this.DOM.sortControlGroup.node(), this.DOM.tableConfigGap.node());
-            return;
-        }
-        this.DOM.recordGroup_List = this.rd.DOM.recordDisplayWrapper
-            .append("div")
-            .attr("class", "recordGroup_List");
-        this.DOM.tableHeaderGroup = this.DOM.recordGroup_List
-            .append("div")
-            .attr("class", "tableHeaderGroup");
-        this.DOM.tableHeaderGroup
-            .append("div")
-            .attr("class", "showRecordRank")
-            .append("span")
-            .html("Rank");
-        this.rd.DOM.sortControlGroup = this.DOM.tableHeaderGroup
-            .append("span")
-            .attr("class", "sortControlGroup attribControlGroup");
-        this.rd.initDOM_AttribSelect("sort");
-        this.rd.DOM.sortControlGroup
-            .append("span")
-            .attr("class", "recordReverseSortButton sortButton")
-            .classed("sortInverse", this.list_sortInverse.val)
-            .tooltip(i18n.ReverseOrder)
-            .on("click", () => {
-            this.list_sortInverse.val = !this.list_sortInverse.val;
-        })
-            .append("span")
-            .attr("class", "fa");
-        this.DOM.tableConfigGap = this.DOM.tableHeaderGroup
-            .append("span")
-            .attr("class", "gap");
-        var addMoreVisibleItems = () => {
-            this.maxVisibleRecords += this.maxVisibleItems_Default;
-            this.rd.refreshRecordDOM();
-        };
-        this.DOM.recordGroup = this.DOM.recordGroup_List
-            .append("div")
-            .attr("class", "recordGroup")
-            .on("scroll", () => {
-            if (this.maxVisibleRecords <= this.browser.allRecordsAggr.recCnt("Active")) {
-                var DOM = this.DOM.recordGroup.node();
-                if (!this._recordGroupScroll) {
-                    var s = window.getComputedStyle(DOM);
-                    if (s.overflowY === "hidden" && s.overflowX === "scroll")
-                        this._recordGroupScroll = "left-right";
-                    else if (s.overflowX === "hidden" && s.overflowY === "scroll")
-                        this._recordGroupScroll = "top-down";
-                }
-                if (this._recordGroupScroll === "left-right") {
-                    if (DOM.scrollWidth - DOM.scrollLeft - DOM.offsetWidth < 500)
-                        addMoreVisibleItems();
-                }
-                if (this._recordGroupScroll === "top-down") {
-                    if (DOM.scrollHeight - DOM.scrollTop - DOM.offsetHeight < 10)
-                        addMoreVisibleItems();
-                }
+        return __awaiter(this, void 0, void 0, function* () {
+            var browserRootStyle = this.browser.DOM.root.node().style;
+            browserRootStyle.setProperty("--list_sortColWidth", this.list_sortColWidth.get() + "px");
+            browserRootStyle.setProperty("--list_sortVizWidth", this.list_sortVizWidth.get() + "px");
+            browserRootStyle.setProperty("--list_sparklineVizWidth", this.list_sparklineVizWidth.get() + "px");
+            browserRootStyle.setProperty("--list_gridRecordWidth", this.list_gridRecordWidth.get() + "px");
+            if (this.DOM.recordGroup_List) {
+                this.DOM.recordGroup = this.DOM.recordGroup_List.select(".recordGroup");
+                this.DOM.kshfRecords = this.DOM.recordGroup.selectAll(".kshfRecord");
+                this.DOM.tableHeaderGroup
+                    .node()
+                    .insertBefore(this.DOM.sortControlGroup.node(), this.DOM.tableConfigGap.node());
+                return;
             }
-        });
-        var adjustWidth = (event, configObj) => {
-            if (event.which !== 1)
-                return; // only respond to left-click
-            var mouseDown_width = configObj.val - d3$4.pointer(event, document.body)[0];
-            this.browser.activateWidthDrag(event.currentTarget, event, (event2) => {
-                configObj.val = mouseDown_width + d3$4.pointer(event2, document.body)[0];
+            this.DOM.recordGroup_List = this.rd.DOM.recordDisplayWrapper
+                .append("div")
+                .attr("class", "recordGroup_List");
+            this.DOM.tableHeaderGroup = this.DOM.recordGroup_List
+                .append("div")
+                .attr("class", "tableHeaderGroup");
+            this.DOM.tableHeaderGroup
+                .append("div")
+                .attr("class", "showRecordRank")
+                .append("span")
+                .html("Rank");
+            this.rd.DOM.sortControlGroup = this.DOM.tableHeaderGroup
+                .append("span")
+                .attr("class", "sortControlGroup attribControlGroup");
+            this.rd.initDOM_AttribSelect("sort");
+            this.rd.DOM.sortControlGroup
+                .append("span")
+                .attr("class", "recordReverseSortButton sortButton")
+                .classed("sortInverse", this.list_sortInverse.is(true))
+                .tooltip(i18n.ReverseOrder)
+                .on("click", () => __awaiter(this, void 0, void 0, function* () { return yield this.list_sortInverse.set(!this.list_sortInverse.get()); }))
+                .append("span")
+                .attr("class", "fa");
+            this.DOM.tableConfigGap = this.DOM.tableHeaderGroup
+                .append("span")
+                .attr("class", "gap");
+            var addMoreVisibleItems = () => {
+                this.maxVisibleRecords += this.maxVisibleItems_Default;
+                this.rd.refreshRecordDOM();
+            };
+            this.DOM.recordGroup = this.DOM.recordGroup_List
+                .append("div")
+                .attr("class", "recordGroup")
+                .on("scroll", () => {
+                if (this.maxVisibleRecords <= this.browser.allRecordsAggr.recCnt("Active")) {
+                    var DOM = this.DOM.recordGroup.node();
+                    if (!this._recordGroupScroll) {
+                        var s = window.getComputedStyle(DOM);
+                        if (s.overflowY === "hidden" && s.overflowX === "scroll")
+                            this._recordGroupScroll = "left-right";
+                        else if (s.overflowX === "hidden" && s.overflowY === "scroll")
+                            this._recordGroupScroll = "top-down";
+                    }
+                    if (this._recordGroupScroll === "left-right") {
+                        if (DOM.scrollWidth - DOM.scrollLeft - DOM.offsetWidth < 500)
+                            addMoreVisibleItems();
+                    }
+                    if (this._recordGroupScroll === "top-down") {
+                        if (DOM.scrollHeight - DOM.scrollTop - DOM.offsetHeight < 10)
+                            addMoreVisibleItems();
+                    }
+                }
             });
-        };
-        this.DOM.adjustSortColumnWidth = this.DOM.recordGroup_List
-            .append("div")
-            .attr("class", "adjustSortColumnWidth dragWidthHandle")
-            .on("mousedown", (event) => adjustWidth(event, this.list_sortColWidth));
-        this.DOM.adjustSortVizWidth = this.DOM.recordGroup_List
-            .append("div")
-            .attr("class", "adjustSortVizWidth dragWidthHandle")
-            .on("mousedown", (event) => adjustWidth(event, this.list_sortVizWidth));
-        this.DOM.adjustSparklineVizWidth = this.DOM.recordGroup_List
-            .append("div")
-            .attr("class", "adjustSparklineVizWidth dragWidthHandle")
-            .on("mousedown", (event) => adjustWidth(event, this.list_sparklineVizWidth));
-        this.refreshSortVizWidth();
-        this.refreshWidthControls();
+            var adjustWidth = (event, configObj) => {
+                if (event.which !== 1)
+                    return; // only respond to left-click
+                var mouseDown_width = configObj.val - d3$4.pointer(event, document.body)[0];
+                this.browser.activateWidthDrag(event.currentTarget, event, (event2) => {
+                    configObj.val = mouseDown_width + d3$4.pointer(event2, document.body)[0];
+                });
+            };
+            this.DOM.adjustSortColumnWidth = this.DOM.recordGroup_List
+                .append("div")
+                .attr("class", "adjustSortColumnWidth dragWidthHandle")
+                .on("mousedown", (event) => adjustWidth(event, this.list_sortColWidth));
+            this.DOM.adjustSortVizWidth = this.DOM.recordGroup_List
+                .append("div")
+                .attr("class", "adjustSortVizWidth dragWidthHandle")
+                .on("mousedown", (event) => adjustWidth(event, this.list_sortVizWidth));
+            this.DOM.adjustSparklineVizWidth = this.DOM.recordGroup_List
+                .append("div")
+                .attr("class", "adjustSparklineVizWidth dragWidthHandle")
+                .on("mousedown", (event) => adjustWidth(event, this.list_sparklineVizWidth));
+            this.refreshSortVizWidth();
+            this.refreshWidthControls();
+        });
     }
     /** -- */
     extendRecordDOM(newRecords) {
@@ -15212,7 +15111,7 @@ class RecordView_List extends RecordView {
         if (!attrib)
             return;
         var sortFunc = this.getSortFunc(attrib.template.func);
-        var inverse = this.list_sortInverse.val;
+        var inverse = this.list_sortInverse.is(true);
         this.browser.records.sort((record_A, record_B) => {
             var v_a = attrib.getRecordValue(record_A);
             var v_b = attrib.getRecordValue(record_B);
@@ -15303,14 +15202,14 @@ class RecordView_List extends RecordView {
     }
     /** -- */
     refreshShowRank() {
-        this.DOM.root.classed("showRank", this.list_showRank.val);
+        this.DOM.root.classed("showRank", this.list_showRank.is(true));
         this.refreshRecordRanks();
         this.refreshWidthControls();
     }
     /** -- */
     refreshRecordRanks(d3_selection = null) {
-        if (!this.list_showRank.val)
-            return; // Do not refresh if not shown...
+        if (this.list_showRank.is(false))
+            return;
         if (d3_selection === null)
             d3_selection = this.DOM.recordRanks;
         d3_selection.text((record) => record.recordRank < 0 ? "" : record.recordRank + 1);
@@ -15328,17 +15227,17 @@ class RecordView_List extends RecordView {
         var _a, _b, _c, _d;
         if (!this.rd.codeBy.sort)
             return;
-        var w_Rank = this.list_showRank.val ? Base.recordRankWidth : 0;
-        var w_sortCol = this.list_sortColWidth.val;
-        var w_sortViz = this.list_sortVizWidth.val;
-        var w_sparkLine = this.list_sparklineVizWidth.val
-            ? this.list_sparklineVizWidth.val + 8
+        var w_Rank = this.list_showRank.is(true) ? Base.recordRankWidth : 0;
+        var w_sortCol = this.list_sortColWidth.get();
+        var w_sortViz = this.list_sortVizWidth.get();
+        var w_sparkLine = this.list_sparklineVizWidth.get()
+            ? this.list_sparklineVizWidth.get() + 8
             : 0;
         (_a = this.DOM.adjustSparklineVizWidth) === null || _a === void 0 ? void 0 : _a.style("transform", `translateX(${w_Rank + w_sparkLine}px`);
         (_b = this.DOM.adjustSortColumnWidth) === null || _b === void 0 ? void 0 : _b.style("transform", `translateX(${w_Rank + w_sparkLine + w_sortCol}px)`);
         (_c = this.DOM.adjustSortVizWidth) === null || _c === void 0 ? void 0 : _c.style("transform", `translateX(${w_Rank + w_sparkLine + w_sortCol + w_sortViz}px)`);
         var w = Math.max(150, Math.min(500, w_sparkLine + w_sortCol + w_sortViz + 2)); // 2 pixel: margin
-        if (this.list_ViewType.val === "Grid") {
+        if (this.list_ViewType.is("Grid")) {
             w = 200;
         }
         (_d = this.DOM.sortControlGroup) === null || _d === void 0 ? void 0 : _d.select(".choices").style("width", w + "px");
@@ -15351,13 +15250,13 @@ class RecordView_List extends RecordView {
         }
         this.listSortVizScale = d3$4
             .scaleLinear()
-            .range([0, this.list_sortVizWidth.val]);
+            .range([0, this.list_sortVizWidth.get()]);
         if (attrib.isPercentageUnit()) {
             // always 0-100 if percentage unit
             this.listSortVizScale.domain([0, 100]);
             //
         }
-        else if (this.list_sortVizRange.val === "dynamic") {
+        else if (this.list_sortVizRange.is("dynamic")) {
             // dynamic - based on filtered data
             var [minV, maxV] = d3$4.extent(this.browser.records, (record) => {
                 return record.filteredOut
@@ -15367,7 +15266,7 @@ class RecordView_List extends RecordView {
             this.listSortVizScale.domain([Math.min(0, minV), Math.max(0, maxV)]);
             //
         }
-        else if (this.list_sortVizRange.val === "static") {
+        else if (this.list_sortVizRange.is("static")) {
             // static - based on original domain
             this.listSortVizScale.domain(this.sortAttrib.rangeOrg);
         }
@@ -15410,14 +15309,14 @@ class RecordView_List extends RecordView {
     /** -- */
     refreshSortVizWidth() {
         this.refreshSortVizScale();
-        this.DOM.root.classed("showSortBars", this.list_sortVizWidth.val > 0);
+        this.DOM.root.classed("showSortBars", this.list_sortVizWidth.get() > 0);
         this.refreshWidthControls();
     }
     /** -- */
     refreshSparklineVizWidth() {
         if (!this.DOM.recordSparklineVizHost)
             return;
-        this.DOM.recordSparklineVizHost.style("display", this.list_sparklineVizWidth.val === 0 ? "none" : null);
+        this.DOM.recordSparklineVizHost.style("display", this.list_sparklineVizWidth.get() === 0 ? "none" : null);
         this.refreshSparklineViz();
         this.refreshWidthControls();
     }
@@ -15457,14 +15356,14 @@ class RecordView_List extends RecordView {
             return;
         if (!this.DOM.recordSparklineVizHost)
             return;
-        this.DOM.recordSparklineVizHost.style("display", this.list_sparklineVizWidth.val === 0 ? "none" : null);
-        if (this.list_sparklineVizWidth.val === 0)
+        this.DOM.recordSparklineVizHost.style("display", this.list_sparklineVizWidth.get() === 0 ? "none" : null);
+        if (this.list_sparklineVizWidth.get() === 0)
             return;
         var ts = attrib.timeseriesParent;
         var timeScale = d3$4
             .scaleTime()
             .domain(ts.timeSeriesScale_Time.domain())
-            .range([0, this.list_sparklineVizWidth.val]);
+            .range([0, this.list_sparklineVizWidth.get()]);
         var valueScale = d3$4
             .scaleLinear()
             .domain(ts.timeSeriesScale_Value.domain())
@@ -15531,7 +15430,7 @@ class RecordView_List extends RecordView {
         });
         var __ = _.append("g")
             .attr("transform", dotPosition)
-            .on("click", (event) => {
+            .on("click", (event) => __awaiter(this, void 0, void 0, function* () {
             var _time = timeScale.invert(d3$4.pointer(event, event.currentTarget.parentNode)[0]);
             var currentDif = 9999999999999; // large number
             var nearestTimeKey = ts.timeKeys[0];
@@ -15544,8 +15443,8 @@ class RecordView_List extends RecordView {
                 nearestTimeKey = _key;
                 return false;
             });
-            this.rd.currentTimeKey.val = nearestTimeKey;
-        });
+            yield this.rd.currentTimeKey.set(nearestTimeKey);
+        }));
         __.append("circle").attr("class", "activeDot").attr("r", 3);
         __.append("text")
             .attr("class", "timekeyText")
@@ -15588,7 +15487,7 @@ class RecordView_List extends RecordView {
     /** -- */
     updateAfterFilter() {
         this.DOM.recordGroup.node().scrollTop = 0;
-        if (this.list_sortVizRange.val === "dynamic") {
+        if (this.list_sortVizRange.is("dynamic")) {
             this.refreshSortVizScale();
         }
         this.refreshRecordVis();
@@ -15690,14 +15589,12 @@ class RecordDisplay {
             default: Base.defaultRecordPointSize,
             parent: this,
             helparticle: "5e8907cf2c7d3a7e9aea6499",
-            preSet: (v, obj) => {
-                return Math.max(0.5, Math.min(v, Base.maxRecordPointSize));
-            },
-            onSet: (v) => {
+            preSet: (v) => __awaiter(this, void 0, void 0, function* () { return Math.max(0.5, Math.min(v, Base.maxRecordPointSize)); }),
+            onSet: () => __awaiter(this, void 0, void 0, function* () {
                 if (!this.recordPointSize)
                     return;
                 this.updateRecordSizeScale();
-            },
+            }),
         });
         this.currentTimeKey = new Config({
             cfgClass: "currentTimeKey",
@@ -15707,11 +15604,11 @@ class RecordDisplay {
             parent: this,
             UI: { disabled: true },
             helparticle: "5b37053a2c7d3a0fa9a3a30c",
-            onRefresh: (cfg) => {
+            onRefreshDOM: () => {
                 if (!this.DOM.root)
                     return;
                 this.DOM.root.classed("hasTimeKey", this.hasTimeKey);
-                if (!this.currentTimeKey.val)
+                if (!this.currentTimeKey.get())
                     return;
                 if (!this.DOM.timeAnimation)
                     return;
@@ -15725,8 +15622,8 @@ class RecordDisplay {
                     .text(this.timeKeys[this.timeKeys.length - 1]._time_src);
                 this.DOM.timeAnimation
                     .select(".rangeTick-cur")
-                    .text(this.currentTimeKey.val._time_src)
-                    .style("left", (100 * this.currentTimeKey.val._index) /
+                    .text(this.currentTimeKey.get()._time_src)
+                    .style("left", (100 * this.currentTimeKey.get()._index) /
                     (this.timeKeys.length - 1) +
                     "%");
                 this.timeKeySlider_PauseUpdate = true;
@@ -15736,18 +15633,18 @@ class RecordDisplay {
                         max: Math.max(1, this.timeKeys.length - 1),
                     },
                 });
-                this.timeKeySlider.setHandle(0, this.currentTimeKey.val._index, false);
+                this.timeKeySlider.setHandle(0, this.currentTimeKey.get()._index, false);
                 this.timeKeySlider_PauseUpdate = false;
                 this.DOM.timeAnimation
                     .select(".timeKeySelect")
                     .selectAll("option")
                     .data(this.timeKeys, (d) => d._time)
                     .join((enter) => enter.append("option").text((d) => d._time_src), (update) => update, (exit) => exit.remove())
-                    .attr("selected", (timeKey) => timeKey._time_src === this.currentTimeKey.val._time_src
+                    .attr("selected", (timeKey) => timeKey._time_src === this.currentTimeKey.get()._time_src
                     ? true
                     : null);
             },
-            preSet: (v, obj) => {
+            preSet: (v, obj) => __awaiter(this, void 0, void 0, function* () {
                 if (v === "previous" && obj._value) {
                     v = this.timeKeys[obj._value._index - 1];
                 }
@@ -15761,8 +15658,8 @@ class RecordDisplay {
                 if (!v)
                     return;
                 return v;
-            },
-            onSet: (v) => {
+            }),
+            onSet: (v) => __awaiter(this, void 0, void 0, function* () {
                 var _a;
                 if (!v)
                     return;
@@ -15785,7 +15682,7 @@ class RecordDisplay {
                 if ((_a = this.measureSummary) === null || _a === void 0 ? void 0 : _a.hasTimeSeriesParent()) {
                     var newMeasureSummary = this.measureSummary.timeseriesParent.getTimepointSummary(v);
                     if (newMeasureSummary)
-                        this.browser.measureSummary.val = newMeasureSummary;
+                        yield this.browser.measureSummary.set(newMeasureSummary);
                 }
                 // timeKeyStep timeKeyNext
                 this.DOM.timeAnimation
@@ -15794,7 +15691,7 @@ class RecordDisplay {
                 this.DOM.timeAnimation
                     .select(".timeKeyNext")
                     .classed("active", v._time_src !== this.timeKeys[this.timeKeys.length - 1]._time_src);
-            },
+            }),
         });
         ["currentTimeKey", "recordPointSize"].forEach((t) => {
             this.configs[t] = this[t];
@@ -15815,6 +15712,11 @@ class RecordDisplay {
     }
     setView(_type) {
         return __awaiter(this, void 0, void 0, function* () {
+            if (_type === "none") {
+                this.View = null;
+                return;
+            }
+            // Create the view object if it does not exist.
             if (!this.Views[_type]) {
                 var recordDisplayOptions = this.browser.options.recordDisplay || {};
                 if (_type === "list") {
@@ -15836,6 +15738,7 @@ class RecordDisplay {
                 if (potentials.length === 0) {
                     throw new Error("Data must have at least one categorical attribute.");
                 }
+                // find the categorical attribute with most number of categories (i.e. most unique)
                 var mostUnique = potentials[0];
                 potentials.forEach((catAttr) => {
                     if (mostUnique._aggrs.length < catAttr._aggrs.length) {
@@ -15844,14 +15747,23 @@ class RecordDisplay {
                 });
                 this.codeBy.text = mostUnique;
             }
+            this.recordConfigPanel.hide();
+            yield this.View.initView_DOM();
             yield this.View.prepareAttribs();
+            this.refreshViewAsOptions();
+            this.View.initView();
+            this.View.initialized = true;
+            this.View.updateRecordVisibility();
+            this.refreshWidth();
+            this.View.refreshViewSize(10);
         });
     }
     /** Shortcut to access browser record chart type */
     get viewRecAs() {
-        return this.browser.viewRecAs;
+        return this.browser.recordChartType.get();
     }
     initialize() {
+        var _a;
         return __awaiter(this, void 0, void 0, function* () {
             var config = this.config;
             // **********************************************************************************
@@ -15879,23 +15791,23 @@ class RecordDisplay {
                 if (attrib instanceof Attrib_Categorical) {
                     yield this.setAttrib("text", attrib);
                     if (this.viewRecAs === "none") {
-                        this.browser.recordChartType.val = "list";
+                        yield this.browser.recordChartType.set("list");
                     }
                 }
                 else if (attrib instanceof Attrib_Timeseries) {
                     yield this.setAttrib("timeSeries", attrib);
-                    this.browser.recordChartType.val = "timeseries";
+                    yield this.browser.recordChartType.set("timeseries");
                     //
                 }
                 else if (attrib instanceof Attrib_RecordGeo) {
                     yield this.setAttrib("geo", attrib);
-                    this.browser.recordChartType.val = "map";
+                    yield this.browser.recordChartType.set("map");
                     //
                 }
                 else if (attrib instanceof Attrib_Interval) {
                     yield this.setAttrib("sort", attrib);
                     if (this.viewRecAs === "none") {
-                        this.browser.recordChartType.val = "list";
+                        yield this.browser.recordChartType.set("list");
                     }
                 }
                 this.browser.updateLayout();
@@ -15943,7 +15855,7 @@ class RecordDisplay {
                 this.setRecordColorTheme(config.colorTheme);
             }
             if (config.recordPointSize) {
-                this.recordPointSize.val = config.recordPointSize;
+                yield this.recordPointSize.set(config.recordPointSize);
             }
             if (config.colorInvert) {
                 this.invertColorTheme(true);
@@ -15954,10 +15866,9 @@ class RecordDisplay {
             else {
                 this.recordFilter.clearFilter();
             }
-            if (!config.viewAs)
-                config.viewAs = "none";
+            (_a = config.viewAs) !== null && _a !== void 0 ? _a : (config.viewAs = "none");
             if (config.viewAs !== this.viewRecAs) {
-                this.browser.recordChartType.val = config.viewAs;
+                yield this.browser.recordChartType.set(config.viewAs);
             }
             if (config.collapsed) {
                 this.collapseRecordViewSummary(true);
@@ -16170,9 +16081,7 @@ class RecordDisplay {
             .append("div")
             .attr("class", "removeRecordPanelButton far fa-times-circle")
             .tooltip(i18n.RemoveRecordPanel, { placement: "bottom" })
-            .on("click", () => {
-            this.browser.recordChartType.val = "none";
-        });
+            .on("click", () => __awaiter(this, void 0, void 0, function* () { return yield this.browser.recordChartType.set("none"); }));
         // Expand record display button
         this.DOM.recordDisplayHeader
             .append("div")
@@ -16234,9 +16143,7 @@ class RecordDisplay {
             .append("span")
             .attr("class", (d) => "recordDisplay_ViewAs_" + d.v + " disabled")
             .tooltip((_) => i18n.RecordViewTypeTooltip(_.t), { placement: "bottom" })
-            .on("click", (_event, d) => {
-            this.browser.recordChartType.val = d.v;
-        })
+            .on("click", (_event, d) => __awaiter(this, void 0, void 0, function* () { return yield this.browser.recordChartType.set(d.v); }))
             .html((d) => d.i + "<span class='ViewTitle'>" + d.t + "</span>");
     }
     /** -- */
@@ -16278,10 +16185,10 @@ class RecordDisplay {
     }
     getMaxSizeScaleRange() {
         if (this.codeBy.size === "_measure_" && this.isPointMap()) {
-            return Math.max(10, Math.min(this.recordPointSize.val, this.codeBy.geo.pointClusterRadius / 2));
+            return Math.max(10, Math.min(this.recordPointSize.get(), this.codeBy.geo.pointClusterRadius / 2));
         }
         else if (this.codeBy.size instanceof Attrib_Interval) {
-            return this.recordPointSize.val;
+            return this.recordPointSize.get();
         }
         throw Error("Unexpected status");
     }
@@ -16298,7 +16205,7 @@ class RecordDisplay {
     /** -- */
     updateRecordSizeScale() {
         var _a;
-        var constPointSize = Math.max(this.recordPointSize.val, 4); // const size must be 4 or larger
+        var constPointSize = Math.max(this.recordPointSize.get(), 4); // const size must be 4 or larger
         this.drawArc = d3$3
             .arc()
             .outerRadius(constPointSize) // fixed radius arc by default
@@ -16378,16 +16285,16 @@ class RecordDisplay {
                 .append("i")
                 .attr("class", "dotSize dotSize-expand-alt far fa-plus")
                 .tooltip(i18n.Larger, { placement: "top" })
-                .on("click", () => {
-                this.recordPointSize.val = this.recordPointSize.val * Math.sqrt(2);
-            });
+                .on("click", () => __awaiter(this, void 0, void 0, function* () {
+                yield this.recordPointSize.set(this.recordPointSize.get() * Math.sqrt(2));
+            }));
             dom
                 .append("i")
                 .attr("class", "dotSize dotSize-compress-alt far fa-minus")
                 .tooltip(i18n.Smaller, { placement: "top" })
-                .on("click", () => {
-                this.recordPointSize.val = this.recordPointSize.val / Math.sqrt(2);
-            });
+                .on("click", () => __awaiter(this, void 0, void 0, function* () {
+                yield this.recordPointSize.set(this.recordPointSize.get() / Math.sqrt(2));
+            }));
         });
         this.DOM.sizeLegendGroup = sizeGroup
             .append("div")
@@ -16452,17 +16359,17 @@ class RecordDisplay {
                         when: () => this.codeBy.color &&
                             this.codeBy.color instanceof Attrib_Numeric &&
                             this.codeBy.color.supportsLogScale(),
-                        do: (_, opt) => {
+                        do: (_, opt) => __awaiter(this, void 0, void 0, function* () {
                             var attrib = this.codeBy.color; // checked by when
                             if (!attrib)
                                 return;
                             if (attrib.timeseriesParent) {
-                                attrib.timeseriesParent.valueScaleType.val = opt;
+                                yield attrib.timeseriesParent.valueScaleType.set(opt);
                             }
                             else {
-                                attrib.valueScaleType.val = opt;
+                                yield attrib.valueScaleType.set(opt);
                             }
-                        },
+                        }),
                         options: [
                             {
                                 name: "Linear",
@@ -16608,33 +16515,25 @@ class RecordDisplay {
             .append("div")
             .attr("class", "timeKeyStep timeKeyPrev")
             .tooltip(i18n.Previous)
-            .on("click", () => {
-            this.currentTimeKey.val =
-                this.timeKeys[this.currentTimeKey._value._index - 1];
-        })
+            .on("click", () => this.currentTimeKey.set(this.timeKeys[this.currentTimeKey.get()._index - 1]))
             .append("span")
             .attr("class", "fa fa-caret-left");
         this.DOM.timeAnimation
             .append("select")
             .attr("class", "timeKeySelect")
-            .on("change", (event) => {
-            this.currentTimeKey.val =
-                event.currentTarget.selectedOptions[0].__data__;
-        });
+            .on("change", (event) => __awaiter(this, void 0, void 0, function* () { return yield this.currentTimeKey.set(event.currentTarget.selectedOptions[0].__data__); }));
         this.DOM.timeAnimation
             .append("div")
             .attr("class", "timeKeyStep timeKeyNext")
             .tooltip(i18n.Next)
-            .on("click", () => {
-            this.currentTimeKey.val =
-                this.timeKeys[this.currentTimeKey._value._index + 1];
-        })
+            .on("click", () => __awaiter(this, void 0, void 0, function* () { return yield this.currentTimeKey.set(this.timeKeys[this.currentTimeKey.get()._index + 1]); }))
             .append("span")
             .attr("class", "fa fa-caret-right");
         this.DOM.timeAnimation
             .append("div")
             .attr("class", "timeKeyRange")
             .call((timeKeyRange) => {
+            var _a, _b;
             timeKeyRange.append("span").attr("class", "rangeTick-min").text("min");
             // SINGLE-KEY SLIDER (MAP, SCATTERPLOT, LIST)
             var attribDetailRange = timeKeyRange
@@ -16648,11 +16547,11 @@ class RecordDisplay {
                     min: 0,
                     max: this.hasTimeKey ? this.timeKeys.length - 1 : 100,
                 },
-                start: this.currentTimeKey.val ? this.currentTimeKey.val._index : 0,
+                start: (_b = (_a = this.currentTimeKey.get()) === null || _a === void 0 ? void 0 : _a._index) !== null && _b !== void 0 ? _b : 0,
             });
             attribDetailRange.append("span").attr("class", "rangeTick-cur");
             this.timeKeySlider = attribDetailRange.node().noUiSlider;
-            var _update_1 = (v) => {
+            var _update_1 = (v) => __awaiter(this, void 0, void 0, function* () {
                 if (this.timeKeySlider_PauseUpdate)
                     return;
                 var _node = this.DOM.timeAnimation
@@ -16660,10 +16559,10 @@ class RecordDisplay {
                     .nodes()[Math.round(1 * v)];
                 if (_node) {
                     this.timeKeySlider_PauseUpdate = true;
-                    this.currentTimeKey.val = _node.__data__;
+                    yield this.currentTimeKey.set(_node.__data__);
                     this.timeKeySlider_PauseUpdate = false;
                 }
-            };
+            });
             this.timeKeySlider.on("set", _update_1);
             // DOUBLE-KEY SLIDER (TIMESERIES)
             this.DOM.timeseriesRange = timeKeyRange
@@ -16903,7 +16802,7 @@ class RecordDisplay {
                     attrib = attrib.timeseriesParent;
                 }
                 if (attrib instanceof Attrib_Timeseries) {
-                    timeSrc = ((_a = this.currentTimeKey.val) === null || _a === void 0 ? void 0 : _a._time_src) || timeSrc;
+                    timeSrc = ((_a = this.currentTimeKey.get()) === null || _a === void 0 ? void 0 : _a._time_src) || timeSrc;
                     attrib = attrib.getTimepointSummary(attrib.timeKeys.find((x) => x._time_src === timeSrc) || // current time-key
                         attrib.timeKeys[attrib.timeKeys.length - 1] // most recent time-key
                     );
@@ -16914,60 +16813,41 @@ class RecordDisplay {
             // }
             var prevTimeSeriesParent = null;
             if (_type === "text") {
-                if (attrib instanceof Attrib_Categorical) {
-                    this.codeBy.text = attrib;
-                }
-                else
+                if (!(attrib instanceof Attrib_Categorical))
                     return;
-                //
+                this.codeBy.text = attrib;
             }
             else if (_type === "textBrief") {
-                if (attrib instanceof Attrib_Categorical) {
-                    this.codeBy.textBrief = attrib;
-                }
-                else
+                if (!(attrib instanceof Attrib_Categorical))
                     return;
-                //
+                this.codeBy.textBrief = attrib;
             }
             else if (_type === "sort") {
-                if (attrib instanceof Attrib_Interval) {
-                    var curSort = this.codeBy.sort;
-                    if (curSort instanceof Attrib_Numeric) {
-                        prevTimeSeriesParent = curSort.timeseriesParent;
-                    }
-                    this.codeBy.sort = attrib;
-                }
-                else
+                if (!(attrib instanceof Attrib_Interval))
                     return;
-                //
+                if (this.codeBy.sort instanceof Attrib_Numeric)
+                    prevTimeSeriesParent = this.codeBy.sort.timeseriesParent;
+                this.codeBy.sort = attrib;
             }
             else if (_type === "scatterX") {
-                if (attrib instanceof Attrib_Numeric) {
-                    if (this.codeBy.scatterX) {
-                        prevTimeSeriesParent = this.codeBy.scatterX.timeseriesParent;
-                    }
-                    this.codeBy.scatterX = attrib;
-                }
-                else
+                if (!(attrib instanceof Attrib_Numeric))
                     return;
-                //
+                if (this.codeBy.scatterX)
+                    prevTimeSeriesParent = this.codeBy.scatterX.timeseriesParent;
+                this.codeBy.scatterX = attrib;
             }
             else if (_type === "scatterY") {
-                if (attrib instanceof Attrib_Numeric) {
-                    if (this.codeBy.scatterY) {
-                        prevTimeSeriesParent = this.codeBy.scatterY.timeseriesParent;
-                    }
-                    this.codeBy.scatterY = attrib;
-                }
-                else
+                if (!(attrib instanceof Attrib_Numeric))
                     return;
-                //
+                if (this.codeBy.scatterY) {
+                    prevTimeSeriesParent = this.codeBy.scatterY.timeseriesParent;
+                }
+                this.codeBy.scatterY = attrib;
             }
             else if (_type === "size") {
-                prevTimeSeriesParent =
-                    this.codeBy.size instanceof Attrib_Numeric
-                        ? this.codeBy.size.timeseriesParent
-                        : null;
+                prevTimeSeriesParent = this.codeBy.size instanceof Attrib_Numeric
+                    ? this.codeBy.size.timeseriesParent
+                    : null;
                 if (_attrib === "_measure_") {
                     this.codeBy.size = _attrib;
                 }
@@ -16980,13 +16860,11 @@ class RecordDisplay {
                 else {
                     return;
                 }
-                //
             }
             else if (_type === "color") {
-                prevTimeSeriesParent =
-                    this.codeBy.color instanceof Attrib_Numeric
-                        ? this.codeBy.color.timeseriesParent
-                        : null;
+                prevTimeSeriesParent = this.codeBy.color instanceof Attrib_Numeric
+                    ? this.codeBy.color.timeseriesParent
+                    : null;
                 if (_attrib === "_measure_") {
                     this.codeBy.color = _attrib;
                 }
@@ -16999,27 +16877,17 @@ class RecordDisplay {
                 else {
                     return;
                 }
-                //
             }
             else if (_type === "timeSeries") {
-                if (attrib instanceof Attrib_Timeseries) {
-                    this.codeBy.timeSeries = attrib;
-                }
-                else
+                if (!(attrib instanceof Attrib_Timeseries))
                     return;
-                //
+                this.codeBy.timeSeries = attrib;
             }
             else if (_type === "geo") {
-                if (attrib instanceof Attrib_RecordGeo) {
-                    this.codeBy.geo = attrib;
-                    yield this.codeBy.geo.loadGeo();
-                    if (!window.L) {
-                        yield import('./vendor_mapping.js').then(function (n) { return n.l; });
-                    }
-                }
-                else
+                if (!(attrib instanceof Attrib_RecordGeo))
                     return;
-                //
+                this.codeBy.geo = attrib;
+                yield this.codeBy.geo.loadGeo();
             }
             else {
                 return;
@@ -17038,7 +16906,7 @@ class RecordDisplay {
             if (timeKeysChange) {
                 this.refreshTimeKeys();
                 if (attrib instanceof Attrib_Numeric)
-                    this.currentTimeKey.val = attrib.timeKey;
+                    yield this.currentTimeKey.set(attrib.timeKey);
             }
             if (!this.DOM.root)
                 return;
@@ -17056,18 +16924,15 @@ class RecordDisplay {
                         this.config.onDOM.call(record.data, record);
                     });
                 }
-                //
             }
             else if (_type === "textBrief") {
                 this.DOM.recordTextSearch
                     .attr("active", true)
                     .select("input")
                     .attr("placeholder", this.textAttrib_Brief.attribName);
-                //
             }
             else if (_type === "color") {
                 this.updateRecordColorScale();
-                //
             }
             else if (_type === "size") {
                 if (this.codeBy.size instanceof Attrib_Numeric) {
@@ -17092,7 +16957,6 @@ class RecordDisplay {
                 }
                 this.updateRecordSizeScale();
                 this.refreshSizeLegend();
-                //
             }
             yield ((_d = this.View) === null || _d === void 0 ? void 0 : _d.finishSetAttrib(_type));
             this.refreshAttribOptions(_type);
@@ -17106,17 +16970,12 @@ class RecordDisplay {
         if (!(this.codeBy.size instanceof Attrib_Numeric)) {
             return 1; // only 1 point max
         }
-        var maxValue;
-        if (this.codeBy.size.timeseriesParent) {
-            maxValue = d3$3.max(this.codeBy.size.timeseriesParent.timeSeriesScale_Value.domain());
-        }
-        else {
-            maxValue = this.codeBy.size.rangeActive[1];
-        }
-        return maxValue;
+        return this.codeBy.size.timeseriesParent // use timeseries parents domain...
+            ? d3$3.max(this.codeBy.size.timeseriesParent.timeSeriesScale_Value.domain())
+            : this.codeBy.size.rangeActive[1];
     }
     /** -- */
-    sanitizeTicks(ticks, attrib, numTicks = 0) {
+    sanitizeTicks(ticks, attrib, numTicks) {
         if (ticks.domain) {
             var _scale = ticks.copy().nice(numTicks);
             ticks = _scale.ticks(numTicks);
@@ -17136,10 +16995,12 @@ class RecordDisplay {
     }
     /** -- */
     refreshSizeLegend() {
+        if (this.DOM.root == null)
+            return;
+        this.DOM.root.classed("usesSizeAttrib", hasSizeLegend);
         var hasSizeLegend = this.codeBy.size != null &&
             (this.viewRecAs === "scatter" ||
                 (this.viewRecAs === "map" && this.codeBy.geo.geoType === "Point"));
-        this.DOM.root.classed("usesSizeAttrib", hasSizeLegend);
         if (!hasSizeLegend)
             return;
         if (!this.DOM.sizeLegendGroup)
@@ -17156,7 +17017,7 @@ class RecordDisplay {
             maxValue = this.getMaxPointSize();
         }
         var markRatios = [0.2, 0.4, 0.6, 0.8, 1];
-        if (this.recordPointSize.val > 25) {
+        if (this.recordPointSize.get() > 25) {
             markRatios = [0.1, 0.4, 0.7, 1];
         }
         var ticks = this.sanitizeTicks(markRatios.map((v) => maxValue * v * v), this.codeBy.size, 10);
@@ -17238,15 +17099,17 @@ class RecordDisplay {
     /** -- */
     refreshAttribScaleType(attrib) {
         var _a;
-        if (this.codeBy.color instanceof Attrib) {
-            if (this.codeBy.color === attrib ||
-                this.codeBy.color.timeseriesParent === attrib) {
-                this.updateRecordColorScale();
+        return __awaiter(this, void 0, void 0, function* () {
+            if (this.codeBy.color instanceof Attrib) {
+                if (this.codeBy.color === attrib ||
+                    this.codeBy.color.timeseriesParent === attrib) {
+                    this.updateRecordColorScale();
+                }
             }
-        }
-        (_a = this.View) === null || _a === void 0 ? void 0 : _a.refreshAttribScaleType(attrib);
+            yield ((_a = this.View) === null || _a === void 0 ? void 0 : _a.refreshAttribScaleType(attrib));
+        });
     }
-    /** -- */
+    /** Instead of overall maximum, we can also get a quantile value */
     getMaxMeasureValue(quantile = null) {
         // maximum of records that are not in a special cluster - using measure_Self values
         var _list = this.browser.records.reduce((accum, record) => {
@@ -17267,7 +17130,7 @@ class RecordDisplay {
         return _list[0];
     }
     get measureSummary() {
-        return this.browser.measureSummary.val;
+        return this.browser.measureSummary.get();
     }
     updateRecordColorScale() {
         if (!this.codeBy.color) {
@@ -17277,27 +17140,25 @@ class RecordDisplay {
             this.refreshColorLegend();
             return;
         }
-        var _colorLegendScale;
         var c, domain;
         if (this.codeBy.color === "_measure_") {
             domain = [1, this.getMaxMeasureValue()];
             c = this.measureSummary;
-            //
         }
         else {
             domain = this.codeBy.color.valueScale.domain();
             c = this.codeBy.color;
         }
-        _colorLegendScale = Util.getD3Scale(c.isValueScale_Log).domain(domain);
+        const _colorLegendScale = Util.getD3Scale(c === null || c === void 0 ? void 0 : c.isValueScale_Log).domain(domain);
         var numTicks = 10;
         while (true) {
-            this.recordColorScaleTicks = this.sanitizeTicks(_colorLegendScale, c, numTicks);
+            this.recordColorScaleTicks = this.sanitizeTicks(_colorLegendScale, c !== null && c !== void 0 ? c : "_measure_", numTicks);
             if (this.recordColorScaleTicks.length <= 10)
                 break;
             numTicks--;
         }
         this.recordColorStepTicks = false;
-        if (!c.hasFloat &&
+        if ((!c || !c.hasFloat) &&
             Util.isStepTicks(this.recordColorScaleTicks) &&
             this.recordColorScaleTicks.length < 10) {
             this.recordColorStepTicks = true;
@@ -17690,24 +17551,26 @@ class RecordDisplay {
     /** -- */
     // TO-DO: Improve, A LOT.
     importConfig(config) {
-        if (config == null)
-            return;
-        this.browser.recordChartType.val = config.viewAs;
-        if (config.colorTheme) {
-            this.setRecordColorTheme(config.colorTheme);
-        }
-        if (config.colorInvert) {
-            this.invertColorTheme(true);
-        }
-        if (config.recordPointSize) {
-            this.recordPointSize.val = config.recordPointSize;
-        }
-        if (config.collapsed) {
-            this.collapseRecordViewSummary(true);
-        }
-        else {
-            this.collapseRecordViewSummary(false);
-        }
+        return __awaiter(this, void 0, void 0, function* () {
+            if (config == null)
+                return;
+            yield this.browser.recordChartType.set(config.viewAs);
+            if (config.colorTheme) {
+                this.setRecordColorTheme(config.colorTheme);
+            }
+            if (config.colorInvert) {
+                this.invertColorTheme(true);
+            }
+            if (config.recordPointSize) {
+                yield this.recordPointSize.set(config.recordPointSize);
+            }
+            if (config.collapsed) {
+                this.collapseRecordViewSummary(true);
+            }
+            else {
+                this.collapseRecordViewSummary(false);
+            }
+        });
     }
 }
 
@@ -17820,14 +17683,14 @@ var mapStandardsMenuOpts = {
     name: "Add map",
     iconClass: "far fa-globe",
     when: (attrib) => attrib instanceof Attrib_Categorical && !attrib.catGeo,
-    do: (attrib, action, path) => {
+    do: (attrib, action, path) => __awaiter(void 0, void 0, void 0, function* () {
         path = path.slice(path[1] === "World" ? 1 : 2);
         var mapIndex = "Map_" +
             path.map((_) => _.replace(/ /g, "").replace(/-/g, "")).join("_") +
             "_" +
             action.level;
-        attrib.setCatGeo_(mapIndex + "[UPPERCASE(*)]");
-    },
+        yield attrib.setCatGeo_(mapIndex + "[UPPERCASE(*)]");
+    }),
     options: [
         {
             name: "World",
@@ -19574,7 +19437,11 @@ var MenuOpts = {
                             window.dashboard = Base.reloadWithNewConfig(attrib.browser, newConfig);
                         },
                         options: [
-                            { name: "YYYY", sampleValue: "2019", value: "%Y" },
+                            {
+                                name: "YYYY",
+                                sampleValue: "2019",
+                                value: "%Y"
+                            },
                             {
                                 name: "Serial/Sheet date",
                                 sampleValue: "42010.2",
@@ -19625,7 +19492,11 @@ var MenuOpts = {
                             window.dashboard = Base.reloadWithNewConfig(attrib.browser, newConfig);
                         },
                         options: [
-                            { name: "YYYY", sampleValue: "2019", value: "%Y" },
+                            {
+                                name: "YYYY",
+                                sampleValue: "2019",
+                                value: "%Y"
+                            },
                             {
                                 name: "MM/DD/YYYY",
                                 sampleValue: "12/30/2019",
@@ -19784,21 +19655,19 @@ var MenuOpts = {
                 id: "CompareSelectionControl",
                 name: "Comparable",
                 iconClass: "fa fa-clone",
-                do: (attrib, action) => {
-                    attrib.isComparable.val = action;
-                },
+                do: (attrib, action) => attrib.isComparable.set(action),
                 options: [
                     {
                         name: "Enable",
                         value: true,
                         iconClass: "far fa-check",
-                        active: (attrib) => attrib.isComparable.val,
+                        active: (attrib) => attrib.isComparable.is(true),
                     },
                     {
                         name: "Disable",
                         value: false,
                         iconClass: "far fa-times",
-                        active: (attrib) => !attrib.isComparable.val,
+                        active: (attrib) => !attrib.isComparable.is(true),
                     },
                 ],
             },
@@ -19997,7 +19866,7 @@ class Panel {
     /** -- */
     get width_CatLabel() {
         return (this.width_CatText -
-            (this.browser.stackedCompare.val && !this.hiddenCatBars()
+            (this.browser.stackedCompare.is(true) && !this.hiddenCatBars()
                 ? 0
                 : this.width_CatMeasureLabel));
     }
@@ -20144,7 +20013,7 @@ class Panel {
         }
         else {
             // Account for the unitName displayed
-            var unitName = (_a = this.browser.measureSummary.val) === null || _a === void 0 ? void 0 : _a.unitName;
+            var unitName = (_a = this.browser.measureSummary.get()) === null || _a === void 0 ? void 0 : _a.unitName;
             if (unitName) {
                 // TO-DO: Use the rendered width, instead of fixed multiplier, "11"
                 _w_ += 2 + unitName.length * 7;
@@ -20411,7 +20280,7 @@ class Panel {
     refreshSharedMeasureExtent() {
         var scales = this.attribs
             .filter((s) => (s instanceof Attrib_Categorical && s.block.isView_List) ||
-            (s instanceof Attrib_Interval && s.block.showHistogram.val))
+            (s instanceof Attrib_Interval && s.block.showHistogram.is(true)))
             .map((s) => s.measureExtent_Self);
         this._syncedMeasureExtent = [
             d3$2.min(scales, (_) => _[0]),
@@ -20553,6 +20422,7 @@ class DataTable {
         // Loading data
         // ********************************************************************
         this.onLoad = null;
+        this.postLoad = null;
         this._isLoaded = false;
         // CSV parsin settings with defaults
         this.header = true;
@@ -20589,13 +20459,21 @@ class DataTable {
         return __awaiter(this, void 0, void 0, function* () {
             if (this._isLoaded)
                 return;
-            if (this.onLoad)
-                return this.onLoad();
+            if (this.onLoad) {
+                this._isLoaded = this.onLoad();
+                if (!this._isLoaded) {
+                    return Promise.reject("Cannot load data via custom loader");
+                }
+                return;
+            }
             // check loaders, and if loader accepts descriptor, try to load with the loader
             for (const loader of DataLoaderRegistry) {
                 if (loader.accepts(this)) {
                     var result = yield loader.load(this);
                     if (result) {
+                        if (this.postLoad) {
+                            this.postLoad();
+                        }
                         this._isLoaded = true;
                         return;
                     }
@@ -20854,17 +20732,19 @@ class Block_Content extends Block {
             .selectAll(".stepDot")
             .classed("active", (i) => this.curStep === i);
     }
+    refreshViz_Axis() {
+    }
     refreshViz_Active() {
-        throw new Error("Not supported");
+        return; // no action
     }
     refreshViz_Compare(cT, curGroup, totalGroups, prevCts) {
-        throw new Error("Not supported");
+        return; // no action
     }
     chartAxis_Measure_TickSkip() {
-        throw new Error("Not supported");
+        return; // no action
     }
     updateAfterFilter(refreshViz) {
-        throw new Error("Not supported");
+        return; // no action
     }
 }
 
@@ -20892,11 +20772,16 @@ class Attrib_Content extends Attrib {
     }
     /** -- */
     applyConfig(blockCfg) {
-        super.applyConfig(blockCfg);
-        this.setContent(blockCfg._content);
-        this.block.height_max = blockCfg.maxHeight;
-        this.block.height_min = blockCfg.minHeight;
-        this.block.onStep = blockCfg.onStep;
+        const _super = Object.create(null, {
+            applyConfig: { get: () => super.applyConfig }
+        });
+        return __awaiter(this, void 0, void 0, function* () {
+            _super.applyConfig.call(this, blockCfg);
+            this.setContent(blockCfg._content);
+            this.block.height_max = blockCfg.maxHeight;
+            this.block.height_min = blockCfg.minHeight;
+            this.block.onStep = blockCfg.onStep;
+        });
     }
     /** -- */
     setContent(v = []) {
@@ -21695,7 +21580,6 @@ class Browser {
         this.idSummaryName = null;
         this.primaryTableName = null;
         this.recordDisplay = null;
-        this.viewRecAs = "none";
         this.allRecordsAggr = null;
         this.allAggregates = [];
         this.configs = {};
@@ -21863,32 +21747,31 @@ class Browser {
                     activeWhen: () => this.getMeasurableSummaries("Avg").length > 0,
                 },
             ],
-            onRefresh: (cfg) => {
+            onRefreshDOM: (cfg) => {
                 // Update text
                 this.DOM.metricFuncText
                     .select(".measureFuncText")
-                    .html(i18n["measure_" + cfg.val]);
+                    .html(i18n["measure_" + cfg.get()]);
                 // Update select box
                 this.addMeasureOptions_Func(this.DOM.metricFuncText.select(".measureFuncOptions"));
             },
-            preSet: (v) => {
-                var _a;
+            preSet: (v) => __awaiter(this, void 0, void 0, function* () {
+                var _a, _b;
                 if (v === "Count")
                     return v;
-                var attrib = this.getMeasurableSummaries(v)[0];
-                if (!attrib) {
-                    throw `No numeric data attribute supports ${v} measure function.`;
-                }
-                if (this.measureSummary && !((_a = this.measureSummary) === null || _a === void 0 ? void 0 : _a.val)) {
-                    // This will
-                    this.measureSummary.val = attrib;
-                    // calls refreshMeasureMetric
+                // v is Sum or Avg - we need to make sure measureSummary is valid.
+                if (!((_a = this.measureSummary) === null || _a === void 0 ? void 0 : _a.get())) {
+                    let attrib = this.getMeasurableSummaries(v)[0];
+                    if (!attrib) {
+                        throw Error(`No numeric data attribute supports ${v} measure function.`);
+                    }
+                    yield ((_b = this.measureSummary) === null || _b === void 0 ? void 0 : _b.set(attrib));
                 }
                 return v;
-            },
-            onSet: () => {
-                this.refreshMeasureMetric();
-            },
+            }),
+            onSet: () => __awaiter(this, void 0, void 0, function* () {
+                yield this.refreshMeasureMetric();
+            }),
         });
         this.measureSummary = new Config({
             parent: this,
@@ -21904,14 +21787,13 @@ class Browser {
                     .attr("class", "timeKeys")
                     .on("input", (event) => {
                     var selectedKey = event.currentTarget.selectedOptions[0].__data__;
-                    this.measureSummary.val =
-                        this.measureSummary.val.timeseriesParent.getTimepointSummary(selectedKey);
+                    this.measureSummary.set(this.measureSummary.get().timeseriesParent.getTimepointSummary(selectedKey));
                 });
             },
-            onRefresh: (cfg) => {
-                if (!cfg._value)
+            onRefreshDOM: (cfg) => {
+                if (!cfg.get())
                     return; // nothing to do!
-                var attrib = this.measureSummary.val;
+                var attrib = this.measureSummary.get();
                 this.addMeasureOptions_Summaries(cfg.DOM.mainSelect);
                 this.addMeasureOptions_Summaries(this.DOM.metricFuncText.select("select.measureSummary"));
                 // If measureSummary is timeseries, we need to show the keys
@@ -21931,8 +21813,8 @@ class Browser {
                         .html(attrib.timeKey._time_src);
                 }
             },
-            preSet: (v) => {
-                var _a;
+            preSet: (v) => __awaiter(this, void 0, void 0, function* () {
+                var _c;
                 var attrib = v;
                 if (typeof attrib === "string") {
                     attrib = this.attribWithName(v);
@@ -21942,8 +21824,8 @@ class Browser {
                 if (attrib instanceof Attrib_Timeseries) {
                     // First, try to use the timeKey of current measure attrib
                     attrib.initializeAggregates(); // before this, timeKeys is not computed.
-                    var key = ((_a = this.measureSummary.val) === null || _a === void 0 ? void 0 : _a.timeKey) ||
-                        this.recordDisplay.currentTimeKey.val ||
+                    var key = ((_c = this.measureSummary.get()) === null || _c === void 0 ? void 0 : _c.timeKey) ||
+                        this.recordDisplay.currentTimeKey.get() ||
                         attrib.timeKeys[attrib.timeKeys.length - 1];
                     attrib = attrib.getTimepointSummary(key);
                 }
@@ -21952,14 +21834,12 @@ class Browser {
                 // make sure attrib caches are initialized...
                 attrib.initializeAggregates();
                 return attrib; // allright
-            },
-            onSet: (v) => {
-                if (!v)
+            }),
+            onSet: (v) => __awaiter(this, void 0, void 0, function* () {
+                if (!v || this.measureFunc_Count)
                     return;
-                if (this.measureFunc_Count)
-                    return; // nothing to do...
-                this.refreshMeasureMetric();
-            },
+                yield this.refreshMeasureMetric();
+            }),
         });
         this.breakdownMode = new Config({
             parent: this,
@@ -21979,31 +21859,26 @@ class Browser {
                 if (!this.measureWithPositiveValues())
                     return "absolute";
             },
-            preSet: (v) => {
-                if (v === false)
-                    v = "absolute";
-                if (v === true)
-                    v = "relative";
-                v = v.toLowerCase();
+            preSet: (v) => __awaiter(this, void 0, void 0, function* () {
                 if (v !== "absolute" && this.measureFunc_Avg) {
-                    throw `You cannot analyze data by ${i18n.DialogComparisonSelection} when<br>
-            using <i>average</i> as aggregation function for <i>${this.measureSummary.val.attribName}</i>.`;
+                    throw Error(`You cannot analyze data by ${i18n.DialogComparisonSelection} when<br>
+            using <i>average</i> as aggregation function for <i>${this.measureSummary.get().attribName}</i>.`);
                 }
                 if (v !== "absolute" && this.measureSumWithNegativeValues()) {
-                    throw i18n.DialogCompareForRelative;
+                    throw Error(i18n.DialogCompareForRelative);
                 }
                 return v;
-            },
-            onSet: (v) => {
+            }),
+            onSet: (v) => __awaiter(this, void 0, void 0, function* () {
                 this.preventAxisScaleTransition = true;
                 this.addedCompare = false;
-                this.attribsInDashboard.forEach((attrib) => {
-                    attrib.axisScaleType.val = v === "relative" ? "full" : "fit";
+                for (let attrib of this.attribsInDashboard) {
+                    yield attrib.axisScaleType.set(v === "relative" ? "full" : "fit");
                     attrib.refreshScale_Measure();
-                });
-                this.refreshAnalytics();
+                }
+                yield this.refreshAnalytics();
                 this.preventAxisScaleTransition = false;
-            },
+            }),
         });
         this.stackedCompare = new Config({
             parent: this,
@@ -22053,7 +21928,7 @@ class Browser {
                 if (!this.measureWithPositiveValues())
                     return false;
             },
-            preSet: (v) => {
+            preSet: (v) => __awaiter(this, void 0, void 0, function* () {
                 if (v !== true && v !== false)
                     return; // not valid input
                 if (v && this.comparedAttrib && this.isComparedSummaryMultiValued()) {
@@ -22079,11 +21954,11 @@ class Browser {
                         " cannot be used with measuring totals with negative values.");
                 }
                 return v;
-            },
-            onSet: () => {
+            }),
+            onSet: () => __awaiter(this, void 0, void 0, function* () {
                 this.attribsInDashboard.forEach((attrib) => attrib.refreshScale_Measure());
-                this.refreshAnalytics();
-            },
+                yield this.refreshAnalytics();
+            }),
         });
         this.showWholeAggr = new Config({
             parent: this,
@@ -22116,7 +21991,7 @@ class Browser {
                     //if(this.comparedSummary.isMultiValued) return false;
                 }
                 // of-total or absolute breakdown, with comparisons
-                if (this.stackedCompare.val) {
+                if (this.stackedCompare.is(true)) {
                     var totalOfCompared = this.activeComparisons.reduce((accum, val) => {
                         if (this.selectedAggrs[val]) {
                             return accum + this.selectedAggrs[val][val].measure;
@@ -22129,9 +22004,7 @@ class Browser {
                 if (!this.measureWithPositiveValues())
                     return false;
             },
-            onSet: () => {
-                this.refreshAnalytics();
-            },
+            onSet: () => __awaiter(this, void 0, void 0, function* () { return yield this.refreshAnalytics(); }),
         });
         this.filteringMode = new Config({
             parent: this,
@@ -22149,12 +22022,12 @@ class Browser {
                 { name: "Chained", value: "chained" },
                 { name: "Single", value: "single" },
             ],
-            preSet: (v) => {
+            preSet: (v) => __awaiter(this, void 0, void 0, function* () {
                 v = v.toLowerCase();
                 if (v === "combined")
                     v = "chained";
                 return v;
-            },
+            }),
             onSet: (v) => {
                 if (v === "single" && this.numOfActiveFilters > 1) {
                     this.clearFilters_All(this.filters.find((_) => _.isFiltered)); // remove our all but one
@@ -22203,40 +22076,50 @@ class Browser {
                     name: "TimeSeriesButton",
                     value: "timeseries",
                     activeWhen: () => {
-                        var _a;
+                        var _a, _b;
                         if (((_a = this.records) === null || _a === void 0 ? void 0 : _a.length) < 2)
                             return false;
-                        return (this.recordDisplay.getAttribOptions_UI("timeSeries").length > 0);
+                        return ((_b = this.recordDisplay) === null || _b === void 0 ? void 0 : _b.getAttribOptions_UI("timeSeries").length) > 0;
                     },
                 },
                 {
                     name: "ScatterButton",
                     value: "scatter",
                     activeWhen: () => {
-                        var _a;
+                        var _a, _b;
                         if (((_a = this.records) === null || _a === void 0 ? void 0 : _a.length) < 5)
                             return false;
-                        return (this.recordDisplay.getAttribOptions_UI("scatterX").length > 1);
+                        return ((_b = this.recordDisplay) === null || _b === void 0 ? void 0 : _b.getAttribOptions_UI("scatterX").length) > 1;
                     },
                 },
             ],
-            preSet: (v) => {
-                return v.toLowerCase();
-            },
-            onSet: (v, obj) => __awaiter(this, void 0, void 0, function* () {
-                var _a, _b;
+            preSet: (v) => __awaiter(this, void 0, void 0, function* () {
                 if (!this.records)
                     return; // data not loaded yet
                 if (!this.recordDisplay)
                     return;
-                try {
-                    var _type = v;
-                    if (this.records.length > 5000 && !["list", "none"].includes(_type)) {
-                        yield Modal.confirm("<div style='text-align:center;''>There are more than 2,000 records.<br>" +
-                            `The ${_type} chart will be crowded and potentially slow.<br><Br>` +
-                            `Are you sure you want to change to ${_type} chart?</div>`, "Change chart type");
+                if (this.records.length > 5000 && !["list", "none"].includes(v)) {
+                    yield Modal.confirm("<div style='text-align:center;''>There are more than 2,000 records.<br>" +
+                        `The ${v} chart will be crowded and potentially slow.<br><Br>` +
+                        `Are you sure you want to change to ${v} chart?</div>`, "Change chart type");
+                }
+                if (v === "map") {
+                    // Make sure recordDisplay.config.geo is set.
+                    if (!this.recordDisplay.config.geo) {
+                        var _ = this.recordDisplay.getRecordGeoAttributes()[0];
+                        if (!_)
+                            throw "Geo attribute not found";
                     }
+                }
+                return v;
+            }),
+            onSet: (_type) => __awaiter(this, void 0, void 0, function* () {
+                var _d, _e;
+                try {
+                    if (!this.recordDisplay)
+                        return;
                     if (_type === "map") {
+                        // Make sure recordDisplay.config.geo is set.
                         if (!this.recordDisplay.config.geo) {
                             var _ = this.recordDisplay.getRecordGeoAttributes()[0];
                             if (!_)
@@ -22245,34 +22128,14 @@ class Browser {
                         }
                     }
                     // setting the css style here so that the UI can prepare the layout
-                    (_a = this.DOM.root) === null || _a === void 0 ? void 0 : _a.attr("recordChartType", _type);
-                    if (_type === "none") {
-                        this.recordDisplay.View = null;
-                        //
-                    }
-                    else {
-                        yield this.recordDisplay.setView(_type);
-                    }
-                    // now, the chart can be considered "active"
-                    this.viewRecAs = _type;
+                    (_d = this.DOM.root) === null || _d === void 0 ? void 0 : _d.attr("recordChartType", _type);
+                    yield this.recordDisplay.setView(_type);
                     this.refreshIsEmpty();
-                    this.recordDisplay.recordConfigPanel.hide();
-                    if (_type !== "none") {
-                        this.recordDisplay.refreshViewAsOptions();
-                    }
-                    if (this.recordDisplay.View) {
-                        this.recordDisplay.View.initView_DOM();
-                        this.recordDisplay.View.initView();
-                        this.recordDisplay.View.initialized = true;
-                        (_b = this.recordDisplay.View) === null || _b === void 0 ? void 0 : _b.updateRecordVisibility();
-                        this.recordDisplay.refreshWidth();
-                        this.recordDisplay.View.refreshViewSize(10);
-                        this.updateLayout_Height();
-                    }
+                    this.updateLayout_Height();
                 }
                 catch (e) {
                     console.log(e);
-                    this.recordChartType.val = this.viewRecAs;
+                    (_e = this.recordChartType) === null || _e === void 0 ? void 0 : _e.undoChange();
                 }
             }),
         });
@@ -22291,13 +22154,13 @@ class Browser {
                 { name: "Capture", value: "Capture" },
                 { name: "Save", value: "Save" },
             ],
-            preSet: (v) => {
+            preSet: (v) => __awaiter(this, void 0, void 0, function* () {
                 if (v === "Print")
                     return "Capture";
                 return v;
-            },
-            onSet: (v, cfg) => {
-                var _a;
+            }),
+            onSet: (v, cfg) => __awaiter(this, void 0, void 0, function* () {
+                var _f;
                 if (this.finalized) {
                     this.setNoAnim(true);
                     if (v === "Author")
@@ -22308,18 +22171,18 @@ class Browser {
                     //updateLayout may not be "effective" if loading is not finalized...
                     this.updateMiddlePanelWidth();
                     setTimeout(() => this.setNoAnim(false), 500);
-                    (_a = this.onModeChange) === null || _a === void 0 ? void 0 : _a.call(this);
+                    (_f = this.onModeChange) === null || _f === void 0 ? void 0 : _f.call(this);
                 }
-                cfg.refresh();
-            },
-            onRefresh: (cfg) => {
-                var v = cfg.val;
-                if (this.DOM.panel_Footer) {
-                    this.DOM.panel_Footer
-                        .selectAll(".dashSelectMode")
-                        .classed("active", (_) => _.name === v);
-                    this.DOM.root.attr("data-dashboardMode", v);
-                }
+                yield cfg.refresh();
+            }),
+            onRefreshDOM: (cfg) => {
+                if (!this.DOM.panel_Footer)
+                    return;
+                this.DOM.panel_Footer
+                    .selectAll(".dashSelectMode")
+                    .classed("active", (_) => cfg.is(_.name));
+                this.DOM.root
+                    .attr("data-dashboardMode", cfg.get());
             },
         });
         [
@@ -22398,7 +22261,7 @@ class Browser {
             .select(this.domID)
             .classed("kshf", true)
             .classed("noAnim", true)
-            .attr("data-dashboardMode", this.dashboardMode.val)
+            .attr("data-dashboardMode", this.dashboardMode.get())
             .attr("recordChartType", "none")
             .on("mousemove", (event) => {
             // Compute mouse moving speed, to adjust repsonsiveness
@@ -22477,9 +22340,7 @@ class Browser {
     }
     // query by attribute name
     attribWithName(name) {
-        return (this.attribs.find((attrib) => {
-            return attrib.attribName === name || attrib.template.str === name;
-        }) || null);
+        return this.attribs.find((attrib) => { var _a; return name === (attrib === null || attrib === void 0 ? void 0 : attrib.attribName) || name === ((_a = attrib === null || attrib === void 0 ? void 0 : attrib.template) === null || _a === void 0 ? void 0 : _a.str); }) || null;
     }
     get _attribs() {
         var r = {};
@@ -22533,8 +22394,7 @@ class Browser {
     }
     /** -- */
     refreshIsEmpty() {
-        this.DOM.panel_Wrapper.classed("emptyDashboard", this.attribsInDashboard.length === 0 &&
-            this.recordChartType.val === "none");
+        this.DOM.panel_Wrapper.classed("emptyDashboard", this.attribsInDashboard.length === 0 && this.recordChartType.is("none"));
     }
     /** Returns data type based on first found valid value, null if type not detected */
     getAttribTypeFromFunc(func) {
@@ -22764,21 +22624,17 @@ class Browser {
     /** -- */
     addMeasureOptions_Summaries(dom) {
         dom
-            .on("change", (event) => {
-            this.measureSummary.val =
-                event.currentTarget.selectedOptions[0].__data__;
-        })
+            .on("change", (event) => __awaiter(this, void 0, void 0, function* () { return yield this.measureSummary.set(event.currentTarget.selectedOptions[0].__data__); }))
             .selectAll("option")
             .remove();
-        if (this.measureFunc.val === "Count")
+        if (this.measureFunc.is("Count"))
             return;
-        var opts = this.getMeasurableSummaries(this.measureFunc.val);
         dom
             .selectAll("option")
-            .data(opts)
+            .data(this.getMeasurableSummaries(this.measureFunc.get()))
             .enter()
             .append("option")
-            .attr("selected", (s) => s.attribID === this.measureSummary.val.attribID ? true : null)
+            .attr("selected", (s) => { var _a; return s.attribID === ((_a = this.measureSummary.get()) === null || _a === void 0 ? void 0 : _a.attribID) ? true : null; })
             .html((s) => s.attribName);
     }
     /** -- */
@@ -22786,11 +22642,11 @@ class Browser {
         dom.selectAll("option").remove();
         dom // slice creates a copy, reverse in-place updates this copy
             .selectAll("option")
-            .data(this.measureSummary.val.timeseriesParent.timeKeys.slice().reverse())
+            .data(this.measureSummary.get().timeseriesParent.timeKeys.slice().reverse())
             .enter()
             .append("option")
             .attr("value", (timeKey) => timeKey._time_src)
-            .attr("selected", (timeKey) => timeKey._time_src === this.measureSummary.val.timeKey._time_src
+            .attr("selected", (timeKey) => timeKey._time_src === this.measureSummary.get().timeKey._time_src
             ? "true"
             : null)
             .html((timeKey) => timeKey._time_src);
@@ -22798,10 +22654,7 @@ class Browser {
     /** -- */
     addMeasureOptions_Func(dom) {
         dom
-            .on("change", (event) => {
-            this.measureFunc.val =
-                event.currentTarget.selectedOptions[0].__data__.v;
-        })
+            .on("change", (event) => __awaiter(this, void 0, void 0, function* () { return yield this.measureFunc.set(event.currentTarget.selectedOptions[0].__data__.v); }))
             .selectAll("option")
             .remove();
         var opts = [{ v: "Count", l: i18n.measure_Count, active: true }];
@@ -22818,7 +22671,7 @@ class Browser {
             .enter()
             .append("option")
             .attr("disabled", (d) => (d.active ? null : true))
-            .attr("selected", (d) => (d.v === this.measureFunc.val ? true : null))
+            .attr("selected", (d) => (d.v === this.measureFunc.get() ? true : null))
             .html((d) => d.l);
     }
     /** -- */
@@ -22904,8 +22757,8 @@ class Browser {
             .enter()
             .append("div")
             .attr("class", (_) => `dashSelectMode dashSelectMode-${_.name}`)
-            .classed("active", (_) => _.name === this.dashboardMode.val)
-            .on("click", (_event, _) => (this.dashboardMode.val = _.name))
+            .classed("active", (_) => this.dashboardMode.is(_.name))
+            .on("click", (_event, _) => __awaiter(this, void 0, void 0, function* () { return yield this.dashboardMode.set(_.name); }))
             .tooltip((_) => i18n[`${_.name} Mode`])
             .call((dashSelectMode) => {
             dashSelectMode.append("div").attr("class", (_) => _.class);
@@ -22971,10 +22824,9 @@ class Browser {
             "<select class='measureSummary metricOptionWrapper_Opts'></select>" +
             "</span>" +
             `<span class='Of_NumberRecord'>${i18n.Of_NumberRecord}</span>`);
-        this.DOM.metricFuncText.select("select.timeKeys").on("input", (event) => {
-            this.measureSummary.val =
-                this.measureSummary.val.timeseriesParent.getTimepointSummary(event.currentTarget.selectedOptions[0].__data__);
-        });
+        this.DOM.metricFuncText.select("select.timeKeys").on("input", (event) => __awaiter(this, void 0, void 0, function* () {
+            yield this.measureSummary.set(this.measureSummary.get().timeseriesParent.getTimepointSummary(event.currentTarget.selectedOptions[0].__data__));
+        }));
         this.DOM.recordName = this.DOM.recordInfo
             .append("span")
             .attr("class", "recordName")
@@ -23065,10 +22917,8 @@ class Browser {
                         name: "Absolute",
                         iconClass: "far fa-hashtag",
                         helparticle: "5e8944682c7d3a7e9aea659a",
-                        active: this.breakdownMode.val === "absolute",
-                        do: (_) => {
-                            this.breakdownMode.val = "absolute";
-                        },
+                        active: this.breakdownMode.is("absolute"),
+                        do: () => __awaiter(this, void 0, void 0, function* () { return yield this.breakdownMode.set("absolute"); }),
                     },
                     {
                         id: "percentBreakdown",
@@ -23080,28 +22930,22 @@ class Browser {
                                 id: "dependentBreakdown",
                                 name: "% of Compared",
                                 helparticle: "5e8944812c7d3a7e9aea659b",
-                                active: this.breakdownMode.val === "dependent",
-                                do: (_) => {
-                                    this.breakdownMode.val = "dependent";
-                                },
+                                active: this.breakdownMode.is("dependent"),
+                                do: () => __awaiter(this, void 0, void 0, function* () { return yield this.breakdownMode.set("dependent"); }),
                             },
                             {
                                 id: "relativeBreakdown",
                                 name: "% of Groups",
                                 helparticle: "5e8944932c7d3a7e9aea659c",
-                                active: this.breakdownMode.val === "relative",
-                                do: (_) => {
-                                    this.breakdownMode.val = "relative";
-                                },
+                                active: this.breakdownMode.is("relative"),
+                                do: () => __awaiter(this, void 0, void 0, function* () { return yield this.breakdownMode.set("relative"); }),
                             },
                             {
                                 id: "totalBreakdown",
                                 name: "% of All",
                                 helparticle: "5e94ff6904286364bc984a7a",
-                                active: this.breakdownMode.val === "total",
-                                do: (_) => {
-                                    this.breakdownMode.val = "total";
-                                },
+                                active: this.breakdownMode.is("total"),
+                                do: () => __awaiter(this, void 0, void 0, function* () { return yield this.breakdownMode.set("total"); }),
                             },
                         ],
                     },
@@ -23113,14 +22957,10 @@ class Browser {
             .attr("class", "dashboardSetting lockCrumbMode")
             .tooltip("", {
             onShow: (instance) => {
-                instance.reference.tippy.setContent(`<div>${i18n["Group View"]}</div>
-          <b>${this.stackedCompare}</b><br>
-          <i>${i18n["Click to change"]}</i>`);
+                instance.reference.tippy.setContent(`<div>${i18n["Group View"]}</div> <b>${this.stackedCompare}</b><br> <i>${i18n["Click to change"]}</i>`);
             },
         })
-            .on("click", () => {
-            this.stackedCompare.val = !this.stackedCompare.val;
-        })
+            .on("click", () => __awaiter(this, void 0, void 0, function* () { return yield this.stackedCompare.set(!this.stackedCompare.get()); }))
             .append("div")
             .attr("class", "CompareModeIcon")
             .selectAll("div")
@@ -23172,33 +23012,37 @@ class Browser {
     }
     /** -- */
     applyConfig(config) {
-        // Import panel config
-        Base.Panel_List.forEach((p) => this.panels[p].importConfig(Object.assign(Object.assign({}, config.panels[p]), config.panels.default)));
-        config.summaries = config.summaries || [];
-        config.summaries.forEach((cfg) => this.applyBlockConfig(cfg));
-        if (config.recordName && this.recordName !== config.recordName) {
-            this.setRecordName(config.recordName);
-        }
-        if (config.metric) {
-            var a = this.attribWithName(config.metric.summary);
-            if (a instanceof Attrib_Numeric) {
-                this.measureSummary.val = a;
-                this.measureFunc.val = config.metric.type;
+        return __awaiter(this, void 0, void 0, function* () {
+            // Import panel config
+            Base.Panel_List.forEach((p) => this.panels[p].importConfig(Object.assign(Object.assign({}, config.panels[p]), config.panels.default)));
+            config.summaries = config.summaries || [];
+            for (let cfg of config.summaries) {
+                yield this.applyBlockConfig(cfg);
             }
-        }
-        else {
-            this.measureFunc.val = "Count";
-        }
-        this.breakdownMode.val = config.breakdownMode;
-        this.stackedCompare.val = config.stackedCompare;
-        this.filteringMode.val = config.filteringMode;
-        this.showWholeAggr.val = config.showWholeAggr;
-        this.mouseOverCompare.val = config.mouseOverCompare;
-        this.recordDisplay.importConfig(config.recordDisplay);
-        this.records.forEach((rec) => rec.refreshFilterCache());
-        this.updateRecordCount_Active();
-        this.updateAfterFilter();
-        this.updateLayout();
+            if (config.recordName && this.recordName !== config.recordName) {
+                this.setRecordName(config.recordName);
+            }
+            if (config.metric) {
+                var a = this.attribWithName(config.metric.summary);
+                if (a instanceof Attrib_Numeric) {
+                    yield this.measureSummary.set(a);
+                    yield this.measureFunc.set(config.metric.type);
+                }
+            }
+            else {
+                yield this.measureFunc.set("Count");
+            }
+            yield this.breakdownMode.set(config.breakdownMode);
+            yield this.stackedCompare.set(config.stackedCompare);
+            yield this.filteringMode.set(config.filteringMode);
+            yield this.showWholeAggr.set(config.showWholeAggr);
+            yield this.mouseOverCompare.set(config.mouseOverCompare);
+            yield this.recordDisplay.importConfig(config.recordDisplay);
+            this.records.forEach((rec) => rec.refreshFilterCache());
+            this.updateRecordCount_Active();
+            this.updateAfterFilter();
+            this.updateLayout();
+        });
     }
     /* -- */
     insertDOM_Panel_Overlay() {
@@ -23283,9 +23127,7 @@ class Browser {
         xx.append("span")
             .attr("class", "closeAttribPanel fa fa-window-close")
             .tooltip(i18n.Close)
-            .on("click", () => {
-            this.dashboardMode.val = "Explore";
-        });
+            .on("click", () => __awaiter(this, void 0, void 0, function* () { return yield this.dashboardMode.set("Explore"); }));
         return this.DOM[className]
             .append("div")
             .attr("class", "sidePanelGroupContent");
@@ -23719,56 +23561,58 @@ class Browser {
     /** -- */
     applyBlockConfig(attribCfg) {
         var _a;
-        if (Object.keys(attribCfg).length === 0)
-            return; // NO-OP
-        if (attribCfg.skipConfig)
-            return;
-        this.prepBlockConfig(attribCfg);
-        var attrib = this.attribWithName(attribCfg.name);
-        var _byValue = null;
-        if (typeof attribCfg.value === "string" && attribCfg.type !== "recordGeo") {
-            _byValue = this.attribWithName(attribCfg.value);
-        }
-        if (!attrib && _byValue) {
-            // converting name from "value" to "name"
-            attrib = _byValue;
-            attrib.attribName = attribCfg.name;
-        }
-        else {
-            if (attrib &&
-                attribCfg.value &&
-                attribCfg.value !== attribCfg.name &&
-                attrib.template.str !== attribCfg.value) {
-                // redefining the attrib with the requested name using the new value function
-                attrib.destroy();
+        return __awaiter(this, void 0, void 0, function* () {
+            if (Object.keys(attribCfg).length === 0)
+                return; // NO-OP
+            if (attribCfg.skipConfig)
+                return;
+            this.prepBlockConfig(attribCfg);
+            var attrib = this.attribWithName(attribCfg.name);
+            var _byValue = null;
+            if (typeof attribCfg.value === "string" && attribCfg.type !== "recordGeo") {
+                _byValue = this.attribWithName(attribCfg.value);
             }
-            attrib = this.createAttrib(attribCfg.name, attribCfg.value, attribCfg.type);
-        }
-        // handle summary/attribCfg type mismatch...
-        if (attribCfg.type && attribCfg.type !== attrib.type) {
-            attrib.destroy();
-            attribCfg.value = attribCfg.value || attribCfg.name;
-            if (typeof attribCfg.value === "string") {
-                attrib = this.createAttrib(attribCfg.value, null, attribCfg.type);
+            if (!attrib && _byValue) {
+                // converting name from "value" to "name"
+                attrib = _byValue;
                 attrib.attribName = attribCfg.name;
             }
-            else if (typeof attribCfg.value === "function") {
+            else {
+                if (attrib &&
+                    attribCfg.value &&
+                    attribCfg.value !== attribCfg.name &&
+                    attrib.template.str !== attribCfg.value) {
+                    // redefining the attrib with the requested name using the new value function
+                    attrib.destroy();
+                }
                 attrib = this.createAttrib(attribCfg.name, attribCfg.value, attribCfg.type);
             }
-        }
-        // If attrib object is not found/created, nothing else to do
-        if (!attrib)
-            return;
-        attrib.applyConfig(attribCfg);
-        if (attrib.isEmpty() &&
-            (attrib instanceof Attrib_Categorical ||
-                attrib instanceof Attrib_Interval)) {
-            attrib.destroy();
-            return;
-        }
-        if (attribCfg.panel) {
-            (_a = attrib.block) === null || _a === void 0 ? void 0 : _a.addToPanel(this.panels[attribCfg.panel], undefined, true);
-        }
+            // handle summary/attribCfg type mismatch...
+            if (attribCfg.type && attribCfg.type !== attrib.type) {
+                attrib.destroy();
+                attribCfg.value = attribCfg.value || attribCfg.name;
+                if (typeof attribCfg.value === "string") {
+                    attrib = this.createAttrib(attribCfg.value, null, attribCfg.type);
+                    attrib.attribName = attribCfg.name;
+                }
+                else if (typeof attribCfg.value === "function") {
+                    attrib = this.createAttrib(attribCfg.name, attribCfg.value, attribCfg.type);
+                }
+            }
+            // If attrib object is not found/created, nothing else to do
+            if (!attrib)
+                return;
+            yield attrib.applyConfig(attribCfg);
+            if (attrib.isEmpty() &&
+                (attrib instanceof Attrib_Categorical ||
+                    attrib instanceof Attrib_Interval)) {
+                attrib.destroy();
+                return;
+            }
+            if (attribCfg.panel) {
+                (_a = attrib.block) === null || _a === void 0 ? void 0 : _a.addToPanel(this.panels[attribCfg.panel], undefined, true);
+            }
+        });
     }
     /** -- */
     runMagic() {
@@ -24129,11 +23973,11 @@ class Browser {
                         this.options[side + "PanelLabelWidth"];
                 }
             });
-            this.breakdownMode.val = this.options.breakdownMode;
-            this.stackedCompare.val = this.options.stackedCompare;
-            this.filteringMode.val = this.options.filteringMode;
-            this.showWholeAggr.val = this.options.showWholeAggr;
-            this.mouseOverCompare.val = this.options.mouseOverCompare;
+            yield this.breakdownMode.set(this.options.breakdownMode);
+            yield this.stackedCompare.set(this.options.stackedCompare);
+            yield this.filteringMode.set(this.options.filteringMode);
+            yield this.showWholeAggr.set(this.options.showWholeAggr);
+            yield this.mouseOverCompare.set(this.options.mouseOverCompare);
             this.records.forEach((rec) => this.allRecordsAggr.addRecord(rec));
             if (this.options.attribPanelWidth) {
                 this.setAttribPanelWidth(this.options.attribPanelWidth);
@@ -24214,12 +24058,14 @@ class Browser {
                     metric = { type: "Sum", summary: metric };
                 let a = this.attribWithName(metric.summary);
                 if (a instanceof Attrib_Numeric) {
-                    this.measureSummary.val = a;
-                    this.measureFunc.val = metric.type;
+                    yield this.measureSummary.set(a);
+                    yield this.measureFunc.set(metric.type);
                 }
             }
             this.options.summaries = this.options.summaries || [];
-            this.options.summaries.forEach((cfg) => this.applyBlockConfig(cfg));
+            for (let cfg of this.options.summaries) {
+                yield this.applyBlockConfig(cfg);
+            }
             yield this.recordDisplay.initialize();
             this.panels.bottom.refreshWidth();
             this.updateMiddlePanelWidth();
@@ -24263,7 +24109,7 @@ class Browser {
             if (this.DOM.overlay_wrapper.selectAll(".overlay_modal").nodes().length === 0) {
                 this.DOM.overlay_wrapper.attr("show", "none");
             }
-            this.dashboardMode.val = this.options.dashboardMode;
+            yield this.dashboardMode.set(this.options.dashboardMode);
             (_c = this.options.onReady) === null || _c === void 0 ? void 0 : _c.call(this);
             this.finalized = true;
             if (this.authorMode)
@@ -24312,21 +24158,18 @@ class Browser {
         if ((_a = attrib === null || attrib === void 0 ? void 0 : attrib.block) === null || _a === void 0 ? void 0 : _a.inDashboard)
             return; //
         if (attrib instanceof Attrib_Timeseries) {
-            this.recordDisplay.setAttrib("timeSeries", attrib).then(() => {
-                this.recordChartType.val = "timeseries";
-            });
+            this.recordDisplay.setAttrib("timeSeries", attrib)
+                .then(() => __awaiter(this, void 0, void 0, function* () { return yield this.recordChartType.set("timeseries"); }));
             return;
         }
         if (attrib instanceof Attrib_RecordGeo) {
-            this.recordDisplay.setAttrib("geo", attrib).then(() => {
-                this.recordChartType.val = "map";
-            });
+            this.recordDisplay.setAttrib("geo", attrib)
+                .then(() => __awaiter(this, void 0, void 0, function* () { return yield this.recordChartType.set("map"); }));
             return;
         }
         if (attrib instanceof Attrib_Categorical && attrib.uniqueCategories()) {
-            this.recordDisplay.setAttrib("text", attrib).then(() => {
-                this.recordChartType.val = "list";
-            });
+            this.recordDisplay.setAttrib("text", attrib)
+                .then(() => __awaiter(this, void 0, void 0, function* () { return yield this.recordChartType.set("list"); }));
             return;
         }
         var target_panel = {
@@ -24412,12 +24255,12 @@ class Browser {
         var _a, _b, _c;
         if (!this.enableAnalytics)
             return;
-        (_b = (_a = this.DOM) === null || _a === void 0 ? void 0 : _a.root) === null || _b === void 0 ? void 0 : _b.classed("stackedCompare", this.stackedCompare.val).classed("stackedChart", this.stackedChart).classed("showWholeAggr", this.showWholeAggr.val).attr("breakdownMode", this.breakdownMode.val).attr("measureFunc", this.measureFunc.val);
+        (_b = (_a = this.DOM) === null || _a === void 0 ? void 0 : _a.root) === null || _b === void 0 ? void 0 : _b.classed("stackedCompare", this.stackedCompare.is(true)).classed("stackedChart", this.stackedChart).classed("showWholeAggr", this.showWholeAggr.is(true)).attr("breakdownMode", this.breakdownMode.get()).attr("measureFunc", this.measureFunc.get());
         this.updateWidth_CatMeasureLabels();
-        if (this.stackedCompare.val) {
+        if (this.stackedCompare.is(true)) {
             this.attribs.forEach((attrib) => {
                 if (attrib.measureScale_Log)
-                    attrib.measureScaleType.val = "linear";
+                    attrib.measureScaleType.set("linear");
             });
         }
         this.refreshPanelsSyncedMeasureExtend();
@@ -24437,7 +24280,7 @@ class Browser {
     /** -------------------------------------------------- */
     // Auto-computed from stacked compare setting
     get stackedChart() {
-        if (!this.stackedCompare.val)
+        if (this.stackedCompare.is(false))
             return false;
         if (this.activeComparisonsCount >= 1)
             return true;
@@ -24447,52 +24290,52 @@ class Browser {
     }
     /** -------------------------------------------------- */
     get exploreMode() {
-        return this.dashboardMode.val === "Explore";
+        return this.dashboardMode.is("Explore");
     }
     get adjustMode() {
-        return this.dashboardMode.val === "Adjust";
+        return this.dashboardMode.is("Adjust");
     }
     get authorMode() {
-        return this.dashboardMode.val === "Author";
+        return this.dashboardMode.is("Author");
     }
     get captureMode() {
-        return this.dashboardMode.val === "Capture";
+        return this.dashboardMode.is("Capture");
     }
     get saveMode() {
-        return this.dashboardMode.val === "Save";
+        return this.dashboardMode.is("Save");
     }
     /** -------------------------------------------------- */
     get measureFunc_Count() {
-        return this.measureFunc.val === "Count";
+        return this.measureFunc.is("Count");
     }
     get measureFunc_Avg() {
-        return this.measureFunc.val === "Avg";
+        return this.measureFunc.is("Avg");
     }
     get measureFunc_Sum() {
-        return this.measureFunc.val === "Sum";
+        return this.measureFunc.is("Sum");
     }
     /** -------------------------------------------------- */
     get singleFiltering() {
-        return this.filteringMode.val === "single";
+        return this.filteringMode.is("single");
     }
     get chainedFiltering() {
-        return this.filteringMode.val === "chained";
+        return this.filteringMode.is("chained");
     }
     /** -------------------------------------------------- */
     get absoluteBreakdown() {
-        return this.breakdownMode.val == "absolute";
+        return this.breakdownMode.is("absolute");
     }
     get percentBreakdown() {
-        return this.breakdownMode.val != "absolute";
+        return this.breakdownMode.get() != "absolute";
     }
     get relativeBreakdown() {
-        return this.breakdownMode.val == "relative";
+        return this.breakdownMode.is("relative");
     }
     get dependentBreakdown() {
-        return this.breakdownMode.val == "dependent";
+        return this.breakdownMode.is("dependent");
     }
     get totalBreakdown() {
-        return this.breakdownMode.val == "total";
+        return this.breakdownMode.is("total");
     }
     /** Updates shared (synced) measure extent within the panel (so bar charts can share the same scale) */
     refreshPanelsSyncedMeasureExtend() {
@@ -24619,7 +24462,7 @@ class Browser {
             return false;
         if (!this.selectedAggrs[cT])
             return false;
-        if (!((_a = this.selectedAggrs[cT].attrib) === null || _a === void 0 ? void 0 : _a.isComparable.val)) {
+        if ((_a = this.selectedAggrs[cT].attrib) === null || _a === void 0 ? void 0 : _a.isComparable.is(false)) {
             return false;
         }
         this.selectedAggrs[cT].lockSelection();
@@ -24749,44 +24592,47 @@ class Browser {
     /** -- */
     hasIntOnlyMeasure() {
         return (this.measureFunc_Count ||
-            (this.measureFunc_Sum && !this.measureSummary.val.hasFloat));
+            (this.measureFunc_Sum && !this.measureSummary.get().hasFloat));
     }
     /** --*/
     measureSumWithNegativeValues() {
-        return this.measureFunc_Sum && this.measureSummary.val.hasNegativeValues();
+        return this.measureFunc_Sum && this.measureSummary.get().hasNegativeValues();
     }
     /** --*/
     measureWithPositiveValues() {
+        var _a;
         if (this.measureFunc_Count)
             return true;
         // TODO: This may return true, but other code relies on disabling when using avg measures
         if (this.measureFunc_Avg)
             return false;
-        return (this.measureSummary.val && !this.measureSummary.val.hasNegativeValues());
+        return (_a = this.measureSummary.get()) === null || _a === void 0 ? void 0 : _a.hasNegativeValues();
     }
     /** funcType: "Count", Sum" or "Avg" */
     refreshMeasureMetric() {
         var _a;
-        if (!this.records)
-            return; // if calling the function too early in initialization
-        let attrib = (_a = this.measureSummary) === null || _a === void 0 ? void 0 : _a.val;
-        if (!attrib)
-            return;
-        this.records.forEach(this.measureFunc_Count
-            ? (rec) => {
-                rec.measure_Self = 1;
+        return __awaiter(this, void 0, void 0, function* () {
+            if (!this.records)
+                return; // if calling the function too early in initialization
+            let attrib = (_a = this.measureSummary) === null || _a === void 0 ? void 0 : _a.get();
+            if (!attrib)
+                return;
+            this.records.forEach(this.measureFunc_Count
+                ? (rec) => {
+                    rec.measure_Self = 1;
+                }
+                : (rec) => {
+                    rec.measure_Self = attrib.getRecordValue(rec);
+                });
+            this.allAggregates.forEach((aggr) => aggr.resetAggregateMeasures());
+            this.blocks.forEach((block) => block.updateAfterFilter(false));
+            this.recordDisplay.refreshRecordVis();
+            this.updateRecordCount_Active();
+            this.refreshAnalytics();
+            if (attrib.hasTimeSeriesParent()) {
+                yield this.recordDisplay.currentTimeKey.set(attrib.timeKey);
             }
-            : (rec) => {
-                rec.measure_Self = attrib.getRecordValue(rec);
-            });
-        this.allAggregates.forEach((aggr) => aggr.resetAggregateMeasures());
-        this.blocks.forEach((block) => block.updateAfterFilter(false));
-        this.recordDisplay.refreshRecordVis();
-        this.updateRecordCount_Active();
-        this.refreshAnalytics();
-        if (attrib.hasTimeSeriesParent()) {
-            this.recordDisplay.currentTimeKey.val = attrib.timeKey;
-        }
+        });
     }
     /**************************************************************
      * ZOOM LEVELS (UI)
@@ -24921,7 +24767,7 @@ class Browser {
         if (this.panels.left.hasBlocks() ||
             this.panels.right.hasBlocks() ||
             this.panels.middle.hasBlocks() ||
-            this.recordChartType.val !== "none") {
+            this.recordChartType.get() !== "none") {
             // maximum half height if there is any other content
             targetHeight_bottom *= 0.5;
         }
@@ -24936,7 +24782,7 @@ class Browser {
         // ****************************************************************
         // MIDDLE PANEL
         var targetHeight_middle = topPanelsHeight;
-        if (this.recordChartType.val !== "none") {
+        if (this.recordChartType.get() !== "none") {
             targetHeight_middle -= this.recordDisplay.collapsed
                 ? this.recordDisplay.height_Header + 4
                 : 200;
@@ -24945,7 +24791,7 @@ class Browser {
         this.panels.middle.setHeightAndLayout(targetHeight_middle);
         // The part where summary DOM is updated
         this.blocks.forEach((block) => block.refreshHeight());
-        if (!this.recordDisplay.collapsed && this.recordChartType.val !== "none") {
+        if (!this.recordDisplay.collapsed && this.recordChartType.get() !== "none") {
             var listDisplayHeight = topPanelsHeight -
                 this.recordDisplay.height_Header -
                 this.panels.middle.height;
@@ -24975,7 +24821,7 @@ class Browser {
     // ********************************************************************
     /**  */
     getPercentageValue(_val, sT, breakMode = null, aggr = null) {
-        breakMode = breakMode || this.breakdownMode.val;
+        breakMode = breakMode || this.breakdownMode.get();
         if (breakMode === "absolute") {
             return _val;
         }
@@ -25010,8 +24856,8 @@ class Browser {
     }
     /** -- */
     getMeasureFormattedValue(_val, isSVG = false) {
-        return this.measureFunc.val !== "Count"
-            ? this.measureSummary.val.getFormattedValue(_val, isSVG)
+        return this.measureFunc.get() !== "Count"
+            ? this.measureSummary.get().getFormattedValue(_val, isSVG)
             : _val;
     }
     /** -- */
@@ -25026,7 +24872,7 @@ class Browser {
         if (this.measureFunc_Count) {
             return Util.formatForItemCount(_val);
         }
-        var measureSummary = this.measureSummary.val;
+        const measureSummary = this.measureSummary.get();
         if (this.measureFunc_Sum &&
             !measureSummary.hasNegativeValues() &&
             !measureSummary.hasFloat) {
@@ -25038,7 +24884,7 @@ class Browser {
         if (this.measureFunc_Avg) {
             _val = _val.toFixed(decimals);
         }
-        return this.measureSummary.val.getFormattedValue(_val);
+        return this.measureSummary.get().getFormattedValue(_val);
     }
     // ********************************************************************
     // Export & import
@@ -25091,10 +24937,10 @@ class Browser {
             colorTheme: this.colorTheme.exportConfig(),
         };
         Object.values(this.configs).forEach((_cfg) => _cfg.exportConfigTo(config));
-        if (!this.measureFunc_Count && this.measureSummary.val) {
+        if (!this.measureFunc_Count && this.measureSummary.get()) {
             config.metric = {
-                type: this.measureFunc.val,
-                summary: this.measureSummary.val.template.str,
+                type: this.measureFunc.get(),
+                summary: this.measureSummary.get().template.str,
             };
         }
         // ***********************************************
@@ -25142,5 +24988,5 @@ class Browser {
     }
 }
 
-export { Aggregate, Aggregate_Category, Aggregate_Interval, Aggregate_Interval_Numeric, Aggregate_NoValue, Aggregate_PointCluster, Aggregate_SetPair, Attrib, Attrib_Categorical, Attrib_Content, Attrib_Interval, Attrib_Numeric, Attrib_RecordGeo, Attrib_Set, Attrib_Timeseries, Attrib_Timestamp, Base, Block, Block_Categorical, Block_Content, Block_Interval, Block_Numeric, Block_Set, Block_Timestamp, Browser, Config, ConfigS, DataTable, Filter, Filter_Base, Filter_Categorical, Filter_Interval, Filter_Numeric, Filter_Record, Filter_Text, Filter_Timestamp, LoadLanguage, MapData, Record, RecordDisplay, RecordView, RecordView_List, RecordView_Map, RecordView_Scatter, RecordView_Timeseries, Util, i18n };
+export { Aggregate, Aggregate_Category, Aggregate_Interval, Aggregate_Interval_Numeric, Aggregate_NoValue, Aggregate_PointCluster, Aggregate_SetPair, Attrib, Attrib_Categorical, Attrib_Content, Attrib_Interval, Attrib_Numeric, Attrib_RecordGeo, Attrib_Set, Attrib_Timeseries, Attrib_Timestamp, Base, Block, Block_Categorical, Block_Content, Block_Interval, Block_Numeric, Block_Set, Block_Timestamp, Browser, Config, ConfigS, DataTable, Filter, Filter_Base, Filter_Categorical, Filter_Interval, Filter_Numeric, Filter_Record, Filter_Text, Filter_Timestamp, LoadLanguage, MapData, Record, RecordDisplay, RecordView, RecordView_List, RecordView_Map, RecordView_Scatter, RecordView_Timeseries, Util, i18n, i18n_EN };
 //# sourceMappingURL=keshif.js.map

@@ -126,7 +126,7 @@ export class Attrib_RecordGeo extends Attrib {
     this.aggr_initialized = true;
   }
 
-  applyConfig(blockCfg: SummarySpec) {
+  async applyConfig(blockCfg: SummarySpec) {
     super.applyConfig(blockCfg);
 
     if (blockCfg.recordGeo) {
@@ -168,7 +168,7 @@ export class Attrib_RecordGeo extends Attrib {
       return;
     }
 
-    if (Supercluster) {
+    if (!Supercluster) {
       Supercluster = await import("supercluster");
     }
 

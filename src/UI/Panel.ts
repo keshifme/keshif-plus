@@ -98,7 +98,7 @@ export class Panel {
   get width_CatLabel() {
     return (
       this.width_CatText -
-      (this.browser.stackedCompare.val && !this.hiddenCatBars()
+      (this.browser.stackedCompare.is(true) && !this.hiddenCatBars()
         ? 0
         : this.width_CatMeasureLabel)
     );
@@ -258,7 +258,7 @@ export class Panel {
       }
     } else {
       // Account for the unitName displayed
-      var unitName = this.browser.measureSummary.val?.unitName;
+      var unitName = this.browser.measureSummary.get()?.unitName;
       if (unitName) {
         // TO-DO: Use the rendered width, instead of fixed multiplier, "11"
         _w_ += 2 + unitName.length * 7;
@@ -571,9 +571,10 @@ export class Panel {
       .filter(
         (s) =>
           (s instanceof Attrib_Categorical && s.block.isView_List) ||
-          (s instanceof Attrib_Interval && s.block.showHistogram.val)
+          (s instanceof Attrib_Interval && s.block.showHistogram.is(true))
       )
       .map((s) => s.measureExtent_Self);
+
     this._syncedMeasureExtent = [
       d3.min(scales, (_) => _[0]),
       d3.max(scales, (_) => _[1]),

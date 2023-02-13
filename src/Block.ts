@@ -114,7 +114,7 @@ export abstract class Block {
     this.DOM.root
       .attr("class", "kshfSummary " + this.attrib.blockClassName)
       .attr("summary_id", this.attrib.attribID) // can be used to customize a specific summary using CSS
-      .classed("disableCompareLock", !this.attrib.isComparable.val)
+      .classed("disableCompareLock", !this.attrib.isComparable.is(true))
       .classed("filtered", this.attrib.isFiltered())
       .datum(this);
 
@@ -539,12 +539,14 @@ export abstract class Block {
   }
   // -- TODO: incomplete / check references, not used much
   refreshViz(sT) {
+    if (this.attrib.type === "content") return;
     return sT === "Active"
       ? this.refreshViz_Active()
       : this.refreshViz_Compare(sT, 0, 0, null);
   }
   /** -- */
   refreshViz_Compare_All() {
+    if (this.attrib.type === "content") return;
     var compared = this.browser.activeComparisons;
     var totalC = this.browser.activeComparisonsCount;
 
@@ -743,8 +745,8 @@ export abstract class Block {
         this.attrib.noValueAggr.setAggrGlyph(nodes[i]);
       })
       .on("mouseover", () => {
-        if (!this.browser.mouseOverCompare.val) return;
         if (this.browser.adjustMode) return;
+        if (this.browser.mouseOverCompare.is(false)) return;
         this.browser.setSelect_Compare(this.attrib.noValueAggr);
       })
       .on("mouseout", () => {
@@ -835,7 +837,7 @@ export abstract class Block {
   refreshMeasureDescrLabel() {
     this.DOM.root
       ?.selectAll(".measureDescrLabel")
-      .html(i18n.MeasureDescrLabel(this.browser, this));
+      .html(i18n.MeasureDescrLabel(this.browser, this.attrib));
   }
 
   // Utility method for subclasses

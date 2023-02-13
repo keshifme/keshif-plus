@@ -2,6 +2,7 @@
 import { Attrib_Content } from "./Attrib_Content";
 import { Browser } from "./Browser";
 import { Record } from "./Record";
+import { DataTable } from "./DataTable";
 
 export type IntervalT = number | Date;
 
@@ -14,6 +15,8 @@ export type TableSpec = {
   fileType?: string;
   dirPath?: string;
   fullURL?: string;
+  onLoad?: ((this: DataTable) => boolean);
+  postLoad?: ((this: DataTable) => boolean);
 };
 
 export type PanelSpec = {
@@ -154,6 +157,8 @@ export type SummarySpec = BlockSpec &
   SummaryConfig_Numeric & 
   SummaryConfig_Geo;
 
+export type LinearOrLog = "linear" | "log";
+
 export type SummaryConfig = {
   // If not set, equas to "value";
   value?: string | ((this: Record, Array, any) => void);
@@ -164,7 +169,7 @@ export type SummaryConfig = {
 
   // Default: "linear"
   // Docs: https://help.keshif.me/article/159-adjusting-measure-axis-scale-type-linear-log-for-aggregated-charts
-  measureScaleType?: "linear" | "log";
+  measureScaleType?: LinearOrLog;
 
   // Default: true
   isComparable?: boolean;
@@ -261,7 +266,7 @@ export type SummaryConfig_Numeric = {
 
   // Default: "auto"
   // Docs: https://help.keshif.me/article/134-using-a-linear-or-log-scale-for-binning-numeric-data
-  valueScaleType?: "auto" | "linear" | "log";
+  valueScaleType?: "auto" | LinearOrLog;
 
   // Default::  false
   // Sets zero values to null/missing/no-value/
@@ -294,10 +299,10 @@ export type RecordDisplaySpec_Scatter = {
   scatterYBy?: string;
 
   // Default: "linear"
-  scatter_xAxisScale: "linear" | "log";
+  scatter_xAxisScale: LinearOrLog;
 
   // Default: "linear"
-  scatter_yAxisScale: "linear" | "log";
+  scatter_yAxisScale: LinearOrLog;
 
   // Default: true
   scatter_ShowTrails: boolean;

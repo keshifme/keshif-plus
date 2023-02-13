@@ -8,14 +8,14 @@ var mapStandardsMenuOpts = {
   name: "Add map",
   iconClass: "far fa-globe",
   when: (attrib: Attrib) => attrib instanceof Attrib_Categorical && !attrib.catGeo,
-  do: (attrib, action, path) => {
+  do: async (attrib: Attrib_Categorical, action, path) => {
     path = path.slice(path[1] === "World" ? 1 : 2);
     var mapIndex =
       "Map_" +
       path.map((_) => _.replace(/ /g, "").replace(/-/g, "")).join("_") +
       "_" +
       action.level;
-    attrib.setCatGeo_(mapIndex + "[UPPERCASE(*)]");
+    await attrib.setCatGeo_(mapIndex + "[UPPERCASE(*)]");
   },
   options: [
     {

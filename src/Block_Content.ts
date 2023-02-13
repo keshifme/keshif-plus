@@ -154,8 +154,11 @@ export class Block_Content extends Block {
       .classed("active", (i) => this.curStep === i);
   }
 
+  refreshViz_Axis() {
+  }
+
   refreshViz_Active(): void {
-    throw new Error("Not supported");
+    return; // no action
   }
   refreshViz_Compare(
     cT: any,
@@ -163,12 +166,12 @@ export class Block_Content extends Block {
     totalGroups: any,
     prevCts: any
   ): void {
-    throw new Error("Not supported");
+    return; // no action
   }
   chartAxis_Measure_TickSkip(): number {
-    throw new Error("Not supported");
+    return; // no action
   }
   updateAfterFilter(refreshViz: boolean): void {
-    throw new Error("Not supported");
+    return; // no action
   }
 }

@@ -81,7 +81,7 @@ export abstract class RecordView {
   refreshRecordColors(): void {}
   refreshLabelOverlaps(): void {}
 
-  refreshAttribScaleType(attrib: Attrib) {}
+  async refreshAttribScaleType(attrib: Attrib) {}
   onRecordMouseOver(record: Record) {}
   onRecordMouseLeave(record: Record) {}
 
@@ -116,7 +116,7 @@ export abstract class RecordView {
   animStepDelayMs: number = 1000;
 
   stepTimeAnimation(stepSize: number): boolean {
-    if (!this.rd.currentTimeKey.val) return false;
+    if (this.rd.currentTimeKey.get() == null) return false;
 
     // Iterates over potential time-series keys.
     // When it finds one,starts animation, and returns (executed only for one coding)
@@ -133,7 +133,7 @@ export abstract class RecordView {
         if (attrib === null) {
           this.rd.stopTimeseriesAnimation();
         } else {
-          this.rd.currentTimeKey.val = attrib.timeKey;
+          this.rd.currentTimeKey.set(attrib.timeKey);
           attrib = a;
         }
       }, this.animStepDelayMs);

@@ -13,7 +13,7 @@ import { format } from "d3-format";
 import { Attrib } from "./Attrib";
 import { Attrib_Timeseries } from "./Attrib_Timeseries";
 import { Config } from "./Config";
-import { RecordVisCoding } from "./Types";
+import { LinearOrLog, RecordVisCoding } from "./Types";
 import { i18n } from "./i18n";
 import { RecordDisplay } from "./RecordDisplay";
 import { RecordView } from "./RecordView";
@@ -81,9 +81,9 @@ function hideAllPoppers() {
 
 export class RecordView_Timeseries extends RecordView {
   ts_Type: Config<string>;
-  ts_timeKeysStep: Config<string>;
-  ts_valueAxisScale: Config<string>;
-  timeSeriesSelectMode: Config<string>;
+  ts_timeKeysStep: Config<"all" | "limits">;
+  ts_valueAxisScale: Config<LinearOrLog>;
+  timeSeriesSelectMode: Config<"record" | "time">;
   timeSeriesChangeVsTimeKey: Config<TimeKey>;
   fitValueAxis: Config<boolean>;
 
@@ -131,13 +131,8 @@ export class RecordView_Timeseries extends RecordView {
         { name: "#-Change", value: "ChangeAbs" },
         { name: "%-Change", value: "ChangePct" },
       ],
-      preSet: (v) => {
-        if (v === "Change") return "ChangePct"; // old value
-        return v;
-      },
-      onSet: (v) => {
-        this.refreshTimeSeriesPlotType();
-      },
+      preSet: async (v) => v === "Change" ? "ChangePct" /* old value*/ : v,
+      onSet: () => this.refreshTimeSeriesPlotType(),
     });
 
     this.timeSeriesChangeVsTimeKey = new Config<TimeKey>({
@@ -151,27 +146,26 @@ export class RecordView_Timeseries extends RecordView {
         var _ = DOM.root.select(".configItem_Options");
         DOM.keySelect = _.append("select")
           .attr("class", "keySelect")
-          .on("change", (event) => {
-            this.timeSeriesChangeVsTimeKey.val =
-              event.currentTarget.selectedOptions[0].__data__._time_src;
+          .on("change", async (event) => {
+            await this.timeSeriesChangeVsTimeKey.set(event.currentTarget.selectedOptions[0].__data__._time_src);
           });
       },
-      onRefresh: (cfg) => {
-        if (!cfg._value) return; // nothing to do!
+      onRefreshDOM: (cfg: Config<TimeKey>) => {
+        if (!cfg.get()) return; // nothing to do!
         cfg.DOM.root.classed("hidden", !this.isTimeseriesChange());
         cfg.DOM.keySelect
           .selectAll("option")
-          .data(this.timeKeys_Active || [], (d) => d._time_src)
+          .data(this.timeKeys_Active || [], (d: TimeKey) => d._time_src)
           .join(
             (enter) => enter.append("option").text((d) => d._time_src),
             (update) => update,
             (exit) => exit.remove()
           )
-          .attr("selected", (d) =>
-            d._time_src === cfg._value._time_src ? true : null
+          .attr("selected", (d: TimeKey) =>
+            d._time_src === cfg.get()._time_src ? true : null
           );
       },
-      preSet: (v, obj) => {
+      preSet: async (v, obj) => {
         if (!this.timeseriesAttrib) return; // NOT SET now
 
         if (typeof v === "string") {
@@ -189,7 +183,7 @@ export class RecordView_Timeseries extends RecordView {
       },
     });
 
-    this.ts_timeKeysStep = new Config<string>({
+    this.ts_timeKeysStep = new Config<"all" | "limits">({
       parent: this,
       cfgClass: "ts_timeKeysStep",
       cfgTitle: "Time Keys",
@@ -208,12 +202,10 @@ export class RecordView_Timeseries extends RecordView {
         if (!this.timeseriesAttrib) return;
         if (this.timeseriesAttrib.timeKeys.length < 3) return "limits";
       },
-      onSet: (v) => {
-        this.refreshTimeRange();
-      },
+      onSet: () => this.refreshTimeRange(),
     });
 
-    this.ts_valueAxisScale = new Config<string>({
+    this.ts_valueAxisScale = new Config<LinearOrLog>({
       cfgClass: "ts_valueAxisScale",
       cfgTitle: "Value Axis Scale",
       iconClass: "fa fa-arrows-v",
@@ -226,13 +218,13 @@ export class RecordView_Timeseries extends RecordView {
       ],
       noExport: true,
       forcedValue: () => {
-        if (this.ts_Type.val !== "Value") return "linear";
+        if (this.ts_Type.get() !== "Value") return "linear";
         if (this.timeseriesAttrib && !this.timeseriesAttrib.supportsLogScale())
           return "linear";
       },
-      onSet: (v: string) => {
+      onSet: async (v) => {
         if (this.timeseriesAttrib) {
-          this.timeseriesAttrib.valueScaleType.val = v;
+          await this.timeseriesAttrib.valueScaleType.set(v);
         }
       },
     });
@@ -251,7 +243,7 @@ export class RecordView_Timeseries extends RecordView {
       ],
       forcedValue: () => {
         if (!this.browser.isFiltered()) return false; // full
-        if (this.ts_Type.val === "Rank") return false; // full
+        if (this.ts_Type.is("Rank")) return false; // full
         if (this.isTimeseriesChange()) return true; // fit
       },
       onSet: () => {
@@ -259,7 +251,7 @@ export class RecordView_Timeseries extends RecordView {
       },
     });
 
-    this.timeSeriesSelectMode = new Config<string>({
+    this.timeSeriesSelectMode = new Config<"record" | "time">({
       cfgClass: "timeSeriesSelectMode",
       cfgTitle: "Mouse Select",
       iconClass: "fa fa-hand-pointer",
@@ -275,7 +267,7 @@ export class RecordView_Timeseries extends RecordView {
         { name: "Nearest Time-Key", value: "time" },
         // {name: "Filter", value: "filter" },
       ],
-      onSet: (v, obj) => {
+      onSet: (v) => {
         // TODO
         // this.visMouseMode.val = (v==='filter')?'filter':'pan';
       },
@@ -350,7 +342,7 @@ export class RecordView_Timeseries extends RecordView {
       var _ts = this.timeseriesAttrib.getRecordValue(record);
       if (!_ts || _ts.isEmpty()) return false;
       if (this.isTimeseriesChange()) {
-        var _compareKey = this.timeSeriesChangeVsTimeKey.val._time_src;
+        var _compareKey = this.timeSeriesChangeVsTimeKey.get()._time_src;
         var _index = _ts._keyIndex[_compareKey];
         return _index != null && _index._value != null;
       }
@@ -373,7 +365,7 @@ export class RecordView_Timeseries extends RecordView {
   }
 
   /** -- */
-  initView_DOM() {
+  async initView_DOM() {
     if (this.DOM.recordBase_Timeseries) {
       this.DOM.recordGroup =
         this.DOM.recordBase_Timeseries.select(".recordGroup");
@@ -393,23 +385,23 @@ export class RecordView_Timeseries extends RecordView {
       var recordText = me.textBriefAttrib.getRecordValue(record) || "";
       var recordValue = me.timeseriesAttrib.getFormattedValue(d._value);
       var _recordRank =
-        me.ts_Type.val === "Rank"
+        me.ts_Type.is("Rank")
           ? ` <span class='extraInfo'>(#${d._rank})</span>`
           : "";
       var recordChange = "";
       if (me.isTimeseriesChange()) {
-        var _key = me.timeSeriesChangeVsTimeKey.val._time_src;
+        var _key = me.timeSeriesChangeVsTimeKey.get()._time_src;
         var ref =
           me.timeseriesAttrib.getRecordValue(record)?._keyIndex[_key]?._value;
         var _v = changeFormat((100 * (d._value - ref)) / (ref || 1)) + "%"; // avoid divide by zero
-        if (me.ts_Type.val === "ChangeAbs") {
+        if (me.ts_Type.is("ChangeAbs")) {
           _v = me.timeseriesAttrib.getFormattedValue(d._value - ref);
         }
         recordChange = ` <span class='extraInfo'>(${_v} vs. ${_key})</span>`;
       }
       var x;
       var fullValue = recordValue + _recordRank + recordChange;
-      if (me.timeSeriesSelectMode.val === "time") {
+      if (me.timeSeriesSelectMode.is("time")) {
         x = `<span class='asdsdadsada'>${recordText}: <b>${fullValue}</b></span>`;
       } else {
         x =
@@ -504,7 +496,7 @@ export class RecordView_Timeseries extends RecordView {
 
       .on("mouseleave", () => {
         if (this.rd.visMouseMode === "filter") return;
-        if (this.timeSeriesSelectMode.val === "time") {
+        if (this.timeSeriesSelectMode.is("time")) {
           hideAllPoppers();
           this.browser.records.forEach((record) => {
             // remove "visible" from dots
@@ -527,11 +519,11 @@ export class RecordView_Timeseries extends RecordView {
 
         if (_m[1] > event.currentTarget.offsetHeight || _m[1] < 0) {
           // out of chart bounds
-          if (this.timeSeriesSelectMode.val === "record") {
+          if (this.timeSeriesSelectMode.is("record")) {
             this.rd.onRecordMouseLeave(prevClosestRecord);
             prevClosestRecord = null;
           }
-          if (this.timeSeriesSelectMode.val === "time" && prevClosestTime) {
+          if (this.timeSeriesSelectMode.is("time") && prevClosestTime) {
             hideAllPoppers();
             this.browser.records.forEach((record: Record) => {
               if (record.filteredOut) return;
@@ -548,9 +540,7 @@ export class RecordView_Timeseries extends RecordView {
         }
 
         var _m_Time = this.scale_Time.invert(_m[0]);
-        var _compareKey = this.timeSeriesChangeVsTimeKey.val
-          ? this.timeSeriesChangeVsTimeKey.val._time_src
-          : null;
+        var _compareKey = this.timeSeriesChangeVsTimeKey.get()?._time_src || null;
 
         var closestTimeKey = null;
         if (
@@ -570,7 +560,7 @@ export class RecordView_Timeseries extends RecordView {
         }
 
         // Select closest time
-        if (this.timeSeriesSelectMode.val === "time") {
+        if (this.timeSeriesSelectMode.is("time")) {
           if (closestTimeKey === prevClosestTime) return;
 
           if (prevClosestTime) {
@@ -739,7 +729,7 @@ export class RecordView_Timeseries extends RecordView {
 
   /** -- */
   isTimeseriesChange() {
-    return this.ts_Type.val === "ChangePct" || this.ts_Type.val === "ChangeAbs";
+    return this.ts_Type.is("ChangePct") || this.ts_Type.is("ChangeAbs");
   }
 
   extendRecordDOM(newRecords) {
@@ -783,18 +773,14 @@ export class RecordView_Timeseries extends RecordView {
     this.refreshScaleTime();
     this.refreshTimeseriesTicks();
 
-    if (
-      this.timeSeriesChangeVsTimeKey.val &&
-      this.timeRange.min._time > this.timeSeriesChangeVsTimeKey.val._time
-    ) {
-      this.timeSeriesChangeVsTimeKey.val = this.timeRange.min;
+    if (this.timeRange.min._time > this.timeSeriesChangeVsTimeKey.get()?._time) {
+      this.timeSeriesChangeVsTimeKey.set(this.timeRange.min);
       this.refreshTimeSeriesRangeOpts(); // updates combobox for vs.
-    } else if (
-      this.timeSeriesChangeVsTimeKey.val &&
-      this.timeRange.max._time < this.timeSeriesChangeVsTimeKey.val._time
-    ) {
-      this.timeSeriesChangeVsTimeKey.val = this.timeRange.max;
+
+    } else if (this.timeRange.max._time < this.timeSeriesChangeVsTimeKey.get()?._time) {
+      this.timeSeriesChangeVsTimeKey.set(this.timeRange.max);
       this.refreshTimeSeriesRangeOpts(); // updates combobox for vs.
+
     } else {
       this.refreshScaleValue();
     }
@@ -828,13 +814,13 @@ export class RecordView_Timeseries extends RecordView {
     });
   }
 
-  refreshAttribScaleType(attrib: Attrib) {
+  async refreshAttribScaleType(attrib: Attrib) {
     if (
       attrib instanceof Attrib_Timeseries &&
       this.timeseriesAttrib === attrib
     ) {
-      this.ts_valueAxisScale.val = attrib.valueScaleType.val; // apply it back to the attribute
-      if (this.ts_Type.val === "Value") {
+      await this.ts_valueAxisScale.set(attrib.valueScaleType.get()); // apply it back to the attribute
+      if (this.ts_Type.is("Value")) {
         this.refreshScaleValue();
       }
     }
@@ -864,15 +850,14 @@ export class RecordView_Timeseries extends RecordView {
         this.setTimeRange({ min: 0, max: 10000 });
       }
 
-      this.ts_valueAxisScale.val = this.timeseriesAttrib.valueScaleType.val;
+      await this.ts_valueAxisScale.set(this.timeseriesAttrib.valueScaleType.get());
 
-      if (this.ts_Type.val === "Rank") {
+      if (this.ts_Type.is("Rank")) {
         this.timeseriesAttrib.computeRecordRanks();
       }
 
-      if (!this.timeSeriesChangeVsTimeKey.val) {
-        this.timeSeriesChangeVsTimeKey.val =
-          this.rd.config.timeSeriesChangeVsTimeKey;
+      if (!this.timeSeriesChangeVsTimeKey.get()) {
+        await this.timeSeriesChangeVsTimeKey.set(this.rd.config.timeSeriesChangeVsTimeKey);
       }
 
       this.refreshScaleTime();
@@ -914,13 +899,13 @@ export class RecordView_Timeseries extends RecordView {
         key._time <= this.timeRange.max._time
     );
 
-    if (this.ts_timeKeysStep.val === "limits") {
+    if (this.ts_timeKeysStep.is("limits")) {
       this.timeKeys_Active = [
         this.timeKeys_Active[0],
         this.timeKeys_Active[this.timeKeys_Active.length - 1],
       ];
       if (this.isTimeseriesChange()) {
-        this.timeKeys_Active.splice(1, 0, this.timeSeriesChangeVsTimeKey.val);
+        this.timeKeys_Active.splice(1, 0, this.timeSeriesChangeVsTimeKey.get());
       }
     }
 
@@ -970,7 +955,7 @@ export class RecordView_Timeseries extends RecordView {
     if (!this.timeseriesAttrib) return;
 
     // RANK    *****************************************************
-    if (this.ts_Type.val === "Rank") {
+    if (this.ts_Type.is("Rank")) {
       var timeDomain = this.scale_Time.domain();
       var inTimeDomain = (d) => true;
       if (timeDomain) {
@@ -1000,13 +985,13 @@ export class RecordView_Timeseries extends RecordView {
     }
 
     // VALUE   *****************************************************
-    if (this.ts_Type.val === "Value") {
+    if (this.ts_Type.is("Value")) {
       this.scale_Value = this.timeseriesAttrib.timeSeriesScale_Value
         .copy()
         .nice();
 
       var new_domain = this.timeseriesAttrib.getExtent_Value(
-        this.fitValueAxis.val, // onlyFiltered
+        this.fitValueAxis.get(), // onlyFiltered
         this.scale_Time.domain() // in current domain
       );
 
@@ -1018,20 +1003,20 @@ export class RecordView_Timeseries extends RecordView {
 
     // CHANGE   *****************************************************
     if (this.isTimeseriesChange()) {
-      if (!this.timeSeriesChangeVsTimeKey.val) {
-        this.timeSeriesChangeVsTimeKey.val = this.timeKeys_Active[0];
+      if (!this.timeSeriesChangeVsTimeKey.get()) {
+        this.timeSeriesChangeVsTimeKey.set(this.timeKeys_Active[0]);
       }
 
-      var _key = this.timeSeriesChangeVsTimeKey.val._time_src;
+      var _key = this.timeSeriesChangeVsTimeKey.get()._time_src;
 
       var timeDomain = this.scale_Time.domain();
       var inTimeDomain = (d) =>
         d._time >= timeDomain[0] && d._time <= timeDomain[1];
 
       var vizVal;
-      if (this.ts_Type.val === "ChangeAbs") {
+      if (this.ts_Type.is("ChangeAbs")) {
         vizVal = (v, ref) => v._value - ref;
-      } else if (this.ts_Type.val === "ChangePct") {
+      } else if (this.ts_Type.is("ChangePct")) {
         vizVal = (v, ref) => 100 * ((v._value - ref) / ref);
       }
 
@@ -1068,7 +1053,7 @@ export class RecordView_Timeseries extends RecordView {
         this.scale_Value(ref ? (100 * (d._value - ref)) / ref : 0),
       ChangeAbs: (d: TimeData, ref) => this.scale_Value(d._value - ref),
       Rank: (d: TimeData) => this.scale_Value(d._rank),
-    }[this.ts_Type.val];
+    }[this.ts_Type.get()];
   }
 
   /** VALUE AXIS */
@@ -1082,11 +1067,11 @@ export class RecordView_Timeseries extends RecordView {
     var ticks = _scale.ticks(targetNumTicks);
 
     // if the values are integer only, keep only integer values here.
-    if (!this.timeseriesAttrib.hasFloat || this.ts_Type.val === "Rank") {
+    if (!this.timeseriesAttrib.hasFloat || this.ts_Type.is("Rank")) {
       ticks = ticks.filter((d) => d % 1 === 0);
     }
 
-    if (this.ts_Type.val === "Rank") {
+    if (this.ts_Type.is("Rank")) {
       ticks.unshift(1);
       ticks = ticks
         .sort((a, b) => b - a)
@@ -1104,7 +1089,7 @@ export class RecordView_Timeseries extends RecordView {
       ChangeAbs: (tick) =>
         (tick > 0 ? "+" : "") + this.timeseriesAttrib.printAbbr(tick, true),
       Value: (tick) => this.timeseriesAttrib.getFormattedValue(tick, true),
-    }[this.ts_Type.val];
+    }[this.ts_Type.get()];
 
     var timeAxisDOM = this.DOM.root.select(
       ".recordBase_Timeseries .recordAxis_Y > .tickGroup"
@@ -1167,12 +1152,10 @@ export class RecordView_Timeseries extends RecordView {
       })
       .classed(
         "isFiltered",
-        (tick: TimeKey) =>
-          tick._histogram?.isFiltered() && this.ts_Type.val === "Value"
+        (tick: TimeKey) => tick._histogram?.isFiltered() && this.ts_Type.is("Value")
       )
       .filter(
-        (tick: TimeKey) =>
-          tick._histogram?.isFiltered() && this.ts_Type.val === "Value"
+        (tick: TimeKey) => tick._histogram?.isFiltered() && this.ts_Type.is("Value")
       )
       .selectAll(".filterArea")
       .style("height", (event) => {
@@ -1252,13 +1235,13 @@ export class RecordView_Timeseries extends RecordView {
   refreshKeyLine() {
     if (!this.timeseriesAttrib) return;
 
-    if (!this.timeSeriesChangeVsTimeKey.val) return;
+    if (!this.timeSeriesChangeVsTimeKey.get()) return;
     this.DOM.root
       .select(".recordAxis_X > .keyLine")
       .style(
         "transform",
         `translateX(${this.scale_Time(
-          this.timeSeriesChangeVsTimeKey.val._time
+          this.timeSeriesChangeVsTimeKey.get()._time
         )})`
       );
   }
@@ -1336,7 +1319,7 @@ export class RecordView_Timeseries extends RecordView {
                   );
                   var _min = initPos > targetPos ? targetPos : initPos;
                   var _max = initPos > targetPos ? initPos : targetPos;
-                  if (me.ts_Type.val === "Rank") {
+                  if (me.ts_Type.is("Rank")) {
                     var _minRank = Math.floor(_min);
                     var _maxRank = Math.ceil(_max);
                     me.browser.records.forEach((r) => {
@@ -1557,12 +1540,12 @@ export class RecordView_Timeseries extends RecordView {
 
     this.fitValueAxis.refresh();
 
-    if (this.ts_Type.val === "Rank") {
+    if (this.ts_Type.is("Rank")) {
       this.timeseriesAttrib.computeRecordRanks();
       this.refreshScaleValue();
       //
-    } else if (this.ts_Type.val === "Value") {
-      if (!this.browser.isFiltered() || this.fitValueAxis.val) {
+    } else if (this.ts_Type.is("Value")) {
+      if (!this.browser.isFiltered() || this.fitValueAxis.get()) {
         // resets to default scale
         this.refreshScaleValue();
       } else {
@@ -1664,9 +1647,7 @@ export class RecordView_Timeseries extends RecordView {
 
     var spacer = new LabelSpacer();
 
-    var _compareKey: string = this.timeSeriesChangeVsTimeKey.val
-      ? this.timeSeriesChangeVsTimeKey.val._time_src
-      : null;
+    var _compareKey: string = this.timeSeriesChangeVsTimeKey.get()?._time_src || null;
 
     this.browser.records.forEach((record) => {
       record._view._labelHidden = true;
@@ -1763,7 +1744,7 @@ export class RecordView_Timeseries extends RecordView {
     this.DOM.root.attr("data-ts_Type", this.ts_Type);
     this.refreshYGenerator();
 
-    if (this.ts_Type.val === "Rank") {
+    if (this.ts_Type.is("Rank")) {
       this.timeseriesAttrib.computeRecordRanks();
     }
 
@@ -1810,15 +1791,13 @@ export class RecordView_Timeseries extends RecordView {
     var inWiderTimeDomain = (d) =>
       d._time >= drawMinTime && d._time <= drawMaxTime;
 
-    var _compareKey = this.timeSeriesChangeVsTimeKey.val
-      ? this.timeSeriesChangeVsTimeKey.val._time_src
-      : "";
+    var _compareKey = this.timeSeriesChangeVsTimeKey.get()?._time_src || "";
 
     var _refVal;
 
     var lineGenerator = d3
       .line()
-      .curve(this.ts_Type.val === "Rank" ? d3.curveLinear : d3.curveMonotoneX)
+      .curve(this.ts_Type.is("Rank") ? d3.curveLinear : d3.curveMonotoneX)
       .x(x_Generator)
       .y((d) => this.y_Generator(d, _refVal))
       .defined((d) => {
@@ -1831,7 +1810,7 @@ export class RecordView_Timeseries extends RecordView {
 
     this.scale_Value.rangeRound([this.rd.curHeight - (topGap + 100), topGap]);
 
-    var slopeOnly = this.ts_timeKeysStep.val === "limits";
+    var slopeOnly = this.ts_timeKeysStep.is("limits");
 
     var timeKeys_src = {};
     this.timeKeys_Active.forEach((_) => {

@@ -39,7 +39,7 @@ export class Attrib_Content extends Attrib {
   }
 
   /** -- */
-  applyConfig(blockCfg) {
+  async applyConfig(blockCfg) {
     super.applyConfig(blockCfg);
 
     this.setContent(blockCfg._content);

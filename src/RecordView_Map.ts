@@ -62,6 +62,7 @@ export class RecordView_Map extends RecordView {
   /** -- */
   refreshRecordSizes() {
     if (this.geoAttrib.geoType !== "Point") return;
+    if (!this.DOM.recordGroup) return;
 
     var pathSelection = this.DOM.recordGroup
       .selectAll(".kshfRecord > path")
@@ -118,7 +119,7 @@ export class RecordView_Map extends RecordView {
     this.rd.refreshSizeLegend(); // needed to reset usesSizeAttrib class
   }
 
-  initView_DOM() {
+  async initView_DOM() {
     // Do not initialize twice
     if (this.DOM.recordBase_Map) {
       this.DOM.recordGroup = this.DOM.recordMap_SVG.select(".recordGroup");
@@ -129,6 +130,10 @@ export class RecordView_Map extends RecordView {
 
       this.leafletRecordMap.invalidateSize(); // chart area may have changed
       return;
+    }
+
+    if (!(window as any).L) {
+      await import("leaflet");
     }
 
     var me = this;
@@ -208,7 +213,7 @@ export class RecordView_Map extends RecordView {
       })
     );
 
-    this.recordGeoPath.pointRadius(this.rd.recordPointSize.val);
+    this.recordGeoPath.pointRadius(this.rd.recordPointSize.get());
 
     this.DOM.recordBase_Map.select(".leaflet-tile-pane");
 
@@ -301,7 +306,7 @@ export class RecordView_Map extends RecordView {
 
     // update rendering of point clusters
     if (this.rd.hasAggregates()) {
-      var sideBySide = !this.browser.stackedCompare.val;
+      var sideBySide = this.browser.stackedCompare.is(false);
 
       // compute "offset" for each aggregate
       this.geoAttrib._aggrs.forEach((aggr: Aggregate_PointCluster) => {

@@ -117,8 +117,8 @@ export class Aggregate_Category extends Aggregate {
 
   /** -- Visual variable */
   public posX: number = 0;
-  get posY() {
-    return this.orderIndex * this.attrib.barHeight.val;
+  get posY(): number {
+    return this.orderIndex * this.attrib.barHeight.get();
   }
   get transformPos() {
     return `translate(${this.posX}px, ${this.posY}px)`;

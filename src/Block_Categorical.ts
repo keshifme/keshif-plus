@@ -97,7 +97,7 @@ export class Block_Categorical extends Block {
 
     if (
       this._aggrs.length > 500 &&
-      this.attrib.minAggrSize.val === 1 &&
+      this.attrib.minAggrSize.get() === 1 &&
       !force
     ) {
       Modal.confirm(
@@ -112,9 +112,7 @@ export class Block_Categorical extends Block {
         "Hide small categories",
         "Show all categories"
       )
-        .then(() => {
-          this.attrib.minAggrSize.val = 5;
-        })
+        .then(async () => await this.attrib.minAggrSize.set(5))
         .finally(() => _do());
     } else {
       _do();
@@ -185,7 +183,7 @@ export class Block_Categorical extends Block {
 
   public heightRow_category_dirty = false;
 
-  get height_Categories() {
+  get height_Categories(): number {
     return this._height_Categories;
   }
   get height_Content(): number {
@@ -207,28 +205,28 @@ export class Block_Categorical extends Block {
     if (this.isView_Map) return this.getWidth() * 1.5;
     return this.height_ListWithoutCats + this._aggrs.length * this.heightCat;
   }
-  get heightCat() {
-    return this.attrib.barHeight.val;
+  get heightCat(): number {
+    return this.attrib.barHeight.get();
   }
-  get height_Dropdown() {
+  get height_Dropdown(): number {
     return 42;
   }
-  get height_ListWithoutCats() {
+  get height_ListWithoutCats(): number {
     return this.height_Header + this.height_Config + this.height_Bottom;
   }
-  get height_VisibleAttrib() {
+  get height_VisibleAttrib(): number {
     return this.catCount_Active * this.heightCat;
   }
-  get height_Config() {
+  get height_Config(): number {
     return 18 * (this.hasTextSearch() ? 1 : 0);
   }
-  get height_bar_topGap() {
+  get height_bar_topGap(): number {
     return this.heightCat > 20 ? 4 : 2;
   }
-  get barHeight_Full() {
+  get barHeight_Full(): number {
     return this.heightCat - 2 * this.height_bar_topGap;
   }
-  get height_Bottom() {
+  get height_Bottom(): number {
     if (
       !this.areAllCatsInDisplay() ||
       !this.panel.hiddenCatBars() ||
@@ -658,8 +656,8 @@ export class Block_Categorical extends Block {
 
     if (this.browser.percentBreakdown) {
       widthPerTick += 11; // %
-    } else if (this.browser.measureFunc.val !== "Count") {
-      var unitName = this.browser.measureSummary.val?.unitName;
+    } else if (this.browser.measureFunc.get() !== "Count") {
+      var unitName = this.browser.measureSummary.get()?.unitName;
       if (unitName) widthPerTick += 2 + unitName.length * 9;
     }
 
@@ -1761,7 +1759,7 @@ export class Block_Categorical extends Block {
     var _top = this.height_bar_topGap;
     var barHeight = this.barHeight_Full;
 
-    if (this.browser.stackedCompare.val && !this.panel.hiddenCatBars()) {
+    if (this.browser.stackedCompare.get() && !this.panel.hiddenCatBars()) {
       var baseline = this.measureLineZero;
       var maxWidth = this.width_CatChart;
 

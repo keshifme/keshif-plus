@@ -56,9 +56,8 @@ export abstract class Block_Interval<T extends IntervalT> extends Block {
       forcedValue: () => {
         if (!this.attrib.isFiltered()) return false;
       },
-      onSet: (v) => {
-        let attrib = this.attrib;
-        if (!attrib.aggr_initialized) return; // not initialized yet
+      onSet: async (v) => {
+        if (!this.attrib.aggr_initialized) return;
 
         this.attrib.refreshValueScale();
 
@@ -68,19 +67,19 @@ export abstract class Block_Interval<T extends IntervalT> extends Block {
         }
 
         this.noRefreshVizAxis = true;
-        var tempScale_prev = attrib.chartScale_Measure.copy().clamp(false);
+        var tempScale_prev = this.attrib.chartScale_Measure.copy().clamp(false);
 
         if (this.attrib.type !== "timestamp") this.attrib.refreshScaleType(); // linear vs log
-        attrib.updateScaleAndBins();
+        this.attrib.updateScaleAndBins();
         this.refreshHeight();
 
         this.noRefreshVizAxis = false;
-        attrib.chartScale_Measure_prev = tempScale_prev;
+        this.attrib.chartScale_Measure_prev = tempScale_prev;
         this.refreshViz_Axis();
 
-        this.browser.recordDisplay?.refreshAttribScaleType(this);
+        await this.browser.recordDisplay?.refreshAttribScaleType(this);
 
-        attrib.updateScaleAndBins();
+        this.attrib.updateScaleAndBins();
       },
     });
 
@@ -105,8 +104,8 @@ export abstract class Block_Interval<T extends IntervalT> extends Block {
         { name: "<i class='fa fa-plus'></i>", value: -199, _type: "plus" },
       ],
       isActive: (d) =>
-        d.value <= this.optimumBinWidth.val && d.max > this.optimumBinWidth.val,
-      preSet: (v, obj) => {
+        d.value <= this.optimumBinWidth.get() && d.max > this.optimumBinWidth.get(),
+      preSet: async (v, obj) => {
         if (v === -99) {
           v = obj._value - 5;
         } else if (v === -199) {
@@ -139,12 +138,13 @@ export abstract class Block_Interval<T extends IntervalT> extends Block {
         { name: "<i class='fa fa-plus'></i>", value: -199, _type: "plus" },
       ],
       isActive: (d) => {
-        var v = this.maxHeightRatio.val;
+        var v = this.maxHeightRatio.get();
         if (this.attrib.type === "timestamp") v *= 3;
         return d.value <= v && d.max > v;
       },
+      // if timestamp, the returned value is divided by 3.
       onRead: (v: number) => (this.attrib.type === "timestamp" ? v / 3 : v),
-      preSet: (v, obj) => {
+      preSet: async (v, obj) => {
         if (v === -99) {
           v = obj._value - 0.05;
         } else if (v === -199) {
@@ -171,7 +171,7 @@ export abstract class Block_Interval<T extends IntervalT> extends Block {
         { name: "Show", value: true },
         { name: "Hide", value: false },
       ],
-      onSet: (v: boolean) => {
+      onSet: (v) => {
         if (!attrib.aggr_initialized) return; // not initialized yet
         if (!v) this.height_hist = 0;
         this.refreshChartsVisibleOption();
@@ -252,7 +252,7 @@ export abstract class Block_Interval<T extends IntervalT> extends Block {
   get height_hist_max() {
     return Math.max(
       Base.height_HistMin,
-      this.width_histogram * this.maxHeightRatio.val
+      this.width_histogram * this.maxHeightRatio.get()
     ); // Maximim possible histogram height
   }
 
@@ -261,7 +261,7 @@ export abstract class Block_Interval<T extends IntervalT> extends Block {
     return (
       this.height_Header +
       this.height_Extra_max +
-      (this.showHistogram.val ? this.height_hist_max : 0)
+      (this.showHistogram.get() ? this.height_hist_max : 0)
     );
   }
 
@@ -284,7 +284,7 @@ export abstract class Block_Interval<T extends IntervalT> extends Block {
   get height_Extra() {
     return (
       this.height_Extra_base +
-      (this.showHistogram.val ? Base.height_HistBottomGap : 0) +
+      (this.showHistogram.get() ? Base.height_HistBottomGap : 0) +
       4
     ); // 4 is some gap
   }
@@ -296,7 +296,7 @@ export abstract class Block_Interval<T extends IntervalT> extends Block {
   get height_Content() {
     return !this.isVisible()
       ? 0
-      : (this.showHistogram.val ? this.height_hist : 0) + this.height_Extra;
+      : (this.showHistogram.get() ? this.height_hist : 0) + this.height_Extra;
   }
 
   chartAxis_Measure_TickSkip(): number {
@@ -318,7 +318,7 @@ export abstract class Block_Interval<T extends IntervalT> extends Block {
     super.refreshHeight();
     if (this.attrib.isEmpty() || !this.inDashboard || !this.DOM.inited) return;
 
-    var _h = this.showHistogram.val ? this.height_hist + 23 : 10;
+    var _h = this.showHistogram.get() ? this.height_hist + 23 : 10;
 
     this.DOM.valueTickGroup.style("height", this.height_Ticklabels + "px");
     this.DOM.rangeHandle
@@ -865,12 +865,10 @@ export abstract class Block_Interval<T extends IntervalT> extends Block {
           );
         },
       })
-      .attr("sign", this.zoomed.val ? "minus" : "plus")
-      .on("click", (event) =>
-        this.zoomed.setVal_Direct(
-          event.currentTarget.getAttribute("sign") === "plus"
-        )
-      );
+      .attr("sign", this.zoomed.is(true) ? "minus" : "plus")
+      .on("click", async (event) => {
+        await this.zoomed.set(event.currentTarget.getAttribute("sign") === "plus");
+      });
 
     var controlLine = this.DOM.intervalSlider
       .append("div")
@@ -1019,8 +1017,8 @@ export abstract class Block_Interval<T extends IntervalT> extends Block {
   }
 
   onAggrHighlight(aggr: Aggregate_Interval<T>) {
-    if (!this.browser.mouseOverCompare.val) return;
     if (this.browser.adjustMode) return;
+    if (this.browser.mouseOverCompare.is(false)) return;
     if (!this.browser.can_setSelect_Compare(aggr)) return;
     var [minV, maxV] = this.attrib.sanitizeRange(aggr.minV, aggr.maxV);
 
@@ -1056,16 +1054,13 @@ export abstract class Block_Interval<T extends IntervalT> extends Block {
 
   refreshChartsVisibleOption() {
     if (!this.DOM.inited) return;
-    this.DOM.root.classed(
-      "chartVisibleHistogram",
-      this.showHistogram.val ? true : null
-    );
+    this.DOM.root.classed("chartVisibleHistogram", this.showHistogram.is(true));
   }
 
   onClearFilter() {
     this.attrib.noValueAggr.filtered = false;
     this.attrib.summaryFilter.active = null;
-    this.zoomed.val = false;
+    this.zoomed.set(false);
     this.refreshIntervalSlider();
   }
 

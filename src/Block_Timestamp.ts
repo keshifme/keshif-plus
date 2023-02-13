@@ -196,7 +196,7 @@ export class Block_Timestamp extends Block_Interval<Date> {
             (d === "min" && selectedDate < me.attrib.summaryFilter.active.minV) ||
             (d === "max" && selectedDate > me.attrib.summaryFilter.active.maxV)
           ) {
-            me.zoomed.val = false;
+            me.zoomed.set(false);
           }
 
           var minV = me.attrib.summaryFilter.active.minV;
@@ -214,11 +214,11 @@ export class Block_Timestamp extends Block_Interval<Date> {
   }
 
   getScaleNicing(): number {
-    return this.width_histogram / (this.inDashboard ? this.optimumBinWidth.val : 10) * 1;
+    return this.width_histogram / (this.inDashboard ? this.optimumBinWidth.get() : 10) * 1;
   }
 
   hasStaticHeight() {
-    return !this.showHistogram.val;
+    return this.showHistogram.is(false);
   }
 
   zoomableStatus(): ZoomableStatus {
@@ -227,7 +227,7 @@ export class Block_Timestamp extends Block_Interval<Date> {
         this.attrib.timeTyped.finestRes() ===
         this.attrib.timeTyped.activeRes.type
       ) {
-        return this.zoomed.val ? "minus" : "";
+        return this.zoomed.get() ? "minus" : "";
       }
     }
     return "plus";

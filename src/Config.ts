@@ -24,29 +24,29 @@ export class Config<T> {
   // current value
   _value: T;
 
+  private _prevValue: T;
+
   // default value
-  default: T;
+  readonly default: T;
   // cfgClass / varible name
-  cfgClass?: string;
+  readonly cfgClass?: string;
   // printed title in UI
   cfgTitle?: string;
 
   // forced value (depends on other app settings)
-  forcedValue?: (Config) => T;
+  readonly forcedValue?: (Config) => T | null;
   // adjustments on current value when reading the value
-  onRead?: (T) => T;
+  readonly onRead?: (T) => T;
 
-  onSet?: (a: any, b: any) => any;
+  readonly onSet?: (a: T, b: Config<T>) => void;
 
-  preSet?: (T, Config) => T;
+  readonly preSet?: (T, Config) => Promise<T>;
 
-  isActive?: (Config) => boolean;
+  readonly isActive?: (Config) => boolean;
 
-  onRefresh?: (Config) => void;
+  readonly onRefreshDOM?: (Config) => void;
 
   readonly itemOptions: ItemOption<T>[];
-
-  private lookup = new Map<T, string>();
 
   // disables export setting
   readonly noExport: boolean = false;
@@ -54,12 +54,17 @@ export class Config<T> {
   // TODO: {configs[], finalized, .refreshConfigs}
   readonly parent: any;
 
+  private lookup = new Map<T, string>();
+
   // DOM /rendering
 
-  private DOM: {
+  public DOM: {
     root?: any;
     configOptions?: any;
     noUiSlider?: any;
+    mainSelect?: any;
+    timeKeys?: any;
+    keySelect?: any;
   };
 
   // TODO: extend with necessary UI options
@@ -84,68 +89,59 @@ export class Config<T> {
   constructor(_cfg: Partial<Config<T>>) {
     Object.assign(this, _cfg);
 
+    this.UI ??= { disabled: false };
+
+    this.isActive ??= ((d) => {
+      if (d._type === "_range_") {
+        return (this.get() as unknown as number) > 0;
+      }
+      return this.is(d.value);
+    });
+
+    this.itemOptions
+      ?.filter((option) => option.value !== null)
+      .forEach((option) => this.lookup.set(option.value, option.name));
+
+    if (this?.parent?.configs)
+      this.parent.configs[this.cfgClass] = this;
+
+    this._prevValue = _cfg.default;
     this._value = _cfg.default;
 
-    if (!this.UI) {
-      this.UI = { disabled: false };
-    }
-
-    this.forcedValue =
-      this.forcedValue ||
-      (() => {
-        return null;
-      }); // no forced value set
-
-    this.onSet =
-      this.onSet ||
-      (() => {
-        return null;
-      }); // no action with on set
-
-    this.isActive =
-      this.isActive ||
-      ((d) => {
-        if (d._type === "_range_") {
-          return (this.val as unknown as number) > 0;
-        }
-        return d.value === this.val;
-      });
-
-    if (this.itemOptions) {
-      this.itemOptions
-        .filter((_) => _.value !== null)
-        .forEach((_) => this.lookup.set(_.value, _.name));
-    }
-
-    this.onSet(this.val, this);
-
-    if (this?.parent?.configs) this.parent.configs[this.cfgClass] = this;
+    // TODO: This function may be async, but we are in a constructor...
+    this.onSet?.(this.get(), this);
   }
 
-  /** Value getter */
-  get val(): T {
-    var forced = this.forcedValue(this);
-    if (forced != null) return forced;
-    if (this.onRead) return this.onRead(this._value);
-    return this._value;
-  }
-
-  /** -- */
-  toString() {
-    var v = this.val;
+  /** Current value to string */
+  public toString() {
+    var v = this.get();
     return i18n[this.lookup.get(v) || (v as undefined as string)];
   }
 
-  /** Value setter */
-  set val(v: T) {
+  /** Value getter */
+  public get(): T {
+    // If we have a forcedValue function that returns a non-null value, that's our current value;
+    var forced = this.forcedValue?.(this);
+    if (forced != null) return forced;
+
+    // We may run an onRead function to customize the value, or directly return the value itself.
+    return this.onRead?.(this._value) ?? this._value;
+  }
+
+  public is(v: T): boolean {
+    return this.get() === v;
+  }
+
+  /** Value setter - onSet function may be async*/
+  public async set(v: T) {
     if (v == null) return; // cannot set to null or undefined. (false is ok)
-    var forced = this.forcedValue(this);
-    if (forced == null) {
-      if (forced === v) return; // cannot set it to current value. no change
-    }
+
+    var forced = this.forcedValue?.(this);
+    if (forced !== null && forced === v) return; // trying to set to current forced value. No need.
+
     if (this.preSet) {
       try {
-        v = this.preSet(v, this);
+        v = await this.preSet(v, this);
       } catch (error) {
         if (this.parent?.finalized) {
           Modal.alert(error); // show alert only after dashboard loading
@@ -153,18 +149,15 @@ export class Config<T> {
         return;
       }
     }
-    if (v == null) return;
 
-    if (this._value === v) return;
+    if (v == null) return; // preSet can return null, preventing change and raising no error
 
-    this.setVal_Direct(v);
-  }
+    if (this._value === v) return; // prevent setting it to current value - no change
 
-  /** -- */
-  setVal_Direct(v) {
+    this._prevValue = this._value;
     this._value = v;
 
-    this.onSet(this.val, this);
+    await this.onSet?.(this.get(), this);
 
     if (this.parent?.refreshConfigs) {
       this.parent.refreshConfigs();
@@ -173,41 +166,45 @@ export class Config<T> {
     }
   }
 
-  /** -- */
-  refresh() {
-    if (this.onRefresh) {
-      this.onRefresh(this);
-    }
-    if (this.DOM) {
-      if (this.forcedValue) {
-        var v = this.forcedValue(this);
-        this.DOM.root.classed("forced", v != null);
-        if (v != null) this.onSet(v, this);
-      }
-      if (this.isActive) {
-        this.DOM.configOptions.classed("active", this.isActive);
-      }
-      if (this.DOM.noUiSlider) {
-        this.DOM.noUiSlider.setHandle(0, this._value, false);
-      }
-      if (this.itemOptions) {
-        this.itemOptions
-          .filter((_) => _.DOM && _.activeWhen)
-          .forEach((_) => {
-            _.DOM.classList[!_.activeWhen() ? "add" : "remove"]("disabled");
-          });
-      }
-    }
+  // sets the value to previous value
+  public async undoChange(){
+    await this.set(this._prevValue);
   }
 
   /** -- */
-  reset() {
-    this.onSet(this.val, this);
+  public async refresh() {
+    this.onRefreshDOM?.(this);
+
+    if (this.DOM) {
+      // we have custom forced value function
+      if (this.forcedValue) {
+        var v = this.forcedValue(this);
+        this.DOM.root.classed("forced", v != null);
+        if (v != null) await this.onSet?.(v, this);
+      }
+
+      if (this.isActive) {
+        this.DOM.configOptions.classed("active", this.isActive);
+      }
+
+      this.DOM.noUiSlider?.setHandle(0, this._value, false);
+
+      this.itemOptions
+        ?.filter((_) => _.DOM && _.activeWhen)
+        .forEach((_) => {
+          _.DOM.classList[!_.activeWhen() ? "add" : "remove"]("disabled");
+        });
+    }
+  }
+
+  /** Calls oNSet and refresh... */
+  public async reset() {
+    await this.onSet?.(this.get(), this);
 
     if (this.parent?.refreshConfigs) {
       this.parent.refreshConfigs(); // refresh all configs of the parent
     } else {
-      this.refresh();
+      await this.refresh();
     }
   }
 
@@ -221,37 +218,29 @@ export class Config<T> {
   }
 
   /** -- */
-  insertControl(DOM) {
+  public insertControl(DOM) {
     if (this.UI?.disabled) return;
 
     this.addUISeperator(DOM);
 
     this.DOM = {};
-    this.DOM.root = DOM.append("tr").attr(
-      "class",
-      "configItem configItem_" + this.cfgClass
-    );
+    this.DOM.root = DOM.append("tr")
+      .attr("class", "configItem configItem_" + this.cfgClass);
 
-    this.DOM.root
-      .append("td")
+    this.DOM.root.append("td")
       .attr("class", "configItem_Header")
       .append("span")
       .html(i18n[this.cfgTitle]);
 
+    let icon = this.DOM.root.append("td")
+      .attr("class", "configItem_Icon")
+      .append("span");
+
+    // We can use a css class, or iconXML.
     if (this.iconClass) {
-      this.DOM.root
-        .append("td")
-        .attr("class", "configItem_Icon")
-        .append("span")
-        .attr("class", "icon " + this.iconClass);
+      icon.attr("class", "icon " + this.iconClass);
     } else {
-      this.DOM.root
-        .append("td")
-        .attr("class", "configItem_Icon")
-        .append("span")
-        .attr("class", "icon")
-        .append("span")
-        .html(this.iconXML);
+      icon.attr("class", "icon").append("span").html(this.iconXML);
     }
 
     var _ = this.DOM.root
@@ -275,9 +264,7 @@ export class Config<T> {
     this.DOM.configOptions
       .filter((_: ItemOption<T>) => _.value !== undefined)
       .html((d: ItemOption<T>) => i18n[d.name])
-      .on("click", (_event, d: ItemOption<T>) => {
-        this.val = d.value;
-      });
+      .on("click", async (_event, d: ItemOption<T>) => await this.set(d.value) );
 
     this.DOM.configOptions
       .filter((_) => _._type === "_range_")
@@ -294,9 +281,7 @@ export class Config<T> {
           },
           start: this.default,
         });
-        nodes[i].noUiSlider.on("set", (v) => {
-          this.val = v;
-        });
+        nodes[i].noUiSlider.on("set", async (v) => await this.set(v));
       });
 
     this.DOM.root
@@ -311,12 +296,12 @@ export class Config<T> {
 
     Modal.createHelpScoutLinks(this.DOM.root);
 
-    if (this.onDOM) this.onDOM(this.DOM);
+    this.onDOM?.(this.DOM);
 
     this.refresh();
   }
 
-  exportValue() {
+  public exportValue() {
     if (this.noExport) return undefined;
     if (this._value === this.default) return undefined;
     var v: any = this._value;
@@ -326,7 +311,7 @@ export class Config<T> {
   }
 
   /** -- */
-  exportConfigTo(_to) {
+  public exportConfigTo(_to) {
     _to[this.cfgClass] = this.exportValue();
   }
 }

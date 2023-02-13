@@ -250,9 +250,9 @@ export abstract class Attrib_Interval<T extends IntervalT> extends Attrib {
 
   // returns filtered range if filtered. Otherwise, original range
   get rangeActive(): [T, T] {
-    if (this.summaryFilter.isFiltered && this.block.zoomed.val)
-      return [this.summaryFilter.active.minV, this.summaryFilter.active.maxV];
-    return this.rangeOrg;
+    return (this.summaryFilter.isFiltered && this.block.zoomed.is(true))
+      ? [this.summaryFilter.active.minV, this.summaryFilter.active.maxV]
+      : this.rangeOrg;
   }
 
   // in numbers, if time-series key, uses timeseries extent automatically
@@ -427,15 +427,14 @@ export abstract class Attrib_Interval<T extends IntervalT> extends Attrib {
     return !this.aggr_initialized;
   }
 
-  applyConfig(blockCfg: SummarySpec) {
+  async applyConfig(blockCfg: SummarySpec) {
     super.applyConfig(blockCfg);
 
-    this.block.showHistogram.val = blockCfg.showHistogram;
-    this.block.optimumBinWidth.val = blockCfg.optimumBinWidth;
-    this.block.maxHeightRatio.val = blockCfg.maxHeightRatio;
-
-    this.measureScaleType.val = blockCfg.measureScaleType;
-    this.block.zoomed.val = blockCfg.zoomed;
+    await this.block.showHistogram.set(blockCfg.showHistogram);
+    await this.block.optimumBinWidth.set(blockCfg.optimumBinWidth);
+    await this.block.maxHeightRatio.set(blockCfg.maxHeightRatio);
+    await this.measureScaleType.set(blockCfg.measureScaleType);
+    await this.block.zoomed.set(blockCfg.zoomed);
 
     if (blockCfg.filter) {
       this.summaryFilter.importFilter(blockCfg.filter as any);

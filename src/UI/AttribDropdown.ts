@@ -107,11 +107,9 @@ export class AttribDropdown {
     if (attrib == null) {
       text = i18n.NoAttribute;
     } else if (attrib === "_measure_") {
-      if (this.browser.measureFunc.val === "Count") {
-        text = this.browser.recordName;
-      } else {
-        text = this.browser.measureSummary.val.printName;
-      }
+      text = (this.browser.measureFunc.is("Count"))
+        ? this.browser.recordName 
+        : this.browser.measureSummary.get().printName;
     } else {
       text = attrib.printName;
     }
@@ -207,9 +205,7 @@ export class AttribDropdown {
               }
             }
             if( _.item == this.activeAttrib ) return true;
-            return (_.item === "Count" &&
-              this.activeAttrib === "_measure_" &&
-              this.browser.measureFunc.val === "Count")
+            return (_.item === "Count" && this.activeAttrib === "_measure_" && this.browser.measureFunc.is("Count"))
           }
         )
         .classed("collapsed", true)
@@ -241,10 +237,10 @@ export class AttribDropdown {
             .attr("class", "optionName")
             .html((_) => _.name);
         })
-        .on("click", (event, _: DropdownOption) => {
+        .on("click", async (event, _: DropdownOption) => {
           if(measuring){
             if (_.measureType) {
-              this.browser.measureFunc.val = _.measureType;
+              await this.browser.measureFunc.set(_.measureType);
               this.recordDisplay.setAttrib(this._type, "_measure_", true);
             } else{
               this.recordDisplay.setAttrib(this._type, null, true);

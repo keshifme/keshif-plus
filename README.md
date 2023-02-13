@@ -43,13 +43,19 @@ To install dependencies:
 
 To create the keshif+ packages:
 - npm run rollup
+
 or
+
 - npm run rollup-watch 
+
 This will create dist/assets/ directory, which is needed for full functionality.
 
 To run sample dashboards on your computer:
+
 - npm run start
+
 Open sample dashboards by navigation to /samples/ directory, and specify the id parameter
+
 - For example: http://localhost:5000/samples/?id=cars
 
 ### Installing icons

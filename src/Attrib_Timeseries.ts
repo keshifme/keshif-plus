@@ -9,7 +9,7 @@ import { Util } from "./Util";
 import { Record } from "./Record";
 import { Attrib } from "./Attrib";
 import { Attrib_Numeric } from "./Attrib_Numeric";
-import { RecordVisCoding } from "./Types";
+import { LinearOrLog, RecordVisCoding } from "./Types";
 import { AttribTemplate } from "./AttribTemplate";
 import { Base } from "./Base";
 import { TimeData, TimeKey, TimeSeriesData } from "./TimeSeriesData";
@@ -43,7 +43,7 @@ export class Attrib_Timeseries extends Attrib {
 
   public timeKeyAttribs: Attrib_Numeric[] = [];
 
-  valueScaleType: Config<string>;
+  valueScaleType: Config<LinearOrLog>;
 
   public timeSeriesScale_Time: any;
   public timeSeriesScale_Value: any;
@@ -58,7 +58,7 @@ export class Attrib_Timeseries extends Attrib {
       metricFuncs: Base.defaultMetricFuncs
     };
 
-    this.valueScaleType = new Config<string>({
+    this.valueScaleType = new Config<LinearOrLog>({
       cfgClass: "valueScaleType",
       cfgTitle: "BinScale",
       iconClass: "fa fa-arrows-h",
@@ -72,24 +72,24 @@ export class Attrib_Timeseries extends Attrib {
       forcedValue: () => {
         if (!this.supportsLogScale()) return "linear";
       },
-      preSet: (v) => {
+      preSet: async (v) => {
         if (v !== "log" && v !== "linear") return;
         // don't set to log if it's not applicable
         return v;
       },
-      onSet: (v) => {
+      onSet: async (v) => {
         if (!this.timeSeriesScale_Value) return;
 
         for (var c in this.timeKeyAttribs) {
           var s = this.timeKeyAttribs[c];
-          if (s.timeKey) s.applyScaleType();
+          if (s.timeKey) await s.applyScaleType();
         }
 
         this.timeSeriesScale_Value = Util.getD3Scale(v === "log").domain(
           this.getExtent_Value()
         );
 
-        this.browser.recordDisplay.refreshAttribScaleType(this);
+        await this.browser.recordDisplay.refreshAttribScaleType(this);
       },
     });
 
@@ -112,7 +112,7 @@ export class Attrib_Timeseries extends Attrib {
   supportsRecordEncoding(coding: RecordVisCoding): boolean {
     if (this.isEmpty()) return false;
     this.initializeAggregates();
-    if (!this.isComparable.val) return false;
+    if (this.isComparable.is(false)) return false;
     if (coding === "timeSeries") return true;
     if (coding === "sort") return true;
     if (coding === "scatterX") return true;
@@ -166,7 +166,7 @@ export class Attrib_Timeseries extends Attrib {
     }
 
     // Refresh other places which is linked to this timeseries variable
-    if (this.browser.recordChartType.val === "timeseries") {
+    if (this.browser.recordChartType.is("timeseries")) {
       this.browser.recordDisplay.refreshAttribOptions("timeSeries");
     }
 
@@ -242,11 +242,9 @@ export class Attrib_Timeseries extends Attrib {
     // Set scale
     var deviation = d3.deviation(allRecordValues);
     var activeRange = valueDomain[1] - valueDomain[0];
-    if (deviation / activeRange < 0.12 && valueDomain[0] > 0) {
-      this.valueScaleType.val = "log";
-    } else {
-      this.valueScaleType.val = "linear";
-    }
+    this.valueScaleType.set(
+      (deviation / activeRange < 0.12 && valueDomain[0] > 0) ? "log" : "linear"
+    );
 
     // Currently static settings once a timeseries is selected
     this.timeSeriesScale_Time = d3.scaleTime().domain(timeDomain);
@@ -377,10 +375,10 @@ export class Attrib_Timeseries extends Attrib {
 
   /** -- */
   get isValueScale_Log() {
-    return this.valueScaleType.val === "log";
+    return this.valueScaleType.is("log");
   }
   get isValueScale_Linear() {
-    return this.valueScaleType.val === "linear";
+    return this.valueScaleType.is("linear");
   }
 
   // No-ops
@@ -458,13 +456,13 @@ export class Attrib_Timeseries extends Attrib {
     return v == null ? "-" : Util.addUnitName(formatted, this.unitName, isSVG);
   }
   /** -- */
-  applyConfig(blockCfg) {
+  async applyConfig(blockCfg) {
     super.applyConfig(blockCfg);
 
     this.measurable.valueDomain = blockCfg.valueDomain;
 
     if (blockCfg.valueScaleType) {
-      this.valueScaleType.val = blockCfg.valueScaleType;
+      await this.valueScaleType.set(blockCfg.valueScaleType);
     }
     if (blockCfg.unitName) {
       this.unitName = blockCfg.unitName;
@@ -472,14 +470,12 @@ export class Attrib_Timeseries extends Attrib {
   }
   /** -- */
   exportConfig() {
-    var config = super.exportConfig();
-
-    var c = {
-      unitName: this.unitName,
-      valueScaleType: this.valueScaleType.val,
-    };
-
-    return Object.assign(config, c);
+    return Object.assign(
+      super.exportConfig(), 
+      {
+        unitName: this.unitName,
+        valueScaleType: this.valueScaleType.get(),
+      });
   }
   /** -- */
   renderRecordValue(v, d3_selection, timeKeys = null): string {

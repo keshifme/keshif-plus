@@ -147,6 +147,12 @@ export class RecordDisplay {
   visMouseMode: "pan" | "draw" | "filter" = "pan";
 
   async setView(_type: RecordDisplayType) {
+    if (_type === "none") {
+      this.View = null;
+      return;
+    }
+
+    // Create the view object if it does not exist.
     if (!this.Views[_type]) {
       var recordDisplayOptions = this.browser.options.recordDisplay || {};
       if (_type === "list") {
@@ -166,7 +172,7 @@ export class RecordDisplay {
     this.View = this.Views[_type];
 
     if (!this.codeBy.text) {
-      var potentials: Attrib_Categorical[] = this.browser.attribs.filter(
+      var potentials = this.browser.attribs.filter(
         (attrib) => attrib instanceof Attrib_Categorical
       ) as Attrib_Categorical[];
 
@@ -174,6 +180,7 @@ export class RecordDisplay {
         throw new Error("Data must have at least one categorical attribute.");
       }
 
+      // find the categorical attribute with most number of categories (i.e. most unique)
       var mostUnique = potentials[0];
       potentials.forEach((catAttr) => {
         if (mostUnique._aggrs.length < catAttr._aggrs.length) {
@@ -184,7 +191,22 @@ export class RecordDisplay {
       this.codeBy.text = mostUnique;
     }
 
+    this.recordConfigPanel.hide();
+
+    await this.View.initView_DOM();
+
     await this.View.prepareAttribs();
+
+    this.refreshViewAsOptions();
+
+    this.View.initView();
+
+    this.View.initialized = true;
+
+    this.View.updateRecordVisibility();
+
+    this.refreshWidth();
+    this.View.refreshViewSize(10);
   }
 
   /** -- */
@@ -207,10 +229,8 @@ export class RecordDisplay {
       default: Base.defaultRecordPointSize,
       parent: this,
       helparticle: "5e8907cf2c7d3a7e9aea6499",
-      preSet: (v, obj) => {
-        return Math.max(0.5, Math.min(v, Base.maxRecordPointSize));
-      },
-      onSet: (v) => {
+      preSet: async (v) => Math.max(0.5, Math.min(v, Base.maxRecordPointSize)),
+      onSet: async () => {
         if (!this.recordPointSize) return;
         this.updateRecordSizeScale();
       },
@@ -224,11 +244,11 @@ export class RecordDisplay {
       parent: this,
       UI: { disabled: true },
       helparticle: "5b37053a2c7d3a0fa9a3a30c",
-      onRefresh: (cfg) => {
+      onRefreshDOM: () => {
         if (!this.DOM.root) return;
         this.DOM.root.classed("hasTimeKey", this.hasTimeKey);
 
-        if (!this.currentTimeKey.val) return;
+        if (!this.currentTimeKey.get()) return;
         if (!this.DOM.timeAnimation) return;
         if (!this.hasTimeKey) return;
 
@@ -240,10 +260,10 @@ export class RecordDisplay {
           .text(this.timeKeys[this.timeKeys.length - 1]._time_src);
         this.DOM.timeAnimation
           .select(".rangeTick-cur")
-          .text(this.currentTimeKey.val._time_src)
+          .text(this.currentTimeKey.get()._time_src)
           .style(
             "left",
-            (100 * this.currentTimeKey.val._index) /
+            (100 * this.currentTimeKey.get()._index) /
               (this.timeKeys.length - 1) +
               "%"
           );
@@ -255,7 +275,7 @@ export class RecordDisplay {
             max: Math.max(1, this.timeKeys.length - 1),
           },
         });
-        this.timeKeySlider.setHandle(0, this.currentTimeKey.val._index, false);
+        this.timeKeySlider.setHandle(0, this.currentTimeKey.get()._index, false);
         this.timeKeySlider_PauseUpdate = false;
 
         this.DOM.timeAnimation
@@ -268,12 +288,12 @@ export class RecordDisplay {
             (exit) => exit.remove()
           )
           .attr("selected", (timeKey) =>
-            timeKey._time_src === this.currentTimeKey.val._time_src
+            timeKey._time_src === this.currentTimeKey.get()._time_src
               ? true
               : null
           );
       },
-      preSet: (v, obj) => {
+      preSet: async (v, obj) => {
         if (v === "previous" && obj._value) {
           v = this.timeKeys[obj._value._index - 1];
         }
@@ -290,7 +310,7 @@ export class RecordDisplay {
         if (!v) return;
         return v;
       },
-      onSet: (v) => {
+      onSet: async (v: TimeKey) => {
         if (!v) return;
 
         // sync timekey across all vis attributes
@@ -323,7 +343,7 @@ export class RecordDisplay {
           var newMeasureSummary =
             this.measureSummary.timeseriesParent.getTimepointSummary(v);
           if (newMeasureSummary)
-            this.browser.measureSummary.val = newMeasureSummary;
+            await this.browser.measureSummary.set(newMeasureSummary);
         }
 
         // timeKeyStep timeKeyNext
@@ -360,8 +380,8 @@ export class RecordDisplay {
   }
 
   /** Shortcut to access browser record chart type */
-  get viewRecAs() {
-    return this.browser.viewRecAs;
+  get viewRecAs(): RecordDisplayType {
+    return this.browser.recordChartType.get();
   }
 
   kshfRecords_Type: RecordDisplayType = "none";
@@ -397,20 +417,20 @@ export class RecordDisplay {
         if (attrib instanceof Attrib_Categorical) {
           await this.setAttrib("text", attrib);
           if (this.viewRecAs === "none") {
-            this.browser.recordChartType.val = "list";
+            await this.browser.recordChartType.set("list");
           }
         } else if (attrib instanceof Attrib_Timeseries) {
           await this.setAttrib("timeSeries", attrib);
-          this.browser.recordChartType.val = "timeseries";
+          await this.browser.recordChartType.set("timeseries");
           //
         } else if (attrib instanceof Attrib_RecordGeo) {
           await this.setAttrib("geo", attrib);
-          this.browser.recordChartType.val = "map";
+          await this.browser.recordChartType.set("map");
           //
         } else if (attrib instanceof Attrib_Interval) {
           await this.setAttrib("sort", attrib);
           if (this.viewRecAs === "none") {
-            this.browser.recordChartType.val = "list";
+            await this.browser.recordChartType.set("list");
           }
         }
 
@@ -474,21 +494,25 @@ export class RecordDisplay {
     if (config.colorTheme) {
       this.setRecordColorTheme(config.colorTheme);
     }
+
     if (config.recordPointSize) {
-      this.recordPointSize.val = config.recordPointSize;
+      await this.recordPointSize.set(config.recordPointSize);
     }
+
     if (config.colorInvert) {
       this.invertColorTheme(true);
     }
+
     if (config.filter) {
       this.recordFilter.importFilter(config.filter);
     } else {
       this.recordFilter.clearFilter();
     }
-    if (!config.viewAs) config.viewAs = "none";
+    
+    config.viewAs ??= "none";
 
     if (config.viewAs !== this.viewRecAs) {
-      this.browser.recordChartType.val = config.viewAs;
+      await this.browser.recordChartType.set(config.viewAs);
     }
 
     if (config.collapsed) {
@@ -734,15 +758,15 @@ export class RecordDisplay {
       .append("div")
       .attr("class", "removeRecordPanelButton far fa-times-circle")
       .tooltip(i18n.RemoveRecordPanel, { placement: "bottom" })
-      .on("click", () => {
-        this.browser.recordChartType.val = "none";
-      });
+      .on("click", async () => await this.browser.recordChartType.set("none") );
+
     // Expand record display button
     this.DOM.recordDisplayHeader
       .append("div")
       .attr("class", "buttonRecordViewExpand far fa-expand-alt")
       .tooltip(i18n.OpenSummary, { placement: "bottom" })
       .on("click", () => this.collapseRecordViewSummary(false));
+
     // Collapse record display button
     this.DOM.recordDisplayHeader
       .append("div")
@@ -805,9 +829,7 @@ export class RecordDisplay {
       .append("span")
       .attr("class", (d) => "recordDisplay_ViewAs_" + d.v + " disabled")
       .tooltip((_) => i18n.RecordViewTypeTooltip(_.t), { placement: "bottom" })
-      .on("click", (_event, d) => {
-        this.browser.recordChartType.val = d.v;
-      })
+      .on("click", async (_event, d) => await this.browser.recordChartType.set(d.v) )
       .html((d) => d.i + "<span class='ViewTitle'>" + d.t + "</span>");
   }
 
@@ -854,12 +876,12 @@ export class RecordDisplay {
       return Math.max(
         10,
         Math.min(
-          this.recordPointSize.val,
+          this.recordPointSize.get(),
           this.codeBy.geo.pointClusterRadius / 2
         )
       );
     } else if (this.codeBy.size instanceof Attrib_Interval) {
-      return this.recordPointSize.val;
+      return this.recordPointSize.get();
     }
     throw Error("Unexpected status");
   }
@@ -879,7 +901,7 @@ export class RecordDisplay {
 
   /** -- */
   updateRecordSizeScale() {
-    var constPointSize = Math.max(this.recordPointSize.val, 4); // const size must be 4 or larger
+    var constPointSize = Math.max(this.recordPointSize.get(), 4); // const size must be 4 or larger
 
     this.drawArc = d3
       .arc()
@@ -970,15 +992,15 @@ export class RecordDisplay {
           .append("i")
           .attr("class", "dotSize dotSize-expand-alt far fa-plus")
           .tooltip(i18n.Larger, { placement: "top" })
-          .on("click", () => {
-            this.recordPointSize.val = this.recordPointSize.val * Math.sqrt(2);
+          .on("click", async () => {
+            await this.recordPointSize.set(this.recordPointSize.get() * Math.sqrt(2));
           });
         dom
           .append("i")
           .attr("class", "dotSize dotSize-compress-alt far fa-minus")
           .tooltip(i18n.Smaller, { placement: "top" })
-          .on("click", () => {
-            this.recordPointSize.val = this.recordPointSize.val / Math.sqrt(2);
+          .on("click", async () => {
+            await this.recordPointSize.set(this.recordPointSize.get() / Math.sqrt(2));
           });
       });
     this.DOM.sizeLegendGroup = sizeGroup
@@ -1053,13 +1075,13 @@ export class RecordDisplay {
                   this.codeBy.color &&
                   this.codeBy.color instanceof Attrib_Numeric &&
                   this.codeBy.color.supportsLogScale(),
-                do: (_, opt) => {
+                do: async (_, opt) => {
                   var attrib = this.codeBy.color as Attrib_Numeric; // checked by when
                   if (!attrib) return;
                   if (attrib.timeseriesParent) {
-                    attrib.timeseriesParent.valueScaleType.val = opt;
+                    await attrib.timeseriesParent.valueScaleType.set(opt);
                   } else {
-                    attrib.valueScaleType.val = opt;
+                    await attrib.valueScaleType.set(opt);
                   }
                 },
                 options: [
@@ -1223,29 +1245,20 @@ export class RecordDisplay {
       .append("div")
       .attr("class", "timeKeyStep timeKeyPrev")
       .tooltip(i18n.Previous)
-      .on("click", () => {
-        this.currentTimeKey.val =
-          this.timeKeys[this.currentTimeKey._value._index - 1];
-      })
+      .on("click", () => this.currentTimeKey.set(this.timeKeys[this.currentTimeKey.get()._index - 1]) )
       .append("span")
       .attr("class", "fa fa-caret-left");
 
     this.DOM.timeAnimation
       .append("select")
       .attr("class", "timeKeySelect")
-      .on("change", (event) => {
-        this.currentTimeKey.val =
-          event.currentTarget.selectedOptions[0].__data__;
-      });
+      .on("change", async (event) => await this.currentTimeKey.set(event.currentTarget.selectedOptions[0].__data__) );
 
     this.DOM.timeAnimation
       .append("div")
       .attr("class", "timeKeyStep timeKeyNext")
       .tooltip(i18n.Next)
-      .on("click", () => {
-        this.currentTimeKey.val =
-          this.timeKeys[this.currentTimeKey._value._index + 1];
-      })
+      .on("click", async () => await this.currentTimeKey.set(this.timeKeys[this.currentTimeKey.get()._index + 1]) )
       .append("span")
       .attr("class", "fa fa-caret-right");
 
@@ -1268,20 +1281,20 @@ export class RecordDisplay {
             min: 0,
             max: this.hasTimeKey ? this.timeKeys.length - 1 : 100,
           },
-          start: this.currentTimeKey.val ? this.currentTimeKey.val._index : 0,
+          start: this.currentTimeKey.get()?._index ?? 0,
         });
 
         attribDetailRange.append("span").attr("class", "rangeTick-cur");
 
         this.timeKeySlider = attribDetailRange.node().noUiSlider;
-        var _update_1 = (v) => {
+        var _update_1 = async (v) => {
           if (this.timeKeySlider_PauseUpdate) return;
           var _node = this.DOM.timeAnimation
             .selectAll(".timeKeySelect > option")
             .nodes()[Math.round(1 * v)];
           if (_node) {
             this.timeKeySlider_PauseUpdate = true;
-            this.currentTimeKey.val = _node.__data__;
+            await this.currentTimeKey.set(_node.__data__);
             this.timeKeySlider_PauseUpdate = false;
           }
         };
@@ -1587,7 +1600,7 @@ export class RecordDisplay {
         attrib = attrib.timeseriesParent;
       }
       if (attrib instanceof Attrib_Timeseries) {
-        timeSrc = this.currentTimeKey.val?._time_src || timeSrc;
+        timeSrc = this.currentTimeKey.get()?._time_src || timeSrc;
         attrib = attrib.getTimepointSummary(
           attrib.timeKeys.find((x) => x._time_src === timeSrc) || // current time-key
             attrib.timeKeys[attrib.timeKeys.length - 1] // most recent time-key
@@ -1602,45 +1615,37 @@ export class RecordDisplay {
     var prevTimeSeriesParent: Attrib_Timeseries = null;
 
     if (_type === "text") {
-      if (attrib instanceof Attrib_Categorical) {
-        this.codeBy.text = attrib;
-      } else return;
-      //
+      if (!(attrib instanceof Attrib_Categorical)) return;
+      this.codeBy.text = attrib;
+
     } else if (_type === "textBrief") {
-      if (attrib instanceof Attrib_Categorical) {
-        this.codeBy.textBrief = attrib;
-      } else return;
-      //
+      if (!(attrib instanceof Attrib_Categorical)) return;
+      this.codeBy.textBrief = attrib;
+
     } else if (_type === "sort") {
-      if (attrib instanceof Attrib_Interval) {
-        var curSort = this.codeBy.sort;
-        if (curSort instanceof Attrib_Numeric) {
-          prevTimeSeriesParent = curSort.timeseriesParent;
-        }
-        this.codeBy.sort = attrib;
-      } else return;
-      //
+      if (!(attrib instanceof Attrib_Interval)) return;
+      if (this.codeBy.sort instanceof Attrib_Numeric)
+        prevTimeSeriesParent = this.codeBy.sort.timeseriesParent;
+      this.codeBy.sort = attrib;
+
     } else if (_type === "scatterX") {
-      if (attrib instanceof Attrib_Numeric) {
-        if (this.codeBy.scatterX) {
-          prevTimeSeriesParent = this.codeBy.scatterX.timeseriesParent;
-        }
-        this.codeBy.scatterX = attrib;
-      } else return;
-      //
+      if (!(attrib instanceof Attrib_Numeric)) return;
+      if (this.codeBy.scatterX)
+        prevTimeSeriesParent = this.codeBy.scatterX.timeseriesParent;
+      this.codeBy.scatterX = attrib;
+
     } else if (_type === "scatterY") {
-      if (attrib instanceof Attrib_Numeric) {
-        if (this.codeBy.scatterY) {
-          prevTimeSeriesParent = this.codeBy.scatterY.timeseriesParent;
-        }
-        this.codeBy.scatterY = attrib;
-      } else return;
-      //
+      if (!(attrib instanceof Attrib_Numeric)) return;
+      if (this.codeBy.scatterY) {
+        prevTimeSeriesParent = this.codeBy.scatterY.timeseriesParent;
+      }
+      this.codeBy.scatterY = attrib;
+
     } else if (_type === "size") {
-      prevTimeSeriesParent =
-        this.codeBy.size instanceof Attrib_Numeric
-          ? this.codeBy.size.timeseriesParent
-          : null;
+      prevTimeSeriesParent = this.codeBy.size instanceof Attrib_Numeric
+        ? this.codeBy.size.timeseriesParent
+        : null;
+
       if (_attrib === "_measure_") {
         this.codeBy.size = _attrib;
       } else if (attrib instanceof Attrib_Numeric) {
@@ -1650,12 +1655,11 @@ export class RecordDisplay {
       } else {
         return;
       }
-      //
+
     } else if (_type === "color") {
-      prevTimeSeriesParent =
-        this.codeBy.color instanceof Attrib_Numeric
-          ? this.codeBy.color.timeseriesParent
-          : null;
+      prevTimeSeriesParent = this.codeBy.color instanceof Attrib_Numeric
+        ? this.codeBy.color.timeseriesParent
+        : null;
       if (_attrib === "_measure_") {
         this.codeBy.color = _attrib;
       } else if (attrib instanceof Attrib_Numeric) {
@@ -1665,21 +1669,16 @@ export class RecordDisplay {
       } else {
         return;
       }
-      //
+
     } else if (_type === "timeSeries") {
-      if (attrib instanceof Attrib_Timeseries) {
-        this.codeBy.timeSeries = attrib;
-      } else return;
-      //
+      if (!(attrib instanceof Attrib_Timeseries)) return;
+      this.codeBy.timeSeries = attrib;
+
     } else if (_type === "geo") {
-      if (attrib instanceof Attrib_RecordGeo) {
-        this.codeBy.geo = attrib;
-        await this.codeBy.geo.loadGeo();
-        if (!(window as any).L) {
-          await import("leaflet");
-        }
-      } else return;
-      //
+      if (!(attrib instanceof Attrib_RecordGeo)) return;
+      this.codeBy.geo = attrib;
+      await this.codeBy.geo.loadGeo();
+
     } else {
       return;
     }
@@ -1702,7 +1701,7 @@ export class RecordDisplay {
     if (timeKeysChange) {
       this.refreshTimeKeys();
       if (attrib instanceof Attrib_Numeric)
-        this.currentTimeKey.val = attrib.timeKey;
+        await this.currentTimeKey.set(attrib.timeKey);
     }
 
     if (!this.DOM.root) return;
@@ -1716,22 +1715,23 @@ export class RecordDisplay {
         .attr("active", true)
         .select("input")
         .attr("placeholder", this.textAttrib_Brief?.attribName);
+
       // Call the onDOM function for all the records that have been inserted to the page
       if (this.config.onDOM) {
         this.DOM.kshfRecords.each((record) => {
           this.config.onDOM.call(record.data, record);
         });
       }
-      //
+
     } else if (_type === "textBrief") {
       this.DOM.recordTextSearch
         .attr("active", true)
         .select("input")
         .attr("placeholder", this.textAttrib_Brief.attribName);
-      //
+
     } else if (_type === "color") {
       this.updateRecordColorScale();
-      //
+
     } else if (_type === "size") {
       if (this.codeBy.size instanceof Attrib_Numeric) {
         if (
@@ -1756,9 +1756,10 @@ export class RecordDisplay {
           }, 1000);
         }
       }
+
       this.updateRecordSizeScale();
+
       this.refreshSizeLegend();
-      //
     }
 
     await this.View?.finishSetAttrib(_type);
@@ -1777,19 +1778,14 @@ export class RecordDisplay {
     if (!(this.codeBy.size instanceof Attrib_Numeric)) {
       return 1; // only 1 point max
     }
-    var maxValue: number;
-    if (this.codeBy.size.timeseriesParent) {
-      maxValue = d3.max(
-        this.codeBy.size.timeseriesParent.timeSeriesScale_Value.domain()
-      );
-    } else {
-      maxValue = this.codeBy.size.rangeActive[1];
-    }
-    return maxValue;
+
+    return this.codeBy.size.timeseriesParent // use timeseries parents domain...
+      ? d3.max(this.codeBy.size.timeseriesParent.timeSeriesScale_Value.domain())
+      : this.codeBy.size.rangeActive[1];
   }
 
   /** -- */
-  sanitizeTicks(ticks, attrib, numTicks = 0) {
+  sanitizeTicks(ticks, attrib: Attrib_Numeric | "_measure_", numTicks: number) {
     if (ticks.domain) {
       var _scale = ticks.copy().nice(numTicks);
       ticks = _scale.ticks(numTicks);
@@ -1798,22 +1794,26 @@ export class RecordDisplay {
       if (ticks[0] > domain[0]) ticks.unshift(domain[0]);
       if (ticks[ticks.length - 1] < domain[1]) ticks.push([domain[1]]);
     }
+
     // when ticks must be integer values, round them
     if (attrib === "_measure_" || !attrib.hasFloat) {
       ticks = ticks.map((v) => Math.round(v));
     }
+
     // avoid repeated tick values
     return ticks.filter((_, i) => i == 0 || _ !== ticks[i - 1]);
   }
 
   /** -- */
   refreshSizeLegend() {
+    if(this.DOM.root == null) return;
+
+    this.DOM.root.classed("usesSizeAttrib", hasSizeLegend);
+
     var hasSizeLegend =
       this.codeBy.size != null &&
       (this.viewRecAs === "scatter" ||
         (this.viewRecAs === "map" && this.codeBy.geo.geoType === "Point"));
-
-    this.DOM.root.classed("usesSizeAttrib", hasSizeLegend);
 
     if (!hasSizeLegend) return;
 
@@ -1833,7 +1833,7 @@ export class RecordDisplay {
 
     var markRatios = [0.2, 0.4, 0.6, 0.8, 1];
 
-    if (this.recordPointSize.val > 25) {
+    if (this.recordPointSize.get() > 25) {
       markRatios = [0.1, 0.4, 0.7, 1];
     }
 
@@ -1928,7 +1928,7 @@ export class RecordDisplay {
   }
 
   /** -- */
-  refreshAttribScaleType(attrib) {
+  async refreshAttribScaleType(attrib) {
     if (this.codeBy.color instanceof Attrib) {
       if (
         this.codeBy.color === attrib ||
@@ -1938,13 +1938,13 @@ export class RecordDisplay {
       }
     }
 
-    this.View?.refreshAttribScaleType(attrib);
+    await this.View?.refreshAttribScaleType(attrib);
   }
 
-  /** -- */
+  /** Instead of overall maximum, we can also get a quantile value */
   private getMaxMeasureValue(quantile = null): number {
     // maximum of records that are not in a special cluster - using measure_Self values
-    var _list = this.browser.records.reduce((accum, record: Record) => {
+    var _list: number[] = this.browser.records.reduce((accum: number[], record: Record) => {
       if (record.isIncluded && !record._view.inCluster && record.measure_Self)
         accum.push(record.measure_Self);
       return accum;
@@ -1969,7 +1969,7 @@ export class RecordDisplay {
   }
 
   get measureSummary() {
-    return this.browser.measureSummary.val;
+    return this.browser.measureSummary.get();
   }
 
   updateRecordColorScale() {
@@ -1981,25 +1981,23 @@ export class RecordDisplay {
       return;
     }
 
-    var _colorLegendScale;
     var c: Attrib_Numeric, domain: [number, number];
 
     if (this.codeBy.color === "_measure_") {
       domain = [1, this.getMaxMeasureValue()];
       c = this.measureSummary;
-      //
     } else {
       domain = this.codeBy.color.valueScale.domain();
       c = this.codeBy.color;
     }
 
-    _colorLegendScale = Util.getD3Scale(c.isValueScale_Log).domain(domain);
+    const _colorLegendScale = Util.getD3Scale(c?.isValueScale_Log).domain(domain);
 
     var numTicks = 10;
     while (true) {
       this.recordColorScaleTicks = this.sanitizeTicks(
         _colorLegendScale,
-        c,
+        c ?? "_measure_",
         numTicks
       );
       if (this.recordColorScaleTicks.length <= 10) break;
@@ -2009,7 +2007,7 @@ export class RecordDisplay {
     this.recordColorStepTicks = false;
 
     if (
-      !c.hasFloat &&
+      (!c || !c.hasFloat) &&
       Util.isStepTicks(this.recordColorScaleTicks) &&
       this.recordColorScaleTicks.length < 10
     ) {
@@ -2494,10 +2492,10 @@ export class RecordDisplay {
 
   /** -- */
   // TO-DO: Improve, A LOT.
-  importConfig(config) {
+  async importConfig(config) {
     if (config == null) return;
 
-    this.browser.recordChartType.val = config.viewAs;
+    await this.browser.recordChartType.set(config.viewAs);
 
     if (config.colorTheme) {
       this.setRecordColorTheme(config.colorTheme);
@@ -2506,7 +2504,7 @@ export class RecordDisplay {
       this.invertColorTheme(true);
     }
     if (config.recordPointSize) {
-      this.recordPointSize.val = config.recordPointSize;
+      await this.recordPointSize.set(config.recordPointSize);
     }
 
     if (config.collapsed) {

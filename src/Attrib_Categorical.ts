@@ -100,11 +100,11 @@ export class Attrib_Categorical extends Attrib {
         { name: "<i class='fa fa-plus'></i>", value: -100, _type: "plus" }, // special value
       ],
       isActive: (d) =>
-        d.value && d.value <= this.barHeight.val && d.max > this.barHeight.val,
+        d.value && d.value <= this.barHeight.get() && d.max > this.barHeight.get(),
       onDOM: (DOM) => {
         DOM.root.classed("catSummary_ListOnly", true);
       },
-      preSet: (v, opt) => {
+      preSet: async (v, opt) => {
         if (v === -99) {
           v = opt._value - 1;
         } else if (v === -100) {
@@ -112,7 +112,7 @@ export class Attrib_Categorical extends Attrib {
         }
         return Math.min(85, Math.max(10, v));
       },
-      onSet: (d) => {
+      onSet: () => {
         if (this.block.isView_List) {
           this.block.refreshHeight_Category();
         } else {
@@ -137,26 +137,25 @@ export class Attrib_Categorical extends Attrib {
         },
       ],
       UI: { disabled: true },
-      isActive: (d) =>
-        d.value ? this.minAggrSize.val > 1 : this.minAggrSize.val === 1,
+      isActive: (d) => d.value
+        ? this.minAggrSize.get() > 1 
+        : this.minAggrSize.get() === 1,
       onDOM: (DOM) => {
         DOM.root
           .select(".minAggrSizeInput")
-          .attr("value", this.minAggrSize.val)
+          .attr("value", this.minAggrSize.get())
           .attr(
             "max",
             d3.max(this._aggrs, (_cat) => _cat.records.length)
           )
           .on("input", (event) => {
             if (_timer) window.clearTimeout(_timer);
-            _timer = window.setTimeout(() => {
-              this.minAggrSize.val = Math.max(2, 1 * event.currentTarget.value);
+            _timer = window.setTimeout(async () => {
+              await this.minAggrSize.set( Math.max(2, 1 * event.currentTarget.value) );
             }, 500);
           });
       },
-      preSet: (v, obj) => {
-        return Math.max(1, v);
-      },
+      preSet: async (v) => Math.max(1, v),
       onSet: (v) => this.setMinAggrSize(v),
     });
 
@@ -348,9 +347,9 @@ export class Attrib_Categorical extends Attrib {
   }
 
   onAggrHighlight(aggr: Aggregate_Category) {
-    if (!this.browser.mouseOverCompare.val) return;
     if (this.browser.adjustMode) return;
     if (!this.isCatSelectable(aggr)) return;
+    if (this.browser.mouseOverCompare.is(false)) return;
 
     aggr.DOM.matrixRow?.setAttribute("selection", "selected");
 
@@ -867,26 +866,29 @@ export class Attrib_Categorical extends Attrib {
     this.mapTable = null;
   }
 
-  setCatGeo_(template) {
+  async setCatGeo_(template) {
     if (!this.uniqueCategories()) {
       this.setCatGeo(template);
       this.block.catViewAs("map");
+
     } else {
       // Per-record map: Define new summary
       this.browser.recordDisplay.setAttrib(
         "geo",
         this.browser.createAttrib(
           "_REGION",
-          // replace [*] to [*.]
+          // replace [*] with [*.]
           template
             .replace("[*]", "[*." + this.template + "]")
             .replace("[UPPERCASE(*)]", "[UPPERCASE(*." + this.template + ")]"),
           "recordGeo"
         )
       );
-      if (this.browser.viewRecAs === "none") {
-        this.browser.recordChartType.val = "map";
+
+      if (this.browser.recordChartType.is("none")) {
+        await this.browser.recordChartType.set("map");
       }
+
       this.browser.refreshAttribList();
     }
   }
@@ -974,7 +976,7 @@ export class Attrib_Categorical extends Attrib {
   // Export / import
   // ********************************************************************
 
-  applyConfig(blockCfg: SummarySpec) {
+  async applyConfig(blockCfg: SummarySpec) {
     super.applyConfig(blockCfg);
 
     if (blockCfg.mapInitView) {
@@ -984,9 +986,9 @@ export class Attrib_Categorical extends Attrib {
       this.mapConfig = blockCfg.mapConfig;
     }
 
-    this.measureScaleType.val = blockCfg.measureScaleType;
-    this.barHeight.val = blockCfg.barHeight;
-    this.minAggrSize.val = blockCfg.minAggrSize;
+    await this.measureScaleType.set(blockCfg.measureScaleType);
+    await this.barHeight.set(blockCfg.barHeight);
+    await this.minAggrSize.set(blockCfg.minAggrSize);
 
     if (blockCfg.catLabel) {
       this.setCatLabel(blockCfg.catLabel);

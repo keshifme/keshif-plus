@@ -1,6 +1,10 @@
+import { Attrib } from "./Attrib";
 import { Base } from "./Base";
+import { Browser } from "./Browser";
 
-export default class i18n_EN {
+export class i18n_EN {
+  [x: string]: string | ((...args: any) => string) | any;
+
   constructor() {
     this.LANG_NAME = "English";
 
@@ -17,7 +21,7 @@ export default class i18n_EN {
     this.CompareTopCategories = "Compare top categories";
     this.Compare = "Compare";
 
-    (this.LockCrumbMode = (stacked) =>
+    (this.LockCrumbMode = (stacked: any) =>
       `<b>${
         stacked ? "Stacked" : "Side-by-side"
       } charts</b><br> are used for comparison.<br><br>
@@ -42,7 +46,7 @@ export default class i18n_EN {
 
     this["Absolute (Breakdown)"] = "Absolute";
 
-    this.SetPairTitle = (v) => `${v}->Relations`;
+    this.SetPairTitle = (v: string) => `${v}->Relations`;
 
     this.DialogSideBySideCharts =
       "<u class='learnIcon' data-helparticle='5e88ff692c7d3a7e9aea6475'>Stacked charts</u>";
@@ -78,77 +82,53 @@ export default class i18n_EN {
       "<a class='link' style='font-weight: 300' href='https://help.keshif.me/article/49-resolving-chart-display-issues'>" +
       "More info</a>";
 
-    this.MeasureDescrLabel = (dashboard, summary) => {
-      var measureText_simple = dashboard.measureFunc_Count
+    this.MeasureDescrLabel = (dashboard: Browser, summary: Attrib): string => {
+      const measureText_simple = dashboard.measureFunc_Count
         ? ""
-        : dashboard.measureFunc +
-          " of " +
-          dashboard.measureSummary.val.printName;
+        : `${dashboard.measureFunc} of ${dashboard.measureSummary.get().printName}`;
 
-      var measureText = measureText_simple || dashboard.recordName;
+      const comparedBy = dashboard.comparedAttrib?.printName ?? null;
 
-      var _all = dashboard.isFiltered() ? "filtered" : "all";
-
-      var measureText_all =
-        measureText_simple || _all + " " + dashboard.recordName;
-
-      var comparedBy = dashboard.comparedSummary
-        ? dashboard.comparedSummary.printName
-        : null;
-
-      var breakdown = dashboard.breakdownMode.val;
+      const breakdown = dashboard.breakdownMode.get();
 
       if (breakdown == "absolute") {
-        return measureText + (comparedBy ? " by " + comparedBy : "");
+        return (measureText_simple || dashboard.recordName) + (comparedBy ? ` by ${comparedBy}` : ``);
       }
 
       // PERCENTAGE-BASED BREAKDOWN
 
+      const measureText_all = measureText_simple || `${dashboard.isFiltered() ? "filtered" : "all"} ${dashboard.recordName}`;
+
       if (!comparedBy) {
-        return "% of " + measureText_all;
+        return `% of ${measureText_all}`;
       }
 
-      var summaryName = summary.printName;
-
-      if (breakdown == "dependent") {
-        return summaryName + " % , out of " + comparedBy + measureText_simple;
-      }
-      if (breakdown == "relative") {
-        return comparedBy + " % , out of " + summaryName + measureText_simple;
-      }
-      if (breakdown == "total") {
-        return "Combined % , out of " + measureText_all;
+      switch(breakdown){
+        case "dependent": return `${summary.printName} % , out of ${comparedBy} ${measureText_simple}`;
+        case "relative": return `${comparedBy} % , out of ${summary.printName} ${measureText_simple}`;
+        case "total": return `Combined % , out of ${measureText_all}`;
       }
     };
 
-    this.measureText = (dashboard) => {
-      if (dashboard.measureFunc_Count) return dashboard.recordName;
-      return (
-        dashboard.measureFunc + " of " + dashboard.measureSummary.val.printName
-      );
-    };
+    this.measureText = (dashboard: Browser) => (dashboard.measureFunc_Count) 
+        ? dashboard.recordName
+        : `${dashboard.measureFunc} of ${dashboard.measureSummary.get().printName}`;
 
-    this.measureText_2 = (dashboard) => {
-      if (dashboard.measureFunc_Count) return "";
-      return (
-        dashboard.measureFunc +
-        " of " +
-        dashboard.measureSummary.val.printName +
-        " of "
-      );
-    };
+    this.measureText_2 = (dashboard: Browser) => (dashboard.measureFunc_Count)
+        ? ""
+        : `${dashboard.measureFunc} of ${dashboard.measureSummary.get().printName} of `;
 
     this.ListButton = "List";
     this.MapButton = "Map";
     this.NodeButton = "Node-Link";
     this.TimeSeriesButton = "Time";
     this.ScatterButton = "Scatter";
-    this.RecordViewTypeTooltip = (v) =>
+    this.RecordViewTypeTooltip = (v: string) =>
       `View ${Base.browser.recordName} on <br><b>${v}</b> chart`;
 
     this.Boost_NoSuggestions = "No suggested changes. Explore on!";
 
-    this.TooltipOne = (_v, dashboard) => `${dashboard.getValueLabel(
+    this.TooltipOne = (_v, dashboard: Browser) => `${dashboard.getValueLabel(
       _v,
       false,
       1,
@@ -157,7 +137,7 @@ export default class i18n_EN {
         ${dashboard.isFiltered() ? dashboard.getFilteredSummaryText() : "all"}
         ${dashboard.recordName}`;
 
-    this.Tooltip_OutOf = (_v, dashboard) => {
+    this.Tooltip_OutOf = (_v, dashboard: Browser) => {
       var str = "";
       if (dashboard.absoluteBreakdown) return str;
 
@@ -165,7 +145,7 @@ export default class i18n_EN {
       if (dashboard.relativeBreakdown) {
         str += "% out of <i>" + _v + "</i>";
       } else if (dashboard.dependentBreakdown) {
-        str += "% out of <i>" + dashboard.comparedSummary.printName + "</i>";
+        str += "% out of <i>" + dashboard.comparedAttrib?.printName + "</i>";
       } else {
         str += "% out of all";
       }
@@ -300,9 +280,9 @@ export default class i18n_EN {
     this.Log10Sequence =
       "<span style='font-size:0.8em; opacity: 0.75'>(1,10,100)</span>";
 
-    this.Error_CannotFindMap = mapName => `<i class='fal fa-frown'></i> We could not find the map [${mapName}].`;
-    this.Error_CannotLoadMap = mapName => `<i class='fal fa-frown'></i> We could not load the map [${mapName}].`;
-    this.Error_CannotMatchMap = mapName => `<i class='fal fa-frown'></i> We could not match any location name with the map [${mapName}].`;
+    this.Error_CannotFindMap = (mapName) => `<i class='fal fa-frown'></i> We could not find the map [${mapName}].`;
+    this.Error_CannotLoadMap = (mapName) => `<i class='fal fa-frown'></i> We could not load the map [${mapName}].`;
+    this.Error_CannotMatchMap = (mapName) => `<i class='fal fa-frown'></i> We could not match any location name with the map [${mapName}].`;
 
     // Platform-specific
     this.RemoveDataset = "Remove Dataset";

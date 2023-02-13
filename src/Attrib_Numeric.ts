@@ -8,7 +8,7 @@ import { Attrib_Timeseries } from "./Attrib_Timeseries";
 import { TimeKey } from "./TimeSeriesData";
 
 import { Block_Numeric } from "./Block_Numeric";
-import { RecordVisCoding, SummarySpec } from "./Types";
+import { LinearOrLog, RecordVisCoding, SummarySpec } from "./Types";
 import { Browser } from "./Browser";
 import { Config } from "./Config";
 import { i18n } from "./i18n";
@@ -38,13 +38,13 @@ export class Attrib_Numeric extends Attrib_Interval<number> {
     return this.timeseriesParent?.attribName.split("->") || this.pathName;
   }
   
-  readonly valueScaleType: Config<string>;
+  readonly valueScaleType: Config<LinearOrLog | "auto">;
 
   // has floating numbers as data points
 
   private tickPrecision = 3;
 
-  autoScaleType: "linear" | "log" | null = null;
+  autoScaleType: LinearOrLog | null = null;
 
   constructor(browser: Browser, name: string, template: any) {
     super(
@@ -62,7 +62,7 @@ export class Attrib_Numeric extends Attrib_Interval<number> {
       metricFuncs: Base.defaultMetricFuncs,
     };
 
-    this.valueScaleType = new Config<string>({
+    this.valueScaleType = new Config<LinearOrLog | "auto">({
       cfgClass: "valueScaleType",
       cfgTitle: "BinScale",
       iconClass: "fa fa-arrows-h",
@@ -75,19 +75,18 @@ export class Attrib_Numeric extends Attrib_Interval<number> {
         { name: i18n.Log + " " + i18n.Log2Sequence, value: "log" },
       ],
       forcedValue: () => {
-        if (this.timeseriesParent)
-          return this.timeseriesParent.valueScaleType.val; // use parent's config
+        if (this.timeseriesParent) return this.timeseriesParent.valueScaleType.get();
         if (this.stepTicks) return "linear";
         if (!this.supportsLogScale()) return "linear";
         if (this.valueScaleType._value === "auto") return this.autoScaleType;
       },
-      onSet: () => {
+      onSet: async () => {
         if(!this.aggr_initialized) return;
         this.block.noRefreshVizAxis = true;
-        this.applyScaleType();
+        await this.applyScaleType();
         this.block.noRefreshVizAxis = false;
 
-        this.browser.recordDisplay?.refreshAttribScaleType(this);
+        await this.browser.recordDisplay?.refreshAttribScaleType(this);
       },
     });
 
@@ -105,10 +104,10 @@ export class Attrib_Numeric extends Attrib_Interval<number> {
   // ********************************************************************
 
   get isValueScale_Log() {
-    return this.valueScaleType.val === "log";
+    return this.valueScaleType.is("log");
   }
   get isValueScale_Linear() {
-    return this.valueScaleType.val === "linear";
+    return this.valueScaleType.is("linear");
   }
 
   supportsLogScale(): boolean {
@@ -181,7 +180,7 @@ export class Attrib_Numeric extends Attrib_Interval<number> {
     if (this.isEmpty()) return false;
     if (["text", "textBrief"].includes(_type)) return true;
     this.initializeAggregates();
-    if (!this.isComparable.val) return false;
+    if (!this.isComparable.get()) return false;
     if (["sort", "scatterX", "scatterY", "color"].includes(_type)) return true;
     if (_type === "size") {
       return !this.hasNegativeValues();
@@ -314,7 +313,7 @@ export class Attrib_Numeric extends Attrib_Interval<number> {
   }
 
   /** -- */
-  applyScaleType() {
+  async applyScaleType() {
     if (!this.sortedRecords) return;
 
     this.initializeAggregates();
@@ -325,7 +324,7 @@ export class Attrib_Numeric extends Attrib_Interval<number> {
     }
 
     this.updateScaleAndBins();
-    this.browser.recordDisplay?.refreshAttribScaleType(this);
+    await this.browser.recordDisplay?.refreshAttribScaleType(this);
   }
 
   getValueScaleObj() {
@@ -405,13 +404,13 @@ export class Attrib_Numeric extends Attrib_Interval<number> {
   // ********************************************************************
 
   /** -- */
-  applyConfig(blockCfg: SummarySpec) {
+  async applyConfig(blockCfg: SummarySpec) {
     super.applyConfig(blockCfg);
 
     this.measurable.valueDomain = blockCfg.valueDomain;
 
-    this.block.showPercentiles.val = blockCfg.showPercentiles;
-    this.valueScaleType.val = blockCfg.valueScaleType;
+    await this.block.showPercentiles.set(blockCfg.showPercentiles);
+    await this.valueScaleType.set(blockCfg.valueScaleType);
 
     if (blockCfg.unitName) {
       this.unitName = blockCfg.unitName;

@@ -20,6 +20,7 @@ import {
   BlockSpec,
   BlockType as AttribType,
   CompareType,
+  LinearOrLog,
   MeasurableConfig,
   MeasureType,
   MetricFunc,
@@ -236,9 +237,9 @@ export abstract class Attrib {
     this._metricFuncs = this._metricFuncs.filter((_) => _ != t);
     if (
       this.attribID === this.measureSummary?.attribID &&
-      this.browser.measureFunc.val === t
+      this.browser.measureFunc.is(t)
     ) {
-      this.browser.measureFunc.val = "Count";
+      this.browser.measureFunc.set("Count");
       this.browser.measureFunc.refresh();
     } else {
       this.browser.measureSummary.refresh(); // drop-down options refresh
@@ -329,7 +330,7 @@ export abstract class Attrib {
       },
     });
 
-    this.measureScaleType = new Config<"linear" | "log">({
+    this.measureScaleType = new Config<LinearOrLog>({
       cfgClass: "measureScaleType",
       cfgTitle: "Axis Scale",
       parent: this,
@@ -381,10 +382,9 @@ export abstract class Attrib {
         }
       },
       onSet: () => {
-        if (this.aggr_initialized) {
-          this.updateChartScale_Measure(true);
-          this.block?.refreshViz_All();
-        }
+        if (!this.aggr_initialized) return;
+        this.updateChartScale_Measure(true);
+        this.block?.refreshViz_All();
       },
     });
   }
@@ -424,7 +424,7 @@ export abstract class Attrib {
     return this.browser.records;
   }
   get breakdownMode() {
-    return this.browser.breakdownMode.val;
+    return this.browser.breakdownMode.get();
   }
   get relativeBreakdown() {
     return this.browser.relativeBreakdown;
@@ -442,7 +442,7 @@ export abstract class Attrib {
     return this.browser.percentBreakdown;
   }
   get stackedCompare() {
-    return this.browser.stackedCompare.val;
+    return this.browser.stackedCompare.is(true);
   }
   get stackedChart() {
     return this.browser.stackedChart;
@@ -451,7 +451,7 @@ export abstract class Attrib {
     return this.browser.vizActive(key);
   }
   get measureFunc() {
-    return this.browser.measureFunc.val;
+    return this.browser.measureFunc.get();
   }
   get activeComparisons() {
     return this.browser.activeComparisons;
@@ -460,13 +460,13 @@ export abstract class Attrib {
     return this.browser.activeComparisonsCount;
   }
   get measureSummary() {
-    return this.browser.measureSummary.val;
+    return this.browser.measureSummary.get();
   }
 
   // ********************************************************************
   // ********************************************************************
 
-  public readonly measureScaleType: Config<"linear" | "log">;
+  public readonly measureScaleType: Config<LinearOrLog>;
 
   public chartScale_Measure_prev: any;
   public chartScale_Measure: any;
@@ -475,11 +475,11 @@ export abstract class Attrib {
 
   /** -- */
   get measureScale_Log() {
-    return this.measureScaleType.val === "log";
+    return this.measureScaleType.is("log");
   }
   /** -- */
   get measureScale_Linear() {
-    return this.measureScaleType.val === "linear";
+    return this.measureScaleType.is("linear");
   }
   /** -- */
   get measureExtent_Self() {
@@ -511,11 +511,11 @@ export abstract class Attrib {
       return this.measureExtent_Self;
     }
 
-    if (this.axisScaleType.val === "fit") {
+    if (this.axisScaleType.is("fit")) {
       return this.measureExtent_Self;
     }
 
-    if (this.axisScaleType.val === "full") {
+    if (this.axisScaleType.is("full")) {
       if (this.absoluteBreakdown) {
         return [0, this.browser.allRecordsAggr.measure("Active")];
       } else {
@@ -523,7 +523,7 @@ export abstract class Attrib {
       }
     }
 
-    if (this.axisScaleType.val === "sync") {
+    if (this.axisScaleType.is("sync")) {
       return this.block?.panel.syncedMeasureExtent;
     }
     // fallback, just in case
@@ -533,7 +533,7 @@ export abstract class Attrib {
   public measureLogBase = 10;
 
   refreshScale_Measure(v = null) {
-    if (v == null) v = this.measureScaleType.val;
+    v ??= this.measureScaleType.get();
 
     this.chartScale_Measure_prev = this.chartScale_Measure
       ? this.chartScale_Measure.copy().clamp(false)
@@ -611,7 +611,7 @@ export abstract class Attrib {
     // Active will be max if visible & using count or positive-sum's
     if (
       (this.absoluteBreakdown || this.totalBreakdown) &&
-      this.browser.showWholeAggr.val &&
+      this.browser.showWholeAggr.is(true) &&
       this.browser.measureWithPositiveValues()
     ) {
       return this.getPeakAggr(peakFunc, "Active");
@@ -669,20 +669,20 @@ export abstract class Attrib {
   // ********************************************************************
 
   /** -- */
-  applyConfig(blockCfg: SummarySpec) {
+  async applyConfig(blockCfg: SummarySpec) {
     if (blockCfg.noNugget) {
       this.browser.removeAttribFromGroupIndex(this);
     }
 
     if (blockCfg.isComparable === false) {
-      this.isComparable.val = false;
+      await this.isComparable.set(false);
     }
 
     if (blockCfg.metricFuncs) {
       this._metricFuncs = blockCfg.metricFuncs;
     }
 
-    this.axisScaleType.val = blockCfg.axisScaleType;
+    await this.axisScaleType.set(blockCfg.axisScaleType);
 
     this.block?.setCollapsed(blockCfg.collapsed === true);
     this.description = blockCfg.description;

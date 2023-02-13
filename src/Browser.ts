@@ -277,7 +277,6 @@ export class Browser {
   primaryTableName: string = null;
 
   recordDisplay: RecordDisplay = null;
-  viewRecAs: RecordDisplayType = "none";
 
   recordDetailsPopup: RecordDetailPopup;
 
@@ -328,11 +327,7 @@ export class Browser {
   }
   // query by attribute name
   attribWithName(name: string): Attrib {
-    return (
-      this.attribs.find((attrib) => {
-        return attrib.attribName === name || attrib.template.str === name;
-      }) || null
-    );
+    return this.attribs.find((attrib) => name === attrib?.attribName || name === attrib?.template?.str) || null;
   }
   get _attribs() {
     var r = {};
@@ -472,31 +467,30 @@ export class Browser {
           activeWhen: () => this.getMeasurableSummaries("Avg").length > 0,
         },
       ],
-      onRefresh: (cfg) => {
+      onRefreshDOM: (cfg: Config<MeasureFunc>) => {
         // Update text
         this.DOM.metricFuncText
           .select(".measureFuncText")
-          .html(i18n["measure_" + cfg.val]);
+          .html(i18n["measure_" + cfg.get()]);
         // Update select box
         this.addMeasureOptions_Func(
           this.DOM.metricFuncText.select(".measureFuncOptions")
         );
       },
-      preSet: (v) => {
+      preSet: async (v: MeasureFunc) => {
         if (v === "Count") return v;
-        var attrib = this.getMeasurableSummaries(v)[0];
-        if (!attrib) {
-          throw `No numeric data attribute supports ${v} measure function.`;
-        }
-        if (this.measureSummary && !this.measureSummary?.val) {
-          // This will
-          this.measureSummary.val = attrib as Attrib_Numeric;
-          // calls refreshMeasureMetric
+        // v is Sum or Avg - we need to make sure measureSummary is valid.
+        if (!this.measureSummary?.get()) {
+          let attrib = this.getMeasurableSummaries(v)[0];
+          if (!attrib) {
+            throw Error(`No numeric data attribute supports ${v} measure function.`);
+          }
+          await this.measureSummary?.set(attrib as Attrib_Numeric);
         }
         return v;
       },
-      onSet: () => {
-        this.refreshMeasureMetric();
+      onSet: async () => {
+        await this.refreshMeasureMetric();
       },
     });
 
@@ -514,15 +508,15 @@ export class Browser {
           .attr("class", "timeKeys")
           .on("input", (event) => {
             var selectedKey = event.currentTarget.selectedOptions[0].__data__;
-            this.measureSummary.val =
-              this.measureSummary.val.timeseriesParent.getTimepointSummary(
+            this.measureSummary.set(
+              this.measureSummary.get().timeseriesParent.getTimepointSummary(
                 selectedKey
-              );
+              ));
           });
       },
-      onRefresh: (cfg) => {
-        if (!cfg._value) return; // nothing to do!
-        var attrib = this.measureSummary.val;
+      onRefreshDOM: (cfg: Config<Attrib_Numeric>) => {
+        if (!cfg.get()) return; // nothing to do!
+        var attrib = this.measureSummary.get();
         this.addMeasureOptions_Summaries(cfg.DOM.mainSelect);
 
         this.addMeasureOptions_Summaries(
@@ -550,7 +544,7 @@ export class Browser {
             .html(attrib.timeKey._time_src);
         }
       },
-      preSet: (v) => {
+      preSet: async (v) => {
         var attrib: Attrib = v;
         if (typeof attrib === "string") {
           attrib = this.attribWithName(v);
@@ -561,8 +555,8 @@ export class Browser {
           // First, try to use the timeKey of current measure attrib
           attrib.initializeAggregates(); // before this, timeKeys is not computed.
           var key =
-            this.measureSummary.val?.timeKey ||
-            this.recordDisplay.currentTimeKey.val ||
+            this.measureSummary.get()?.timeKey ||
+            this.recordDisplay.currentTimeKey.get() ||
             attrib.timeKeys[attrib.timeKeys.length - 1];
           attrib = attrib.getTimepointSummary(key);
         }
@@ -574,12 +568,9 @@ export class Browser {
 
         return attrib; // allright
       },
-      onSet: (v) => {
-        if (!v) return;
-
-        if (this.measureFunc_Count) return; // nothing to do...
-
-        this.refreshMeasureMetric();
+      onSet: async (v) => {
+        if (!v || this.measureFunc_Count) return;
+        await this.refreshMeasureMetric();
       },
     });
 
@@ -600,29 +591,25 @@ export class Browser {
       forcedValue: () => {
         if (!this.measureWithPositiveValues()) return "absolute";
       },
-      preSet: (v) => {
-        if (v === false) v = "absolute";
-        if (v === true) v = "relative";
-        v = v.toLowerCase();
-
+      preSet: async (v: BreakdownType) => {
         if (v !== "absolute" && this.measureFunc_Avg) {
-          throw `You cannot analyze data by ${i18n.DialogComparisonSelection} when<br>
-            using <i>average</i> as aggregation function for <i>${this.measureSummary.val.attribName}</i>.`;
+          throw Error(`You cannot analyze data by ${i18n.DialogComparisonSelection} when<br>
+            using <i>average</i> as aggregation function for <i>${this.measureSummary.get().attribName}</i>.`);
         }
         if (v !== "absolute" && this.measureSumWithNegativeValues()) {
-          throw i18n.DialogCompareForRelative;
+          throw Error(i18n.DialogCompareForRelative);
         }
 
         return v;
       },
-      onSet: (v) => {
+      onSet: async (v) => {
         this.preventAxisScaleTransition = true;
         this.addedCompare = false;
-        this.attribsInDashboard.forEach((attrib) => {
-          attrib.axisScaleType.val = v === "relative" ? "full" : "fit";
+        for(let attrib of this.attribsInDashboard){
+          await attrib.axisScaleType.set(v === "relative" ? "full" : "fit");
           attrib.refreshScale_Measure();
-        });
-        this.refreshAnalytics();
+        }
+        await this.refreshAnalytics();
         this.preventAxisScaleTransition = false;
       },
     });
@@ -675,7 +662,7 @@ export class Browser {
           return false;
         if (!this.measureWithPositiveValues()) return false;
       },
-      preSet: (v) => {
+      preSet: async (v) => {
         if (v !== true && v !== false) return; // not valid input
 
         if (v && this.comparedAttrib && this.isComparedSummaryMultiValued()) {
@@ -713,11 +700,11 @@ export class Browser {
 
         return v;
       },
-      onSet: () => {
+      onSet: async () => {
         this.attribsInDashboard.forEach((attrib) =>
           attrib.refreshScale_Measure()
         );
-        this.refreshAnalytics();
+        await this.refreshAnalytics();
       },
     });
 
@@ -754,7 +741,7 @@ export class Browser {
 
         // of-total or absolute breakdown, with comparisons
 
-        if (this.stackedCompare.val) {
+        if (this.stackedCompare.is(true)) {
           var totalOfCompared = this.activeComparisons.reduce((accum, val) => {
             if (this.selectedAggrs[val]) {
               return accum + this.selectedAggrs[val][val].measure;
@@ -768,9 +755,7 @@ export class Browser {
 
         if (!this.measureWithPositiveValues()) return false;
       },
-      onSet: () => {
-        this.refreshAnalytics();
-      },
+      onSet: async () => await this.refreshAnalytics(),
     });
 
     this.filteringMode = new Config<string>({
@@ -789,7 +774,7 @@ export class Browser {
         { name: "Chained", value: "chained" },
         { name: "Single", value: "single" },
       ],
-      preSet: (v) => {
+      preSet: async (v) => {
         v = v.toLowerCase();
         if (v === "combined") v = "chained";
         return v;
@@ -844,9 +829,7 @@ export class Browser {
           value: "timeseries",
           activeWhen: () => {
             if (this.records?.length < 2) return false;
-            return (
-              this.recordDisplay.getAttribOptions_UI("timeSeries").length > 0
-            );
+            return this.recordDisplay?.getAttribOptions_UI("timeSeries").length > 0;
           },
         },
         {
@@ -854,34 +837,41 @@ export class Browser {
           value: "scatter",
           activeWhen: () => {
             if (this.records?.length < 5) return false;
-            return (
-              this.recordDisplay.getAttribOptions_UI("scatterX").length > 1
-            );
+            return this.recordDisplay?.getAttribOptions_UI("scatterX").length > 1;
           },
         },
       ],
 
-      preSet: (v) => {
-        return v.toLowerCase();
-      },
-
-      onSet: async (v: RecordDisplayType, obj) => {
+      preSet: async (v : RecordDisplayType) => {
         if (!this.records) return; // data not loaded yet
         if (!this.recordDisplay) return;
 
-        try {
-          var _type = v;
+        if (this.records.length > 5000 && !["list", "none"].includes(v)) {
+          await Modal.confirm(
+            "<div style='text-align:center;''>There are more than 2,000 records.<br>" +
+              `The ${v} chart will be crowded and potentially slow.<br><Br>` +
+              `Are you sure you want to change to ${v} chart?</div>`,
+            "Change chart type"
+          );
+        }
 
-          if (this.records.length > 5000 && !["list", "none"].includes(_type)) {
-            await Modal.confirm(
-              "<div style='text-align:center;''>There are more than 2,000 records.<br>" +
-                `The ${_type} chart will be crowded and potentially slow.<br><Br>` +
-                `Are you sure you want to change to ${_type} chart?</div>`,
-              "Change chart type"
-            );
+        if (v === "map") {
+          // Make sure recordDisplay.config.geo is set.
+          if (!this.recordDisplay.config.geo) {
+            var _ = this.recordDisplay.getRecordGeoAttributes()[0];
+            if (!_) throw "Geo attribute not found";
           }
+        }
+
+        return v;
+      },
+
+      onSet: async (_type: RecordDisplayType) => {
+        try {
+          if(!this.recordDisplay) return;
 
           if (_type === "map") {
+            // Make sure recordDisplay.config.geo is set.
             if (!this.recordDisplay.config.geo) {
               var _ = this.recordDisplay.getRecordGeoAttributes()[0];
               if (!_) throw "Geo attribute not found";
@@ -892,41 +882,14 @@ export class Browser {
           // setting the css style here so that the UI can prepare the layout
           this.DOM.root?.attr("recordChartType", _type);
 
-          if (_type === "none") {
-            this.recordDisplay.View = null;
-            //
-          } else {
-            await this.recordDisplay.setView(_type);
-          }
-
-          // now, the chart can be considered "active"
-          this.viewRecAs = _type;
+          await this.recordDisplay.setView(_type);
 
           this.refreshIsEmpty();
+          this.updateLayout_Height();
 
-          this.recordDisplay.recordConfigPanel.hide();
-
-          if (_type !== "none") {
-            this.recordDisplay.refreshViewAsOptions();
-          }
-
-          if (this.recordDisplay.View) {
-            this.recordDisplay.View.initView_DOM();
-
-            this.recordDisplay.View.initView();
-
-            this.recordDisplay.View.initialized = true;
-
-            this.recordDisplay.View?.updateRecordVisibility();
-
-            this.recordDisplay.refreshWidth();
-            this.recordDisplay.View.refreshViewSize(10);
-
-            this.updateLayout_Height();
-          }
         } catch (e) {
           console.log(e);
-          this.recordChartType.val = this.viewRecAs;
+          this.recordChartType?.undoChange();
         }
       },
     });
@@ -946,15 +909,16 @@ export class Browser {
         { name: "Capture", value: "Capture" },
         { name: "Save", value: "Save" },
       ],
-      preSet: (v) => {
+      preSet: async (v) => {
         if (v === "Print") return "Capture";
         return v;
       },
-      onSet: (v, cfg) => {
+      onSet: async (v, cfg) => {
         if (this.finalized) {
           this.setNoAnim(true);
 
-          if (v === "Author") this.refreshAttribList();
+          if (v === "Author")
+            this.refreshAttribList();
 
           this.panels.bottom.setWidth(this.width_Canvas);
           this.panels.bottom.refreshWidth();
@@ -967,16 +931,15 @@ export class Browser {
 
           this.onModeChange?.();
         }
-        cfg.refresh();
+        await cfg.refresh();
       },
-      onRefresh: (cfg) => {
-        var v = cfg.val;
-        if (this.DOM.panel_Footer) {
-          this.DOM.panel_Footer
-            .selectAll(".dashSelectMode")
-            .classed("active", (_) => _.name === v);
-          this.DOM.root.attr("data-dashboardMode", v);
-        }
+      onRefreshDOM: (cfg: Config<DashboardMode>) => {
+        if (!this.DOM.panel_Footer) return;
+        this.DOM.panel_Footer
+          .selectAll(".dashSelectMode")
+          .classed("active", (_) => cfg.is(_.name));
+        this.DOM.root
+          .attr("data-dashboardMode", cfg.get());
       },
     });
 
@@ -1058,7 +1021,7 @@ export class Browser {
       .select(this.domID)
       .classed("kshf", true)
       .classed("noAnim", true)
-      .attr("data-dashboardMode", this.dashboardMode.val)
+      .attr("data-dashboardMode", this.dashboardMode.get())
       .attr("recordChartType", "none")
       .on("mousemove", (event: MouseEvent) => {
         // Compute mouse moving speed, to adjust repsonsiveness
@@ -1214,8 +1177,7 @@ export class Browser {
   refreshIsEmpty() {
     this.DOM.panel_Wrapper.classed(
       "emptyDashboard",
-      this.attribsInDashboard.length === 0 &&
-        this.recordChartType.val === "none"
+      this.attribsInDashboard.length === 0 && this.recordChartType.is("none")
     );
   }
 
@@ -1477,25 +1439,18 @@ export class Browser {
   /** -- */
   addMeasureOptions_Summaries(dom) {
     dom
-      .on("change", (event) => {
-        this.measureSummary.val =
-          event.currentTarget.selectedOptions[0].__data__;
-      })
+      .on("change", async (event) => await this.measureSummary.set(event.currentTarget.selectedOptions[0].__data__) )
       .selectAll("option")
       .remove();
 
-    if (this.measureFunc.val === "Count") return;
-
-    var opts = this.getMeasurableSummaries(this.measureFunc.val);
+    if (this.measureFunc.is("Count")) return;
 
     dom
       .selectAll("option")
-      .data(opts)
+      .data(this.getMeasurableSummaries(this.measureFunc.get()))
       .enter()
       .append("option")
-      .attr("selected", (s) =>
-        s.attribID === this.measureSummary.val.attribID ? true : null
-      )
+      .attr("selected", (s) => s.attribID === this.measureSummary.get()?.attribID ? true : null )
       .html((s) => s.attribName);
   }
 
@@ -1505,12 +1460,12 @@ export class Browser {
 
     dom // slice creates a copy, reverse in-place updates this copy
       .selectAll("option")
-      .data(this.measureSummary.val.timeseriesParent.timeKeys.slice().reverse())
+      .data(this.measureSummary.get().timeseriesParent.timeKeys.slice().reverse())
       .enter()
       .append("option")
       .attr("value", (timeKey) => timeKey._time_src)
       .attr("selected", (timeKey) =>
-        timeKey._time_src === this.measureSummary.val.timeKey._time_src
+        timeKey._time_src === this.measureSummary.get().timeKey._time_src
           ? "true"
           : null
       )
@@ -1520,10 +1475,7 @@ export class Browser {
   /** -- */
   addMeasureOptions_Func(dom) {
     dom
-      .on("change", (event) => {
-        this.measureFunc.val =
-          event.currentTarget.selectedOptions[0].__data__.v;
-      })
+      .on("change", async (event) => await this.measureFunc.set(event.currentTarget.selectedOptions[0].__data__.v) )
       .selectAll("option")
       .remove();
 
@@ -1543,7 +1495,7 @@ export class Browser {
       .enter()
       .append("option")
       .attr("disabled", (d) => (d.active ? null : true))
-      .attr("selected", (d) => (d.v === this.measureFunc.val ? true : null))
+      .attr("selected", (d) => (d.v === this.measureFunc.get() ? true : null))
       .html((d) => d.l);
   }
 
@@ -1640,8 +1592,8 @@ export class Browser {
       .enter()
       .append("div")
       .attr("class", (_) => `dashSelectMode dashSelectMode-${_.name}`)
-      .classed("active", (_) => _.name === this.dashboardMode.val)
-      .on("click", (_event, _) => (this.dashboardMode.val = _.name))
+      .classed("active", (_) => this.dashboardMode.is(_.name))
+      .on("click", async (_event, _) => await this.dashboardMode.set(_.name) )
       .tooltip((_) => i18n[`${_.name} Mode`])
       .call((dashSelectMode) => {
         dashSelectMode.append("div").attr("class", (_) => _.class);
@@ -1718,11 +1670,12 @@ export class Browser {
         `<span class='Of_NumberRecord'>${i18n.Of_NumberRecord}</span>`
     );
 
-    this.DOM.metricFuncText.select("select.timeKeys").on("input", (event) => {
-      this.measureSummary.val =
-        this.measureSummary.val.timeseriesParent.getTimepointSummary(
+    this.DOM.metricFuncText.select("select.timeKeys").on("input", async (event) => {
+      await this.measureSummary.set(
+        this.measureSummary.get().timeseriesParent.getTimepointSummary(
           event.currentTarget.selectedOptions[0].__data__
-        );
+        )
+      );
     });
 
     this.DOM.recordName = this.DOM.recordInfo
@@ -1824,10 +1777,8 @@ export class Browser {
                 name: "Absolute",
                 iconClass: "far fa-hashtag",
                 helparticle: "5e8944682c7d3a7e9aea659a",
-                active: this.breakdownMode.val === "absolute",
-                do: (_) => {
-                  this.breakdownMode.val = "absolute";
-                },
+                active: this.breakdownMode.is("absolute"),
+                do: async () => await this.breakdownMode.set("absolute"),
               },
               {
                 id: "percentBreakdown",
@@ -1839,28 +1790,22 @@ export class Browser {
                     id: "dependentBreakdown",
                     name: "% of Compared",
                     helparticle: "5e8944812c7d3a7e9aea659b",
-                    active: this.breakdownMode.val === "dependent",
-                    do: (_) => {
-                      this.breakdownMode.val = "dependent";
-                    },
+                    active: this.breakdownMode.is("dependent"),
+                    do: async () => await this.breakdownMode.set("dependent"),
                   },
                   {
                     id: "relativeBreakdown",
                     name: "% of Groups",
                     helparticle: "5e8944932c7d3a7e9aea659c",
-                    active: this.breakdownMode.val === "relative",
-                    do: (_) => {
-                      this.breakdownMode.val = "relative";
-                    },
+                    active: this.breakdownMode.is("relative"),
+                    do: async () => await this.breakdownMode.set("relative"),
                   },
                   {
                     id: "totalBreakdown",
                     name: "% of All",
                     helparticle: "5e94ff6904286364bc984a7a",
-                    active: this.breakdownMode.val === "total",
-                    do: (_) => {
-                      this.breakdownMode.val = "total";
-                    },
+                    active: this.breakdownMode.is("total"),
+                    do: async () => await this.breakdownMode.set("total"),
                   },
                 ],
               },
@@ -1877,15 +1822,11 @@ export class Browser {
       .tooltip("", {
         onShow: (instance) => {
           instance.reference.tippy.setContent(
-            `<div>${i18n["Group View"]}</div>
-          <b>${this.stackedCompare}</b><br>
-          <i>${i18n["Click to change"]}</i>`
+            `<div>${i18n["Group View"]}</div> <b>${this.stackedCompare}</b><br> <i>${i18n["Click to change"]}</i>`
           );
         },
       })
-      .on("click", () => {
-        this.stackedCompare.val = !this.stackedCompare.val;
-      })
+      .on("click", async () => await this.stackedCompare.set(!this.stackedCompare.get()) )
       .append("div")
       .attr("class", "CompareModeIcon")
       .selectAll("div")
@@ -1936,16 +1877,14 @@ export class Browser {
           .attr("class", "breadCrumbHeader")
           .tooltip(i18n.Unlock)
           .text(i18n.Compare)
-          .on("click", () =>
-            this.clearSelect_Compare(this.activeComparisons, true, true)
-          )
+          .on("click", () => this.clearSelect_Compare(this.activeComparisons, true, true) )
           .append("span")
           .attr("class", "lockCrumbSummary blockName");
       });
   }
 
   /** -- */
-  applyConfig(config) {
+  async applyConfig(config) {
     // Import panel config
     Base.Panel_List.forEach((p) =>
       this.panels[p].importConfig({
@@ -1956,7 +1895,9 @@ export class Browser {
 
     config.summaries = config.summaries || [];
 
-    config.summaries.forEach((cfg) => this.applyBlockConfig(cfg));
+    for(let cfg of config.summaries){
+      await this.applyBlockConfig(cfg);
+    }
 
     if (config.recordName && this.recordName !== config.recordName) {
       this.setRecordName(config.recordName);
@@ -1965,20 +1906,20 @@ export class Browser {
     if (config.metric) {
       var a = this.attribWithName(config.metric.summary);
       if (a instanceof Attrib_Numeric) {
-        this.measureSummary.val = a;
-        this.measureFunc.val = config.metric.type;
+        await this.measureSummary.set(a);
+        await this.measureFunc.set(config.metric.type);
       }
     } else {
-      this.measureFunc.val = "Count";
+      await this.measureFunc.set("Count");
     }
 
-    this.breakdownMode.val = config.breakdownMode;
-    this.stackedCompare.val = config.stackedCompare;
-    this.filteringMode.val = config.filteringMode;
-    this.showWholeAggr.val = config.showWholeAggr;
-    this.mouseOverCompare.val = config.mouseOverCompare;
+    await this.breakdownMode.set(config.breakdownMode);
+    await this.stackedCompare.set(config.stackedCompare);
+    await this.filteringMode.set(config.filteringMode);
+    await this.showWholeAggr.set(config.showWholeAggr);
+    await this.mouseOverCompare.set(config.mouseOverCompare);
 
-    this.recordDisplay.importConfig(config.recordDisplay);
+    await this.recordDisplay.importConfig(config.recordDisplay);
 
     this.records.forEach((rec) => rec.refreshFilterCache());
     this.updateRecordCount_Active();
@@ -2085,9 +2026,7 @@ export class Browser {
     xx.append("span")
       .attr("class", "closeAttribPanel fa fa-window-close")
       .tooltip(i18n.Close)
-      .on("click", () => {
-        this.dashboardMode.val = "Explore";
-      });
+      .on("click", async () => await this.dashboardMode.set("Explore"));
 
     return this.DOM[className]
       .append("div")
@@ -2621,7 +2560,7 @@ export class Browser {
     }
   }
   /** -- */
-  applyBlockConfig(attribCfg: SummarySpec) {
+  async applyBlockConfig(attribCfg: SummarySpec) {
     "use strict";
 
     if (Object.keys(attribCfg).length === 0) return; // NO-OP
@@ -2673,7 +2612,7 @@ export class Browser {
     // If attrib object is not found/created, nothing else to do
     if (!attrib) return;
 
-    attrib.applyConfig(attribCfg);
+    await attrib.applyConfig(attribCfg);
 
     if (
       attrib.isEmpty() &&
@@ -3090,11 +3029,11 @@ export class Browser {
       }
     });
 
-    this.breakdownMode.val = this.options.breakdownMode;
-    this.stackedCompare.val = this.options.stackedCompare;
-    this.filteringMode.val = this.options.filteringMode;
-    this.showWholeAggr.val = this.options.showWholeAggr;
-    this.mouseOverCompare.val = this.options.mouseOverCompare;
+    await this.breakdownMode.set(this.options.breakdownMode);
+    await this.stackedCompare.set(this.options.stackedCompare);
+    await this.filteringMode.set(this.options.filteringMode);
+    await this.showWholeAggr.set(this.options.showWholeAggr);
+    await this.mouseOverCompare.set(this.options.mouseOverCompare);
 
     this.records.forEach((rec) => this.allRecordsAggr.addRecord(rec));
 
@@ -3188,13 +3127,16 @@ export class Browser {
       if (typeof metric === "string") metric = { type: "Sum", summary: metric };
       let a = this.attribWithName(metric.summary);
       if (a instanceof Attrib_Numeric) {
-        this.measureSummary.val = a;
-        this.measureFunc.val = metric.type;
+        await this.measureSummary.set(a);
+        await this.measureFunc.set(metric.type);
       }
     }
 
     this.options.summaries = this.options.summaries || [];
-    this.options.summaries.forEach((cfg) => this.applyBlockConfig(cfg));
+
+    for(let cfg of this.options.summaries){
+      await this.applyBlockConfig(cfg);
+    }
 
     await this.recordDisplay.initialize();
 
@@ -3255,7 +3197,7 @@ export class Browser {
       this.DOM.overlay_wrapper.attr("show", "none");
     }
 
-    this.dashboardMode.val = this.options.dashboardMode;
+    await this.dashboardMode.set(this.options.dashboardMode);
 
     this.options.onReady?.call(this);
 
@@ -3319,23 +3261,20 @@ export class Browser {
     if (attrib?.block?.inDashboard) return; //
 
     if (attrib instanceof Attrib_Timeseries) {
-      this.recordDisplay.setAttrib("timeSeries", attrib).then(() => {
-        this.recordChartType.val = "timeseries";
-      });
+      this.recordDisplay.setAttrib("timeSeries", attrib)
+        .then(async () => await this.recordChartType.set("timeseries"));
       return;
     }
 
     if (attrib instanceof Attrib_RecordGeo) {
-      this.recordDisplay.setAttrib("geo", attrib).then(() => {
-        this.recordChartType.val = "map";
-      });
+      this.recordDisplay.setAttrib("geo", attrib)
+        .then(async () => await this.recordChartType.set("map"));
       return;
     }
 
     if (attrib instanceof Attrib_Categorical && attrib.uniqueCategories()) {
-      this.recordDisplay.setAttrib("text", attrib).then(() => {
-        this.recordChartType.val = "list";
-      });
+      this.recordDisplay.setAttrib("text", attrib)
+        .then(async () => await this.recordChartType.set("list"));
       return;
     }
 
@@ -3457,17 +3396,17 @@ export class Browser {
     if (!this.enableAnalytics) return;
 
     this.DOM?.root
-      ?.classed("stackedCompare", this.stackedCompare.val)
+      ?.classed("stackedCompare", this.stackedCompare.is(true))
       .classed("stackedChart", this.stackedChart)
-      .classed("showWholeAggr", this.showWholeAggr.val)
-      .attr("breakdownMode", this.breakdownMode.val)
-      .attr("measureFunc", this.measureFunc.val);
+      .classed("showWholeAggr", this.showWholeAggr.is(true))
+      .attr("breakdownMode", this.breakdownMode.get())
+      .attr("measureFunc", this.measureFunc.get());
 
     this.updateWidth_CatMeasureLabels();
 
-    if (this.stackedCompare.val) {
+    if (this.stackedCompare.is(true)) {
       this.attribs.forEach((attrib) => {
-        if (attrib.measureScale_Log) attrib.measureScaleType.val = "linear";
+        if (attrib.measureScale_Log) attrib.measureScaleType.set("linear");
       });
     }
 
@@ -3493,7 +3432,7 @@ export class Browser {
   /** -------------------------------------------------- */
   // Auto-computed from stacked compare setting
   get stackedChart() {
-    if (!this.stackedCompare.val) return false;
+    if (this.stackedCompare.is(false)) return false;
     if (this.activeComparisonsCount >= 1) return true;
     if (this.activeComparisonsCount === 0) return false;
     return this.lockedCompare[this.activeComparisons[0]]; // single comparison
@@ -3501,55 +3440,55 @@ export class Browser {
 
   /** -------------------------------------------------- */
   get exploreMode() {
-    return this.dashboardMode.val === "Explore";
+    return this.dashboardMode.is("Explore");
   }
   get adjustMode() {
-    return this.dashboardMode.val === "Adjust";
+    return this.dashboardMode.is("Adjust");
   }
   get authorMode() {
-    return this.dashboardMode.val === "Author";
+    return this.dashboardMode.is("Author");
   }
   get captureMode() {
-    return this.dashboardMode.val === "Capture";
+    return this.dashboardMode.is("Capture");
   }
   get saveMode() {
-    return this.dashboardMode.val === "Save";
+    return this.dashboardMode.is("Save");
   }
 
   /** -------------------------------------------------- */
   get measureFunc_Count() {
-    return this.measureFunc.val === "Count";
+    return this.measureFunc.is("Count");
   }
   get measureFunc_Avg() {
-    return this.measureFunc.val === "Avg";
+    return this.measureFunc.is("Avg");
   }
   get measureFunc_Sum() {
-    return this.measureFunc.val === "Sum";
+    return this.measureFunc.is("Sum");
   }
 
   /** -------------------------------------------------- */
   get singleFiltering() {
-    return this.filteringMode.val === "single";
+    return this.filteringMode.is("single");
   }
   get chainedFiltering() {
-    return this.filteringMode.val === "chained";
+    return this.filteringMode.is("chained");
   }
 
   /** -------------------------------------------------- */
   get absoluteBreakdown() {
-    return this.breakdownMode.val == "absolute";
+    return this.breakdownMode.is("absolute");
   }
   get percentBreakdown() {
-    return this.breakdownMode.val != "absolute";
+    return this.breakdownMode.get() != "absolute";
   }
   get relativeBreakdown() {
-    return this.breakdownMode.val == "relative";
+    return this.breakdownMode.is("relative");
   }
   get dependentBreakdown() {
-    return this.breakdownMode.val == "dependent";
+    return this.breakdownMode.is("dependent");
   }
   get totalBreakdown() {
-    return this.breakdownMode.val == "total";
+    return this.breakdownMode.is("total");
   }
 
   /** Updates shared (synced) measure extent within the panel (so bar charts can share the same scale) */
@@ -3711,7 +3650,7 @@ export class Browser {
     if (this.lockedCompare[cT]) return false;
     if (!this.selectedAggrs[cT]) return false;
 
-    if (!this.selectedAggrs[cT].attrib?.isComparable.val) {
+    if (this.selectedAggrs[cT].attrib?.isComparable.is(false)) {
       return false;
     }
 
@@ -3879,30 +3818,28 @@ export class Browser {
    **************************************************************/
 
   /** -- */
-  hasIntOnlyMeasure() {
+  hasIntOnlyMeasure(): boolean {
     return (
       this.measureFunc_Count ||
-      (this.measureFunc_Sum && !this.measureSummary.val.hasFloat)
+      (this.measureFunc_Sum && !this.measureSummary.get().hasFloat)
     );
   }
   /** --*/
-  measureSumWithNegativeValues() {
-    return this.measureFunc_Sum && this.measureSummary.val.hasNegativeValues();
+  measureSumWithNegativeValues(): boolean {
+    return this.measureFunc_Sum && this.measureSummary.get().hasNegativeValues();
   }
   /** --*/
-  measureWithPositiveValues() {
+  measureWithPositiveValues(): boolean {
     if (this.measureFunc_Count) return true;
     // TODO: This may return true, but other code relies on disabling when using avg measures
     if (this.measureFunc_Avg) return false;
-    return (
-      this.measureSummary.val && !this.measureSummary.val.hasNegativeValues()
-    );
+    return this.measureSummary.get()?.hasNegativeValues();
   }
 
   /** funcType: "Count", Sum" or "Avg" */
-  refreshMeasureMetric() {
+  private async refreshMeasureMetric() {
     if (!this.records) return; // if calling the function too early in initialization
-    let attrib = this.measureSummary?.val;
+    let attrib = this.measureSummary?.get();
     if (!attrib) return;
 
     this.records.forEach(
@@ -3925,7 +3862,7 @@ export class Browser {
     this.refreshAnalytics();
 
     if (attrib.hasTimeSeriesParent()) {
-      this.recordDisplay.currentTimeKey.val = attrib.timeKey;
+      await this.recordDisplay.currentTimeKey.set(attrib.timeKey);
     }
   }
 
@@ -4097,7 +4034,7 @@ export class Browser {
       this.panels.left.hasBlocks() ||
       this.panels.right.hasBlocks() ||
       this.panels.middle.hasBlocks() ||
-      this.recordChartType.val !== "none"
+      this.recordChartType.get() !== "none"
     ) {
       // maximum half height if there is any other content
       targetHeight_bottom *= 0.5;
@@ -4117,7 +4054,7 @@ export class Browser {
     // ****************************************************************
     // MIDDLE PANEL
     var targetHeight_middle = topPanelsHeight;
-    if (this.recordChartType.val !== "none") {
+    if (this.recordChartType.get() !== "none") {
       targetHeight_middle -= this.recordDisplay.collapsed
         ? this.recordDisplay.height_Header + 4
         : 200;
@@ -4128,7 +4065,7 @@ export class Browser {
     // The part where summary DOM is updated
     this.blocks.forEach((block) => block.refreshHeight());
 
-    if (!this.recordDisplay.collapsed && this.recordChartType.val !== "none") {
+    if (!this.recordDisplay.collapsed && this.recordChartType.get() !== "none") {
       var listDisplayHeight =
         topPanelsHeight -
         this.recordDisplay.height_Header -
@@ -4165,7 +4102,7 @@ export class Browser {
 
   /**  */
   getPercentageValue(_val: number, sT, breakMode = null, aggr = null) {
-    breakMode = breakMode || this.breakdownMode.val;
+    breakMode = breakMode || this.breakdownMode.get();
     if (breakMode === "absolute") {
       return _val;
     }
@@ -4206,8 +4143,8 @@ export class Browser {
   }
   /** -- */
   getMeasureFormattedValue(_val, isSVG = false) {
-    return this.measureFunc.val !== "Count"
-      ? this.measureSummary.val.getFormattedValue(_val, isSVG)
+    return this.measureFunc.get() !== "Count"
+      ? this.measureSummary.get().getFormattedValue(_val, isSVG)
       : _val;
   }
   /** -- */
@@ -4223,7 +4160,7 @@ export class Browser {
       return Util.formatForItemCount(_val);
     }
 
-    var measureSummary = this.measureSummary.val;
+    const measureSummary = this.measureSummary.get();
 
     if (
       this.measureFunc_Sum &&
@@ -4241,7 +4178,7 @@ export class Browser {
       _val = _val.toFixed(decimals);
     }
 
-    return this.measureSummary.val.getFormattedValue(_val);
+    return this.measureSummary.get().getFormattedValue(_val);
   }
 
   // ********************************************************************
@@ -4296,10 +4233,10 @@ export class Browser {
 
     Object.values(this.configs).forEach((_cfg) => _cfg.exportConfigTo(config));
 
-    if (!this.measureFunc_Count && this.measureSummary.val) {
+    if (!this.measureFunc_Count && this.measureSummary.get()) {
       config.metric = {
-        type: this.measureFunc.val,
-        summary: this.measureSummary.val.template.str,
+        type: this.measureFunc.get(),
+        summary: this.measureSummary.get().template.str,
       };
     }
 

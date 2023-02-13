@@ -43,4 +43,5 @@ export * from "./RecordView_Scatter";
 export * from "./RecordView_Timeseries";
 
 export * from "./i18n";
+export * from "./i18n_EN";
 export * from "./Util";

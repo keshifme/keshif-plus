@@ -25,22 +25,36 @@ export class DataTable {
   // Loading data
   // ********************************************************************
 
-  onLoad = null;
+  onLoad: ((this: DataTable) => boolean) = null;
+
+  postLoad: ((this: DataTable) => boolean) = null;
 
   private _isLoaded: boolean = false;
+
   get isLoaded() {
     return this._isLoaded;
   }
-  async load() {
-    if (this._isLoaded) return;
 
-    if (this.onLoad) return this.onLoad();
+  async load() {
+    if (this._isLoaded)
+      return;
+
+    if (this.onLoad){
+      this._isLoaded = this.onLoad();
+      if(!this._isLoaded){
+        return Promise.reject("Cannot load data via custom loader");
+      }
+      return;
+    }
 
     // check loaders, and if loader accepts descriptor, try to load with the loader
     for (const loader of DataLoaderRegistry) {
       if (loader.accepts(this)) {
         var result = await loader.load(this);
         if (result) {
+          if (this.postLoad){
+            this.postLoad();
+          }
           this._isLoaded = true;
           return;
         }

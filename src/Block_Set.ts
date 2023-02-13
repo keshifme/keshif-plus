@@ -46,7 +46,7 @@ export class Block_Set extends Block {
     return this.attrib.parent;
   }
   get rowHeight(): number {
-    return this.setListSummary.barHeight.val;
+    return this.setListSummary.barHeight.get();
   }
 
   /** -- */
@@ -861,7 +861,7 @@ export class Block_Set extends Block {
 
   /** -- */
   private refreshRow_LineWidths() {
-    var setPairDiameter = this.setListSummary.barHeight.val;
+    var setPairDiameter = this.setListSummary.barHeight.get();
     var totalWidth = this.getWidth();
 
     // vertical lines

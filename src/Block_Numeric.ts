@@ -56,7 +56,7 @@ export class Block_Numeric extends Block_Interval<number> {
 
   /** -- */
   get height_Percentile() {
-    return this.showPercentiles.val ? Base.height_Percentile : 0;
+    return this.showPercentiles.is(true) ? Base.height_Percentile : 0;
   }
   /** -- */
   get height_Extra_base() {
@@ -73,7 +73,7 @@ export class Block_Numeric extends Block_Interval<number> {
     if (!this.inDashboard) {
       return this.width_histogram / 10;
     }
-    var v = this.optimumBinWidth.val;
+    var v = this.optimumBinWidth.get();
     if (this.attrib.unitName) {
       v += (v * (2 + this.attrib.unitName.length * 8)) / 45;
     }
@@ -158,12 +158,12 @@ export class Block_Numeric extends Block_Interval<number> {
 
   zoomableStatus(): ZoomableStatus {
     if (this.attrib.stepTicks) {
-      return this.zoomed.val ? "minus" : "";
+      return this.zoomed.is(true) ? "minus" : "";
     }
     return "plus";
   }
   hasStaticHeight(): boolean {
-    return !this.showHistogram.val;
+    return this.showHistogram.is(false);
   }
 
   /** -- */
@@ -177,10 +177,7 @@ export class Block_Numeric extends Block_Interval<number> {
     if (!this.DOM.inited) return;
     super.refreshChartsVisibleOption();
 
-    this.DOM.root.classed(
-      "chartVisiblePercentile",
-      this.showPercentiles.val ? true : null
-    );
+    this.DOM.root.classed("chartVisiblePercentile", this.showPercentiles.is(true));
   }
   insertMinorTicks(ticks) {
     if(this.attrib.isValueScale_Log){
@@ -325,7 +322,7 @@ export class Block_Numeric extends Block_Interval<number> {
           .on("mouseover", (_event, qb) => {
             if (this.browser.comparedAttrib && !this.attrib.isComparedAttrib())
               return;
-            if (!this.browser.mouseOverCompare.val) return;
+            if (this.browser.mouseOverCompare.is(false)) return;
             this.highlightRangeLimits_Active = true;
 
             var aggr = this.attrib.createAggregate(
@@ -379,9 +376,9 @@ export class Block_Numeric extends Block_Interval<number> {
 
   /** - */
   private refreshViz_Percentiles(distr) {
-    if (this.showPercentiles.val === false) return;
     if (!this.DOM.percentileGroup) return;
     if (!this.valueScale) return;
+    if (this.showPercentiles.is(false)) return;
 
     var percentileChart = this.DOM.percentileGroup.select(
       ".percentileChart_" + distr
@@ -417,7 +414,7 @@ export class Block_Numeric extends Block_Interval<number> {
   private updatePercentiles(sT: MeasureType = null) {
     if (sT === "Other") return;
 
-    if (!this.showPercentiles.val) return;
+    if (this.showPercentiles.is(false)) return;
 
     if (!sT) {
       this.browser.activeComparisons.forEach((t) => this.updatePercentiles(t));
