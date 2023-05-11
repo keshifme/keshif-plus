@@ -42,7 +42,7 @@ export var config = {
     {
       name: "Victim's Sex",
       value: "sex",
-      catHeight: 30,
+      barHeight: 30,
       catLabel: {
         m: "Male <i class='fa fa-male'></i>",
         f: "Female <i class='fa fa-female'></i>",
@@ -67,7 +67,7 @@ export var config = {
     {
       name: "Status",
       panel: "left",
-      catHeight: 18,
+      barHeight: 18,
       value: function () {
         var r = [];
         r.push("Police Status: " + this.police_status.name);
@@ -87,7 +87,7 @@ export var config = {
         NE: "North-East",
         NW: "North-West",
       },
-      catHeight: 18,
+      barHeight: 18,
     },
     {
       name: "Date",

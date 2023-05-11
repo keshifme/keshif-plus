@@ -104,7 +104,7 @@ export var config = {
       maxHeightRatio: 0.08,
       skipZero: true,
     },
-    { name: "Company", panel: "right", catHeight: 18 },
+    { name: "Company", panel: "right", barHeight: 18 },
     {
       name: "Water Depth",
       value: "Water Depth (feet)",
