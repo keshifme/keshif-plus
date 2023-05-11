@@ -1,5 +1,5 @@
 import { Attrib } from "./Attrib";
-import { BlockContentSpec } from "./Types";
+import { BlockContentSpec, BlockSpec, BlockSpec_Content } from "./Types";
 import { Browser } from "./Browser";
 import { Block_Content } from "./Block_Content";
 
@@ -32,17 +32,17 @@ export class Attrib_Content extends Attrib {
 
   /** -- */
   isEmpty(): boolean {
-    return this._content.length > 0;
+    return !(this._content?.length > 0);
   }
   isMultiStep(): boolean {
-    return this._content.length > 1;
+    return this._content?.length > 1;
   }
 
   /** -- */
-  async applyConfig(blockCfg) {
+  async applyConfig(blockCfg: BlockSpec_Content & BlockSpec) {
     super.applyConfig(blockCfg);
 
-    this.setContent(blockCfg._content);
+    this.setContent(blockCfg.content);
 
     this.block.height_max = blockCfg.maxHeight;
     this.block.height_min = blockCfg.minHeight;
