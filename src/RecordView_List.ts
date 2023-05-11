@@ -266,7 +266,8 @@ export class RecordView_List extends RecordView {
       "list_sparklineVizWidth",
       "list_gridRecordWidth",
     ].forEach((t) => {
-      this[t].val = config[t];
+      this[t].set(config[t]);
+      // copy config object to record display as well.
       this.rd.configs[t] = this[t];
       this.rd.recordConfigPanel.insertConfigUI(this[t]);
     });
