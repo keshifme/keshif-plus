@@ -110,6 +110,8 @@ export type CatLabelSpec = { [key: string]: string };
 
 export type SummaryCatView = "list" | "map" | "dropdown";
 
+export type NumberRange = [number, number];
+
 export type BlockSpec = {
   name: string;
 
@@ -289,7 +291,7 @@ export type MeasurableConfig = {
 
   // The value domain is auto-set by data range.
   // Set this to specify a potentially larger and FIXED scale
-  valueDomain?: [number, number];
+  valueDomain?: NumberRange;
 };
 
 export type RecordDisplaySpec_General = {};
@@ -488,7 +490,8 @@ export type ConfigSpec = {
   recordDisplay?: RecordDisplaySpec_Scatter &
     RecordDisplaySpec_Timeseries &
     RecordDisplaySpec_List &
-    RecordDisplaySpec_Map & {
+    RecordDisplaySpec_Map &
+    {
       // Default: "none"
       viewAs?: RecordDisplayType;
 
@@ -514,9 +517,6 @@ export type ConfigSpec = {
 
       // default: false
       colorInvert?: boolean;
-
-      // Unstable API. It's a function of the RecordDisplay that can be extended.
-      updateRecordDetailPanel_custom?: Function;
 
       // Value: Each string is an ID of an individually filtered-out record
       filter?: RecordIDSpec[];

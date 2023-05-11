@@ -2,7 +2,7 @@ import DOMPurify from "dompurify/dist/purify.es";
 import { scaleLinear, scaleLog } from "d3-scale";
 import { min, max } from "d3-array";
 
-import { Browser } from "./Browser";
+import { BreakdownType, Browser } from "./Browser";
 import { i18n } from "./i18n";
 import { Config } from "./Config";
 
@@ -27,7 +27,10 @@ import {
   RecordVisCoding,
   SummaryConfig,
   SummarySpec,
+  MeasureFunc,
+  NumberRange,
 } from "./Types";
+import { Attrib_Numeric } from "./Attrib_Numeric";
 
 const d3 = {
   scaleLinear,
@@ -400,12 +403,12 @@ export abstract class Attrib {
     }
   }
 
-  destroy() {
+  destroy(): void {
     this.browser.destroyAttrib(this);
   }
 
   /** Utility method to inject HTML into DOM */
-  addDOMBlockName(DOM) {
+  addDOMBlockName(DOM): void {
     DOM.html(this.attribNameHTML);
 
     DOM.select(".blockName_Path")
@@ -420,46 +423,43 @@ export abstract class Attrib {
   // ********************************************************************
 
   // Shorthand access
-  get records() {
+  get records(): Record[] {
     return this.browser.records;
   }
-  get breakdownMode() {
+  get breakdownMode(): BreakdownType {
     return this.browser.breakdownMode.get();
   }
-  get relativeBreakdown() {
+  get relativeBreakdown(): boolean {
     return this.browser.relativeBreakdown;
   }
-  get absoluteBreakdown() {
+  get absoluteBreakdown(): boolean {
     return this.browser.absoluteBreakdown;
   }
-  get dependentBreakdown() {
+  get dependentBreakdown(): boolean {
     return this.browser.dependentBreakdown;
   }
-  get totalBreakdown() {
+  get totalBreakdown(): boolean {
     return this.browser.totalBreakdown;
   }
-  get percentBreakdown() {
+  get percentBreakdown(): boolean {
     return this.browser.percentBreakdown;
   }
-  get stackedCompare() {
+  get stackedCompare(): boolean {
     return this.browser.stackedCompare.is(true);
   }
-  get stackedChart() {
-    return this.browser.stackedChart;
-  }
-  vizActive(key: CompareType) {
+  vizActive(key: CompareType): boolean {
     return this.browser.vizActive(key);
   }
-  get measureFunc() {
+  get measureFunc(): MeasureFunc {
     return this.browser.measureFunc.get();
   }
-  get activeComparisons() {
+  get activeComparisons(): CompareType[] {
     return this.browser.activeComparisons;
   }
-  get activeComparisonsCount() {
+  get activeComparisonsCount(): number {
     return this.browser.activeComparisonsCount;
   }
-  get measureSummary() {
+  get measureSummary(): Attrib_Numeric {
     return this.browser.measureSummary.get();
   }
 
@@ -474,15 +474,15 @@ export abstract class Attrib {
   abstract get measureRangeMax(): number;
 
   /** -- */
-  get measureScale_Log() {
+  get measureScale_Log(): boolean {
     return this.measureScaleType.is("log");
   }
   /** -- */
-  get measureScale_Linear() {
+  get measureScale_Linear(): boolean {
     return this.measureScaleType.is("linear");
   }
   /** -- */
-  get measureExtent_Self() {
+  get measureExtent_Self(): NumberRange {
     var maxMeasureValue = this.getPeakAggr(d3.max);
 
     var minMeasureValue = 0;
@@ -618,7 +618,7 @@ export abstract class Attrib {
     }
 
     var activeComparisons = this.activeComparisons;
-    if (this.stackedChart) {
+    if (this.browser.stackedChart) {
       // cannot add up separate maximums per selection, it needs to be accumulated per aggregate
       return peakFunc(this._aggrs, (aggr) =>
         aggr.usedAggr
