@@ -75,7 +75,7 @@ For inquiries, please contact adil@keshif.me .
 
 ## License
 
-Copyright (C) 2017-2022 Keshif, LLC
+Copyright (C) 2017-2023 Keshif, LLC
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the BSD 3-Clause License.
