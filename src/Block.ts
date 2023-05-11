@@ -326,6 +326,7 @@ export abstract class Block {
           instance.reference.tippy.setContent(this.attrib.description);
         },
       });
+    this.updateDescription();
 
     this.DOM.headerGroup
       .append("div")
