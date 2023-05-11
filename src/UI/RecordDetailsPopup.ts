@@ -146,6 +146,11 @@ export class RecordDetailPopup {
   }
   /** -- */
   updateRecordDetailPanel(record: Record) {
+    if (record == null){
+      this.closeRecordDetailPanel();
+      return;
+    }
+
     this.recordInDetail = record;
 
     this.DOM.overlay_wrapper
@@ -354,7 +359,7 @@ export class RecordDetailPopup {
           .attr("class", "recAttribName")
           .call((recAttribName) => {
             recAttribName
-              .filter((attrib) => attrib.description)
+              .filter((attrib: Attrib) => attrib.description)
               .append("span")
               .attr("class", "summaryDescription far fa-info-circle")
               .tooltip((_) => _.description, { placement: "bottom" });
@@ -549,8 +554,8 @@ export class RecordDetailPopup {
       this.updateFocusedTimeKey(this.recordDetailTimeKeys[0]);
     }
 
-    // Some random Keshif project uses this to inject some code after main record display view. Hmmm...
-    this["updateRecordDetailPanel_custom"]?.call(this, record);
+    // Some Keshif projects use this to inject some code after main record display view.
+    this.browser["updateRecordDetailPanel_custom"]?.call(this, record);
   }
 
   /** -- */

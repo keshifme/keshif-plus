@@ -2039,9 +2039,6 @@ class Attrib {
     get stackedCompare() {
         return this.browser.stackedCompare.is(true);
     }
-    get stackedChart() {
-        return this.browser.stackedChart;
-    }
     vizActive(key) {
         return this.browser.vizActive(key);
     }
@@ -2174,7 +2171,7 @@ class Attrib {
             return this.getPeakAggr(peakFunc, "Active");
         }
         var activeComparisons = this.activeComparisons;
-        if (this.stackedChart) {
+        if (this.browser.stackedChart) {
             // cannot add up separate maximums per selection, it needs to be accumulated per aggregate
             return peakFunc(this._aggrs, (aggr) => aggr.usedAggr
                 ? activeComparisons.reduce((accum, sT) => accum + this.browser.getChartValue(aggr, sT), 0)
@@ -3856,6 +3853,7 @@ class Block {
                 instance.reference.tippy.setContent(this.attrib.description);
             },
         });
+        this.updateDescription();
         this.DOM.headerGroup
             .append("div")
             .attr("class", "configPanel summaryConfig")
@@ -6076,7 +6074,7 @@ class AttribDropdown {
         // Update description tooltip
         var descSummary = attrib === "_measure_" ? this.browser.measureSummary : attrib;
         if (descSummary instanceof Attrib) {
-            var description = descSummary ? descSummary.description : null;
+            let description = descSummary ? descSummary.description : null;
             this._element
                 .select(".summaryDescription")
                 .style("display", description ? null : "none")
@@ -7471,15 +7469,15 @@ class Block_Categorical extends Block {
     get width_CatText() {
         return this.isVisible() ? this.panel.width_CatText : 0;
     }
-    get width_CatChart() {
-        return this.isVisible() ? this.panel.width_CatBars : 1;
+    get width_CatBars() {
+        return this.isVisible() ? this.panel.width_CatBars : 0;
     }
     refreshWidth() {
         if (!this.DOM.summaryCategorical)
             return;
         this.attrib.updateChartScale_Measure(); // refreshes viz axis if needed
         if (this.isView_List) {
-            this.DOM.chartAxis_Measure.style("width", this.width_CatChart + 5 + "px");
+            this.DOM.chartAxis_Measure.style("width", `${this.width_CatBars + 5}px`);
         }
         if (this.isView_Map && this.mapIsReady) {
             this.leafletAttrMap.invalidateSize();
@@ -7699,7 +7697,7 @@ class Block_Categorical extends Block {
     // Overwrites base class
     chartAxis_Measure_TickSkip() {
         var _a;
-        var width = this.width_CatChart;
+        var width = this.width_CatBars;
         var widthPerTick = 35;
         if (this.attrib.getPeakAggr(d3$e.max, "Active") > 100000) {
             widthPerTick += 12; // k,m etc
@@ -8591,7 +8589,7 @@ class Block_Categorical extends Block {
         var barHeight = this.barHeight_Full;
         if (this.browser.stackedCompare.get() && !this.panel.hiddenCatBars()) {
             var baseline = this.measureLineZero;
-            var maxWidth = this.width_CatChart;
+            var maxWidth = this.width_CatBars;
             var endOfBar = !this.browser.isCompared();
             this.DOM["measureLabel_" + sT].each((aggr, i, nodes) => {
                 var _width = aggr.scale(sT);
@@ -9751,7 +9749,7 @@ class Block_Set extends Block {
     }
     /** -- */
     refreshRow_LineWidths() {
-        var setPairDiameter = this.setListSummary.barHeight.get();
+        var setPairDiameter = this.rowHeight;
         var totalWidth = this.getWidth();
         // vertical lines
         this.DOM.line_vert.each((d, i, nodes) => {
@@ -10313,7 +10311,7 @@ class Attrib_Categorical extends Attrib {
         return this._block;
     }
     get measureRangeMax() {
-        return this.block.width_CatChart;
+        return this.block.width_CatBars;
     }
     applyTemplateSpecial() {
         if (this.template.special === "Year") {
@@ -14867,7 +14865,8 @@ class RecordView_List extends RecordView {
             "list_sparklineVizWidth",
             "list_gridRecordWidth",
         ].forEach((t) => {
-            this[t].val = config[t];
+            this[t].set(config[t]);
+            // copy config object to record display as well.
             this.rd.configs[t] = this[t];
             this.rd.recordConfigPanel.insertConfigUI(this[t]);
         });
@@ -19834,7 +19833,10 @@ class Panel {
         this.initDOM_AdjustWidth();
         this.addDOM_DropZone();
         this.refreshBlocksDropZonesOrder();
-        this.setWidth(this.browser.width_Canvas / 3);
+        let targetWidth = this.browser.width_Canvas;
+        if (this.name !== "bottom")
+            targetWidth /= 3;
+        this.setWidth(targetWidth);
     }
     hasBlocks() {
         return this.attribs.length > 0;
@@ -19843,21 +19845,20 @@ class Panel {
         return this.attribs.length === 0;
     }
     get blocks() {
-        return this.attribs.map((attrib) => attrib.block);
+        return this.attribs.map(attrib => attrib.block);
     }
     get attribs_Categorical() {
-        return this.attribs.filter((_) => _ instanceof Attrib_Categorical);
+        // filter using typeguard
+        return this.attribs.filter((attrib) => attrib instanceof Attrib_Categorical);
     }
     get name() {
         return this._name;
     }
     /** -- If there's enough space, the panel welcomes new blocks */
     welcomesNewBlock() {
-        if (this.isEmpty())
-            return true;
-        if (this.blocks.length < Math.floor(this.height / 150))
-            return true;
-        return this.heightRemaining >= 0;
+        return (this.isEmpty()
+            || this.blocks.length < Math.floor(this.height / 150)
+            || this.heightRemaining > 0);
     }
     /** -- */
     get width_CatText() {
@@ -19875,8 +19876,9 @@ class Panel {
         return this._width_CatMeasureLabel;
     }
     get width_Real_withGap() {
-        if (this.width_Real === 0)
+        if (this.width_Real === 0) {
             return 0;
+        }
         if (this.name === "left" || this.name === "right") {
             return this.hasBlocks() ? this.width_Real + Base.width_PanelGap : 0;
         }
@@ -19892,21 +19894,22 @@ class Panel {
         if (this.name === "bottom") {
             return this.browser.width_Canvas;
         }
-        if (this.isEmpty())
+        if (this.isEmpty()) {
             return 0;
+        }
         if (this.isCollapsed()) {
             return this.DOM.root.node().offsetWidth;
         }
         return this.width_CatText + this.width_CatBars + Base.width_ScrollBar; // 8 pixels of gap
     }
     /** Adjusts width_CatBar based on previous size as well */
-    set width_CatText(_w_) {
-        _w_ = Math.max(Base.width_CatLabelMin, _w_); // use at least 110 pixels for the category label.
-        if (_w_ === this.width_CatText)
+    set width_CatText(width) {
+        width = Math.max(Base.width_CatLabelMin, width); // must be at least a specific min-value.
+        if (width === this.width_CatText)
             return;
-        var widthDif = this.width_CatText - _w_;
-        this._width_CatText = _w_;
-        this.attribs_Categorical.forEach((attrib) => attrib.block.refreshLabelWidth());
+        let widthDif = this.width_CatText - width;
+        this._width_CatText = width;
+        this.attribs_Categorical.forEach(attrib => attrib.block.refreshLabelWidth());
         // updates category bar widths
         this.width_CatBars = this.width_CatBars + widthDif;
     }
@@ -19915,26 +19918,26 @@ class Panel {
         return this._width_CatBars;
     }
     /** -- */
-    set width_CatBars(_w_) {
-        _w_ = Math.max(_w_, 0); // cannot be negative
-        this._width_CatBars = _w_;
+    set width_CatBars(width) {
+        width = Math.max(width, 0); // cannot be negative
+        this._width_CatBars = width;
         this.DOM.root.classed("hideCatBars", this.hiddenCatBars() ? true : false);
         this.refreshWidth();
     }
     /** -- */
-    setWidth(_w_) {
-        this.width_CatBars = _w_ - this.width_CatText - Base.width_ScrollBar;
+    setWidth(width) {
+        this.width_CatBars = width - this.width_CatText - Base.width_ScrollBar;
     }
     /** --- */
     refreshWidth() {
         this.DOM.root.style("width", this.width_Real + "px");
-        this.attribs.forEach((_) => _.block.refreshWidth());
+        this.attribs.forEach(attrib => attrib.block.refreshWidth());
     }
     /** --- */
     updateWidth_CatMeasureLabels() {
         // even if width is the same, stacked/not-stacked may have changed
         this._width_CatMeasureLabel = this.calcWidth_MeasureLabel();
-        this.attribs_Categorical.forEach((attrib) => attrib.block.refreshLabelWidth());
+        this.attribs_Categorical.forEach(attrib => attrib.block.refreshLabelWidth());
     }
     /** -- */
     hiddenCatBars() {
@@ -20090,20 +20093,20 @@ class Panel {
             this.browser.DOM.panel_Wrapper.classed("panel_bottom_empty", !this.hasBlocks());
         }
         this.refreshSharedMeasureExtent();
-        this.attribs.forEach((attrib) => attrib.updateChartScale_Measure());
+        this.attribs.forEach(attrib => attrib.updateChartScale_Measure());
     }
     /** -- */
     refreshBlocksDropZonesOrder() {
         this.attribs.forEach((attrib, i) => {
             attrib.block.orderInPanel = i;
         });
-        this.DOM.root.selectAll(".dropZone").each(function (d, i) {
+        this.DOM.root.selectAll(".dropZone").each(function (_, i) {
             this.__data__ = i;
         });
     }
     /** Adds the dropZone DOM BEFORE the provided dom-- */
     addDOM_DropZone(beforeDOM = null) {
-        var zone;
+        let zone;
         if (beforeDOM) {
             zone = this.DOM.root.insert("div", () => beforeDOM); // must be a function returning a dom object...
         }
@@ -20256,20 +20259,18 @@ class Panel {
     // Collapsing panel
     // ********************************************************************
     /** -- */
-    collapseAllSummaries(exceptThisOne) {
-        this.attribs.forEach((_) => _.block.setCollapsed(_ !== exceptThisOne));
+    collapseAllSummaries(except) {
+        this.attribs.forEach(attrib => attrib.block.setCollapsed(attrib !== except));
         this.browser.updateLayout_Height();
     }
     /** -- */
     isCollapsed() {
-        if (this.name === "bottom")
-            return false;
-        return this.hasBlocks() && this.attribs.every((_) => _.block.collapsed);
+        return this.hasBlocks() && this.attribs.every(attrib => attrib.block.collapsed);
     }
     /** -- */
     refreshCollapsed() {
-        var _old = this.DOM.root.classed("collapsed");
-        var _new = this.isCollapsed();
+        let _old = this.DOM.root.classed("collapsed");
+        let _new = this.isCollapsed();
         this.DOM.root.classed("collapsed", _new);
         this.refreshWidth();
         if (_old !== _new) {
@@ -20278,13 +20279,13 @@ class Panel {
     }
     /** -- */
     refreshSharedMeasureExtent() {
-        var scales = this.attribs
-            .filter((s) => (s instanceof Attrib_Categorical && s.block.isView_List) ||
-            (s instanceof Attrib_Interval && s.block.showHistogram.is(true)))
-            .map((s) => s.measureExtent_Self);
+        let scales = this.attribs
+            .filter(attrib => (attrib instanceof Attrib_Categorical && attrib.block.isView_List) ||
+            (attrib instanceof Attrib_Interval && attrib.block.showHistogram.is(true)))
+            .map(attrib => attrib.measureExtent_Self);
         this._syncedMeasureExtent = [
-            d3$2.min(scales, (_) => _[0]),
-            d3$2.max(scales, (_) => _[1]),
+            d3$2.min(scales, (range) => range[0]),
+            d3$2.max(scales, (range) => range[1]),
         ];
     }
     /** -- */
@@ -20765,10 +20766,12 @@ class Attrib_Content extends Attrib {
     }
     /** -- */
     isEmpty() {
-        return this._content.length > 0;
+        var _a;
+        return !(((_a = this._content) === null || _a === void 0 ? void 0 : _a.length) > 0);
     }
     isMultiStep() {
-        return this._content.length > 1;
+        var _a;
+        return ((_a = this._content) === null || _a === void 0 ? void 0 : _a.length) > 1;
     }
     /** -- */
     applyConfig(blockCfg) {
@@ -20777,7 +20780,7 @@ class Attrib_Content extends Attrib {
         });
         return __awaiter(this, void 0, void 0, function* () {
             _super.applyConfig.call(this, blockCfg);
-            this.setContent(blockCfg._content);
+            this.setContent(blockCfg.content);
             this.block.height_max = blockCfg.maxHeight;
             this.block.height_min = blockCfg.minHeight;
             this.block.onStep = blockCfg.onStep;
@@ -20903,6 +20906,10 @@ class RecordDetailPopup {
     /** -- */
     updateRecordDetailPanel(record) {
         var _a;
+        if (record == null) {
+            this.closeRecordDetailPanel();
+            return;
+        }
         this.recordInDetail = record;
         this.DOM.overlay_wrapper
             .attr("show", "recordDetails")
@@ -21225,8 +21232,8 @@ class RecordDetailPopup {
             renderRecordValues(_tbody, outline._timeseries, []);
             this.updateFocusedTimeKey(this.recordDetailTimeKeys[0]);
         }
-        // Some random Keshif project uses this to inject some code after main record display view. Hmmm...
-        (_a = this["updateRecordDetailPanel_custom"]) === null || _a === void 0 ? void 0 : _a.call(this, record);
+        // Some Keshif projects use this to inject some code after main record display view.
+        (_a = this.browser["updateRecordDetailPanel_custom"]) === null || _a === void 0 ? void 0 : _a.call(this, record);
     }
     /** -- */
     updateFocusedTimeKey(timeKey) {
@@ -23072,12 +23079,12 @@ class Browser {
             .enter()
             .append("span")
             .attr("class", (d) => "spinner_x spinner_" + d);
-        var hmmm = this.DOM.loadingBox.append("div").attr("class", "status_text");
-        hmmm
+        var status_text = this.DOM.loadingBox.append("div").attr("class", "status_text");
+        status_text
             .append("span")
             .attr("class", "status_text_sub info")
             .html(i18n.LoadingData);
-        this.DOM.status_text_sub_dynamic = hmmm
+        status_text
             .append("span")
             .attr("class", "status_text_sub dynamic");
         // CREDITS
@@ -23110,7 +23117,7 @@ class Browser {
   <a class='creditsLink' target='_blank' href='https://keshif.me/Privacy'>Privacy Policy</a>
   <a class='creditsLink' target='_blank' href='https://keshif.me/License'>Other Licenses</a>
 </div>
-<div class='copyright'>© Keshif, LLC 2022. All rights reserved.</div>
+<div class='copyright'>© Keshif, LLC 203. All rights reserved.</div>
 `);
         this.creditsInserted = true;
     }
@@ -23461,7 +23468,7 @@ class Browser {
     set loadedTableCount(v) {
         var _a;
         this._loadedTableCount = v;
-        (_a = this.DOM.status_text_sub_dynamic) === null || _a === void 0 ? void 0 : _a.text(`(${this._loadedTableCount} / ${this._totalTableCount})`);
+        (_a = this.DOM.root) === null || _a === void 0 ? void 0 : _a.select('.status_text_sub').text(`(${this._loadedTableCount} / ${this._totalTableCount})`);
     }
     get loadedTableCount() {
         return this._loadedTableCount;
@@ -23966,11 +23973,12 @@ class Browser {
                 })();
             }
             ["left", "middle", "right"].forEach((side) => {
-                if (this.options[side + "PanelLabelWidth"]) {
+                let deprecatedPanelLabelWidth = this.options[side + "PanelLabelWidth"];
+                if (deprecatedPanelLabelWidth) {
                     if (!this.options.panels[side])
                         this.options.panels[side] = {};
                     this.options.panels[side].catLabelWidth =
-                        this.options[side + "PanelLabelWidth"];
+                        deprecatedPanelLabelWidth;
                 }
             });
             yield this.breakdownMode.set(this.options.breakdownMode);
@@ -24119,11 +24127,10 @@ class Browser {
             setTimeout(() => this.setNoAnim(false), 1000);
             this.chartsLoaded = true;
             if (this.options.recordInDetail) {
-                var record = Base.tables
+                let record = Base.tables
                     .get(this.primaryTableName)
                     .getRecord(this.options.recordInDetail);
-                if (record)
-                    this.recordDetailsPopup.updateRecordDetailPanel(record);
+                this.recordDetailsPopup.updateRecordDetailPanel(record);
             }
         });
     }

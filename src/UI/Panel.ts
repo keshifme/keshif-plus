@@ -3,7 +3,7 @@ import { min, max } from "d3-array";
 
 import { Browser } from "../Browser";
 import { Base } from "../Base";
-import { PanelName, PanelSpec } from "../Types";
+import { NumberRange, PanelName, PanelSpec } from "../Types";
 import { Block } from "../Block";
 import { Attrib } from "../Attrib";
 import { Attrib_Categorical } from "../Attrib_Categorical";
@@ -35,13 +35,14 @@ export class Panel {
     return this.attribs.length === 0;
   }
   get blocks(): Block[] {
-    return this.attribs.map((attrib) => attrib.block);
+    return this.attribs.map(attrib => attrib.block);
   }
 
   private get attribs_Categorical(): Attrib_Categorical[] {
-    return this.attribs.filter(
-      (_): _ is Attrib_Categorical => _ instanceof Attrib_Categorical
-    );
+      // filter using typeguard
+      return this.attribs.filter(
+        (attrib): attrib is Attrib_Categorical => attrib instanceof Attrib_Categorical
+      );
   }
 
   // ********************************************************************
@@ -66,7 +67,9 @@ export class Panel {
     this.addDOM_DropZone();
     this.refreshBlocksDropZonesOrder();
 
-    this.setWidth(this.browser.width_Canvas / 3);
+    let targetWidth = this.browser.width_Canvas;
+    if(this.name !== "bottom") targetWidth /= 3;
+    this.setWidth(targetWidth);
   }
 
   public get name(): PanelName {
@@ -75,9 +78,11 @@ export class Panel {
 
   /** -- If there's enough space, the panel welcomes new blocks */
   welcomesNewBlock() {
-    if (this.isEmpty()) return true;
-    if (this.blocks.length < Math.floor(this.height / 150)) return true;
-    return this.heightRemaining >= 0;
+    return (
+      this.isEmpty()
+      || this.blocks.length < Math.floor(this.height / 150)
+      || this.heightRemaining > 0
+    );
   }
 
   // ********************************************************************
@@ -108,7 +113,9 @@ export class Panel {
     return this._width_CatMeasureLabel;
   }
   get width_Real_withGap() {
-    if (this.width_Real === 0) return 0;
+    if (this.width_Real === 0) {
+      return 0;
+    }
     if (this.name === "left" || this.name === "right") {
       return this.hasBlocks() ? this.width_Real + Base.width_PanelGap : 0;
     }
@@ -123,25 +130,30 @@ export class Panel {
         this.browser.panels.right.width_Real_withGap
       );
     }
+
     if (this.name === "bottom") {
       return this.browser.width_Canvas;
     }
-    if (this.isEmpty()) return 0;
+
+    if (this.isEmpty()) {
+      return 0;
+    }
+
     if (this.isCollapsed()) {
       return this.DOM.root.node().offsetWidth;
     }
+
     return this.width_CatText + this.width_CatBars + Base.width_ScrollBar; // 8 pixels of gap
   }
 
   /** Adjusts width_CatBar based on previous size as well */
-  set width_CatText(_w_) {
-    _w_ = Math.max(Base.width_CatLabelMin, _w_); // use at least 110 pixels for the category label.
-    if (_w_ === this.width_CatText) return;
-    var widthDif = this.width_CatText - _w_;
-    this._width_CatText = _w_;
-    this.attribs_Categorical.forEach((attrib) =>
-      attrib.block.refreshLabelWidth()
-    );
+  set width_CatText(width: number ) {
+    width = Math.max(Base.width_CatLabelMin, width); // must be at least a specific min-value.
+    if (width === this.width_CatText) return;
+
+    let widthDif = this.width_CatText - width;
+    this._width_CatText = width;
+    this.attribs_Categorical.forEach(attrib => attrib.block.refreshLabelWidth() );
     // updates category bar widths
     this.width_CatBars = this.width_CatBars + widthDif;
   }
@@ -150,29 +162,29 @@ export class Panel {
     return this._width_CatBars;
   }
   /** -- */
-  set width_CatBars(_w_) {
-    _w_ = Math.max(_w_, 0); // cannot be negative
-    this._width_CatBars = _w_;
+  set width_CatBars(width: number) {
+    width = Math.max(width, 0); // cannot be negative
+    this._width_CatBars = width;
     this.DOM.root.classed("hideCatBars", this.hiddenCatBars() ? true : false);
     this.refreshWidth();
   }
 
   /** -- */
-  setWidth(_w_) {
-    this.width_CatBars = _w_ - this.width_CatText - Base.width_ScrollBar;
+  setWidth(width: number) {
+    this.width_CatBars = width - this.width_CatText - Base.width_ScrollBar;
   }
 
   /** --- */
   refreshWidth() {
     this.DOM.root.style("width", this.width_Real + "px");
-    this.attribs.forEach((_) => _.block.refreshWidth());
+    this.attribs.forEach(attrib => attrib.block.refreshWidth());
   }
 
   /** --- */
   updateWidth_CatMeasureLabels() {
     // even if width is the same, stacked/not-stacked may have changed
     this._width_CatMeasureLabel = this.calcWidth_MeasureLabel();
-    this.attribs_Categorical.forEach((attrib) =>
+    this.attribs_Categorical.forEach(attrib =>
       attrib.block.refreshLabelWidth()
     );
   }
@@ -187,6 +199,7 @@ export class Panel {
     if (this.name === "middle" || this.name === "bottom") {
       return; // not supported
     }
+
     this.DOM.root
       .append("span")
       .attr("class", "panelAdjustWidth")
@@ -332,38 +345,36 @@ export class Panel {
 
     this.updateWidth_CatMeasureLabels();
     this.DOM.root.classed("hasBlocks", this.hasBlocks());
-    if (!this.hasBlocks()) this.refreshCollapsed();
+    if (!this.hasBlocks())
+      this.refreshCollapsed();
 
     this.addRemove_Finalize();
   }
 
-  private addRemove_Finalize() {
+  private addRemove_Finalize(): void {
     this.refreshBlocksDropZonesOrder();
 
     if (this.name === "bottom") {
-      this.browser.DOM.panel_Wrapper.classed(
-        "panel_bottom_empty",
-        !this.hasBlocks()
-      );
+      this.browser.DOM.panel_Wrapper.classed("panel_bottom_empty", !this.hasBlocks());
     }
 
     this.refreshSharedMeasureExtent();
-    this.attribs.forEach((attrib) => attrib.updateChartScale_Measure());
+    this.attribs.forEach(attrib => attrib.updateChartScale_Measure());
   }
 
   /** -- */
-  refreshBlocksDropZonesOrder() {
-    this.attribs.forEach((attrib, i) => {
+  refreshBlocksDropZonesOrder(): void {
+    this.attribs.forEach((attrib, i: number) => {
       attrib.block.orderInPanel = i;
     });
-    this.DOM.root.selectAll(".dropZone").each(function (d, i) {
+    this.DOM.root.selectAll(".dropZone").each(function (_, i: number) {
       this.__data__ = i;
     });
   }
 
   /** Adds the dropZone DOM BEFORE the provided dom-- */
-  addDOM_DropZone(beforeDOM = null) {
-    var zone;
+  addDOM_DropZone(beforeDOM = null): void{
+    let zone;
     if (beforeDOM) {
       zone = this.DOM.root.insert("div", () => beforeDOM); // must be a function returning a dom object...
     } else {
@@ -537,21 +548,20 @@ export class Panel {
   // ********************************************************************
 
   /** -- */
-  collapseAllSummaries(exceptThisOne) {
-    this.attribs.forEach((_) => _.block.setCollapsed(_ !== exceptThisOne));
+  collapseAllSummaries(except?: Attrib) {
+    this.attribs.forEach(attrib => attrib.block.setCollapsed(attrib !== except));
     this.browser.updateLayout_Height();
   }
 
   /** -- */
   isCollapsed() {
-    if (this.name === "bottom") return false;
-    return this.hasBlocks() && this.attribs.every((_) => _.block.collapsed);
+    return this.hasBlocks() && this.attribs.every(attrib => attrib.block.collapsed);
   }
 
   /** -- */
   refreshCollapsed() {
-    var _old = this.DOM.root.classed("collapsed");
-    var _new = this.isCollapsed();
+    let _old = this.DOM.root.classed("collapsed");
+    let _new = this.isCollapsed();
     this.DOM.root.classed("collapsed", _new);
     this.refreshWidth();
     if (_old !== _new) {
@@ -563,25 +573,24 @@ export class Panel {
   // Synced scales
   // ********************************************************************
 
-  private _syncedMeasureExtent = [0, 1]; // temp init value
+  private _syncedMeasureExtent: NumberRange = [0, 1]; // temp init value
 
   /** -- */
-  refreshSharedMeasureExtent() {
-    var scales = this.attribs
-      .filter(
-        (s) =>
-          (s instanceof Attrib_Categorical && s.block.isView_List) ||
-          (s instanceof Attrib_Interval && s.block.showHistogram.is(true))
+  refreshSharedMeasureExtent(): void {
+    let scales = this.attribs
+      .filter(attrib =>
+        (attrib instanceof Attrib_Categorical && attrib.block.isView_List) ||
+        (attrib instanceof Attrib_Interval && attrib.block.showHistogram.is(true))
       )
-      .map((s) => s.measureExtent_Self);
+      .map(attrib => attrib.measureExtent_Self);
 
     this._syncedMeasureExtent = [
-      d3.min(scales, (_) => _[0]),
-      d3.max(scales, (_) => _[1]),
+      d3.min(scales, (range: NumberRange) => range[0]),
+      d3.max(scales, (range: NumberRange) => range[1]),
     ];
   }
   /** -- */
-  get syncedMeasureExtent() {
+  get syncedMeasureExtent(): NumberRange {
     return this._syncedMeasureExtent;
   }
 
@@ -597,7 +606,7 @@ export class Panel {
     };
   }
 
-  importConfig(config: PanelSpec) {
+  importConfig(config: PanelSpec): void {
     if (!config) return;
     if (config.catLabelWidth) {
       this.width_CatText = config.catLabelWidth;

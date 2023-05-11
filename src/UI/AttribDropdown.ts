@@ -121,7 +121,7 @@ export class AttribDropdown {
     var descSummary =
       attrib === "_measure_" ? this.browser.measureSummary : attrib;
     if (descSummary instanceof Attrib) {
-      var description = descSummary ? descSummary.description : null;
+      let description = descSummary ? descSummary.description : null;
       this._element
         .select(".summaryDescription")
         .style("display", description ? null : "none")

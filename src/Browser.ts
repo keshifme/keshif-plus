@@ -1954,7 +1954,8 @@ export class Browser {
     this.DOM.loadingBox = this.DOM.overlay_wrapper
       .append("div")
       .attr("class", "overlay_content overlay_loading");
-    var ssdsd = this.DOM.loadingBox
+
+    this.DOM.loadingBox
       .append("span")
       .attr("class", "spinner")
       .selectAll(".spinner_x")
@@ -1962,12 +1963,13 @@ export class Browser {
       .enter()
       .append("span")
       .attr("class", (d) => "spinner_x spinner_" + d);
-    var hmmm = this.DOM.loadingBox.append("div").attr("class", "status_text");
-    hmmm
+
+    var status_text = this.DOM.loadingBox.append("div").attr("class", "status_text");
+    status_text
       .append("span")
       .attr("class", "status_text_sub info")
       .html(i18n.LoadingData);
-    this.DOM.status_text_sub_dynamic = hmmm
+    status_text
       .append("span")
       .attr("class", "status_text_sub dynamic");
 
@@ -2006,7 +2008,7 @@ export class Browser {
   <a class='creditsLink' target='_blank' href='https://keshif.me/Privacy'>Privacy Policy</a>
   <a class='creditsLink' target='_blank' href='https://keshif.me/License'>Other Licenses</a>
 </div>
-<div class='copyright'>© Keshif, LLC 2022. All rights reserved.</div>
+<div class='copyright'>© Keshif, LLC 203. All rights reserved.</div>
 `
       );
     this.creditsInserted = true;
@@ -2444,7 +2446,7 @@ export class Browser {
   /** Setter & getter accecss so that UI can be updated when data is updated */
   set loadedTableCount(v) {
     this._loadedTableCount = v;
-    this.DOM.status_text_sub_dynamic?.text(
+    this.DOM.root?.select('.status_text_sub').text(
       `(${this._loadedTableCount} / ${this._totalTableCount})`
     );
   }
@@ -3022,10 +3024,11 @@ export class Browser {
       })();
     }
     ["left", "middle", "right"].forEach((side) => {
-      if (this.options[side + "PanelLabelWidth"]) {
+      let deprecatedPanelLabelWidth = this.options[side + "PanelLabelWidth"];
+      if (deprecatedPanelLabelWidth) {
         if (!this.options.panels[side]) this.options.panels[side] = {};
         this.options.panels[side].catLabelWidth =
-          this.options[side + "PanelLabelWidth"];
+          deprecatedPanelLabelWidth;
       }
     });
 
@@ -3213,10 +3216,10 @@ export class Browser {
     this.chartsLoaded = true;
 
     if (this.options.recordInDetail) {
-      var record = Base.tables
+      let record = Base.tables
         .get(this.primaryTableName)
         .getRecord(this.options.recordInDetail);
-      if (record) this.recordDetailsPopup.updateRecordDetailPanel(record);
+      this.recordDetailsPopup.updateRecordDetailPanel(record);
     }
   }
 

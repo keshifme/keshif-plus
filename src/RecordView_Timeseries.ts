@@ -486,9 +486,7 @@ export class RecordView_Timeseries extends RecordView {
         if (this.rd.visMouseMode === "filter") return;
         if (prevClosestRecord) {
           hideAllPoppers();
-          this.browser.recordDetailsPopup.updateRecordDetailPanel(
-            prevClosestRecord
-          );
+          this.browser.recordDetailsPopup.updateRecordDetailPanel(prevClosestRecord);
           this.browser.recordDetailsPopup.updateFocusedTimeKey(prevClosestTime);
         }
         this.rd.setDimmed(false);
