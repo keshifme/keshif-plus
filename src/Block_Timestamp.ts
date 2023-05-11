@@ -18,10 +18,6 @@ const d3 = {
   easePoly,
 };
 
-// All dates are based on UTC.
-// Since dates are created with zone offset by default, need to offset them back sometimes
-var offsetUTC = DateTime.now().offset;
-
 export class Block_Timestamp extends Block_Interval<Date> {
   // specific attribute type
   public readonly attrib: Attrib_Timestamp;
@@ -167,9 +163,13 @@ export class Block_Timestamp extends Block_Interval<Date> {
 
     var pikaday = DOM.pikaday;
 
+  // All dates are based on UTC.
+  // Since dates are created with zone offset by default, need to offset them back sometimes
+  var offsetUTC = DateTime.now().offset;
+
     var refreshPikadayDate = () => {
       var aggr = this.attrib.summaryFilter.active;
-      var _date = DateTime.fromJSDate(d==="min" ? aggr.minV : aggr.maxV)
+      var _date = DateTime.fromJSDate(d==="min" ? aggr.minV : aggr.maxV, {zone: 'UTC'})
         .plus({ minutes: -offsetUTC })
         .toJSDate();
       skipSelect = true;
@@ -188,7 +188,7 @@ export class Block_Timestamp extends Block_Interval<Date> {
             return;
           }
           var selectedDate: Date = this.getDate();
-          selectedDate = DateTime.fromJSDate(selectedDate)
+          selectedDate = DateTime.fromJSDate(selectedDate, {zone: 'UTC'})
             // need to convert value to UTC
             .plus({ minutes: offsetUTC })
             .toJSDate();

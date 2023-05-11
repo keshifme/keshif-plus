@@ -9,7 +9,6 @@ import {
   utcMonth,
   utcYear,
 } from "d3-time";
-import { DateTime } from "luxon/build/es6/luxon";
 
 import { Attrib_Interval } from "./Attrib_Interval";
 import { RecordVisCoding } from "./Types";
@@ -40,9 +39,6 @@ type TTTT = {
 };
 
 // All dates are based on UTC.
-// Since dates are created with zone offset by default, need to offset them back sometimes
-var offsetUTC = DateTime.now().offset;
-
 export class Attrib_Timestamp extends Attrib_Interval<Date> {
   timeTyped?: {
     activeRes?: TTTT;
