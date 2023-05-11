@@ -861,7 +861,7 @@ export class Block_Set extends Block {
 
   /** -- */
   private refreshRow_LineWidths() {
-    var setPairDiameter = this.setListSummary.barHeight.get();
+    var setPairDiameter = this.rowHeight;
     var totalWidth = this.getWidth();
 
     // vertical lines

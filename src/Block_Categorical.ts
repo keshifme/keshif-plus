@@ -58,12 +58,14 @@ export class Block_Categorical extends Block {
 
   setCollapsed(v: boolean): void {
     super.setCollapsed(v);
+
     if (this.leafletAttrMap && !this.collapsed) {
       setTimeout(() => {
         this.leafletAttrMap.invalidateSize();
         this.catMap_zoomToActive();
       }, 500);
     }
+
     if (this.collapsed && this.setAttrib) {
       this.showSetMatrix(false);
     }
@@ -380,14 +382,14 @@ export class Block_Categorical extends Block {
   get width_CatText() {
     return this.isVisible() ? this.panel.width_CatText : 0;
   }
-  get width_CatChart() {
-    return this.isVisible() ? this.panel.width_CatBars : 1;
+  get width_CatBars() {
+    return this.isVisible() ? this.panel.width_CatBars : 0;
   }
   refreshWidth(): void {
     if (!this.DOM.summaryCategorical) return;
     this.attrib.updateChartScale_Measure(); // refreshes viz axis if needed
     if (this.isView_List) {
-      this.DOM.chartAxis_Measure.style("width", this.width_CatChart + 5 + "px");
+      this.DOM.chartAxis_Measure.style("width", `${this.width_CatBars + 5}px`);
     }
     if (this.isView_Map && this.mapIsReady) {
       this.leafletAttrMap.invalidateSize();
@@ -647,7 +649,7 @@ export class Block_Categorical extends Block {
 
   // Overwrites base class
   chartAxis_Measure_TickSkip(): number {
-    var width = this.width_CatChart;
+    var width = this.width_CatBars;
     var widthPerTick = 35;
 
     if (this.attrib.getPeakAggr(d3.max, "Active") > 100000) {
@@ -1761,7 +1763,7 @@ export class Block_Categorical extends Block {
 
     if (this.browser.stackedCompare.get() && !this.panel.hiddenCatBars()) {
       var baseline = this.measureLineZero;
-      var maxWidth = this.width_CatChart;
+      var maxWidth = this.width_CatBars;
 
       var endOfBar = !this.browser.isCompared();
 

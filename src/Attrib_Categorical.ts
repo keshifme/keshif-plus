@@ -42,7 +42,7 @@ export class Attrib_Categorical extends Attrib {
   public readonly minAggrSize: Config<number>;
 
   get measureRangeMax(): number {
-    return this.block.width_CatChart;
+    return this.block.width_CatBars;
   }
 
   applyTemplateSpecial(): void {
