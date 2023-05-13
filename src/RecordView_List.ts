@@ -14,6 +14,7 @@ import { Record } from "./Record";
 import { i18n } from "./i18n";
 import { CompareType, RecordVisCoding } from "./Types";
 import { Attrib } from "./Attrib";
+import { TimeSeriesData } from "./TimeSeriesData";
 
 const d3 = { select, pointer, scaleTime, scaleLinear, extent, arc };
 
@@ -766,12 +767,12 @@ export class RecordView_List extends RecordView {
       //
     } else if (this.list_sortVizRange.is("dynamic")) {
       // dynamic - based on filtered data
-      var [minV, maxV] = d3.extent(this.browser.records, (record) => {
+      let [minV, maxV] = d3.extent(this.browser.records, (record) => {
         return record.filteredOut
           ? null
           : this.sortAttrib.getRecordValue(record);
       });
-      this.listSortVizScale.domain([Math.min(0, minV), Math.max(0, maxV)]);
+      this.listSortVizScale.domain([Math.min(0, minV as number), Math.max(0, maxV as number)]);
       //
     } else if (this.list_sortVizRange.is("static")) {
       // static - based on original domain
@@ -786,7 +787,10 @@ export class RecordView_List extends RecordView {
     if (!this.isComparable()) return;
 
     // Shows evenly spaces pies next to records, filling in colors of all comparisons
-    var arcGen = d3.arc().innerRadius(10).outerRadius(100).padAngle(0.15);
+    var arcGen = d3.arc()
+      .innerRadius(10)
+      .outerRadius(100)
+      .padAngle(0.15);
 
     var records = this.DOM.kshfRecords.filter((record: Record) => {
       if (!record.isIncluded) return false;
@@ -802,18 +806,19 @@ export class RecordView_List extends RecordView {
     }
 
     records.each((record: Record) => {
-      var numPies = record.activeComparisons.length || 1;
+      let numPies = record.activeComparisons.length || 1;
 
-      var arcLen = (2 * Math.PI) / numPies;
+      let arcLen: number = (2 * Math.PI) / numPies;
 
-      var d = d3.select(record.DOM.record);
+      let d = d3.select(record.DOM.record);
+
       record.activeComparisons.forEach((cT, i) => {
         d.select(".glyph_" + cT).attr(
           "d",
           arcGen({
             startAngle: arcLen * i,
             endAngle: arcLen * (i + 1),
-          })
+          } as any) // has other settings specified above
         );
       });
     });
@@ -871,7 +876,7 @@ export class RecordView_List extends RecordView {
     var zeroPos = this.listSortVizScale(0);
 
     dom.style("transform", (record) => {
-      var v = this.sortAttrib.getRecordValue(record);
+      var v = this.sortAttrib.getRecordValue(record) as number;
       return `translate(${
         v >= 0 ? zeroPos : this.listSortVizScale(v)
       }px, 0px) scale(${
@@ -942,7 +947,7 @@ export class RecordView_List extends RecordView {
         });
         d3.select(event.currentTarget.children[1]).attr(
           "transform",
-          (record, i, nodes) => {
+          (record: Record, i, nodes) => {
             var x = timeScale(nearestTimeKey._time);
             var _ = ts.getRecordValue(record);
             valueScale.domain(_.extent_Value_raw);
@@ -965,14 +970,14 @@ export class RecordView_List extends RecordView {
 
     _.append("path")
       .attr("class", "timeline")
-      .attr("d", (record) => {
-        var lineData = ts.getRecordValue(record);
+      .attr("d", (record: Record) => {
+        var lineData: TimeSeriesData = ts.getRecordValue(record);
         if (!lineData || !lineData.extent_Value_raw) return;
         valueScale.domain(lineData.extent_Value_raw);
         return Util.getLineGenerator(
           timeScale,
           valueScale
-        )(ts.getRecordValue(record)?._timeseries_);
+        )(lineData._timeseries_ as any);
       });
 
     var __ = _.append("g")
@@ -985,7 +990,7 @@ export class RecordView_List extends RecordView {
         var nearestTimeKey = ts.timeKeys[0];
         ts.timeKeys.some((_key) => {
           // _keys are sorted from early to late
-          var timeDif = Math.abs(+_key._time - _time);
+          var timeDif = Math.abs(+_key._time - (+_time));
           if (timeDif > currentDif) return true; // difference increases, we had just found the right key
           currentDif = timeDif;
           nearestTimeKey = _key;

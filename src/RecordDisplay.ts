@@ -1040,9 +1040,11 @@ export class RecordDisplay {
           var _theme = me.browser.activeColorTheme;
           var _temp = me.browser.colorTheme[_theme];
           me.browser.colorTheme[_theme] = this.value;
-          var colors = me.browser.colorTheme.getDiscrete(9);
+
+          let colors: string[] = me.browser.colorTheme.getDiscrete(9);
           me.browser.colorTheme[_theme] = _temp;
-          if (me.invertedColorTheme) colors = colors.reverse();
+          if (me.invertedColorTheme)
+            colors = colors.reverse();
 
           d3.select(dom)
             .append("div")
@@ -1780,7 +1782,7 @@ export class RecordDisplay {
     }
 
     return this.codeBy.size.timeseriesParent // use timeseries parents domain...
-      ? d3.max(this.codeBy.size.timeseriesParent.timeSeriesScale_Value.domain())
+      ? d3.max(this.codeBy.size.timeseriesParent.timeSeriesScale_Value.domain()) as any
       : this.codeBy.size.rangeActive[1];
   }
 
@@ -2034,7 +2036,7 @@ export class RecordDisplay {
       .concat(colors)
       .concat(
         d3
-          .hsl([colors[colors.length - 1]])
+          .hsl([colors[colors.length - 1]] as any)
           .darker(0.1)
           .formatHex()
       );
@@ -2185,7 +2187,7 @@ export class RecordDisplay {
     // Value scale **********************
     // compute the min-max of the tooltip using the real record values
     var [value_min, value_max] = d3.extent(tsd, (_: TimeData) => _._value);
-    var steadyValue = false;
+    var steadyValue: number;
     if (value_min === value_max) {
       steadyValue = value_min;
       value_min -= 0.0001;
@@ -2236,7 +2238,7 @@ export class RecordDisplay {
     // add the value extent
     if (!steadyValue) {
       var onLeft = activeTime && activeTime._index > ts.timeKeys.length / 2;
-      [value_max, value_min].forEach((v) => {
+      [value_max, value_min].forEach((v: number) => {
         tsDots +=
           "<g transform='translate(" +
           (onLeft ? 0 : chart_width) +
@@ -2249,7 +2251,7 @@ export class RecordDisplay {
           "style='text-anchor: " +
           (onLeft ? "end" : "start") +
           ";'>" +
-          ts.printAbbr(v, true) +
+          ts.printAbbr(v as any, true) +
           "</text>" +
           "</g>";
       });
@@ -2271,7 +2273,7 @@ export class RecordDisplay {
             <path class='timeline' d='${Util.getLineGenerator(
               timeScale,
               valueScale
-            )(tsd)}' stroke='${_stroke}' />
+            )(tsd as any)}' stroke='${_stroke}' />
             ${tsDots}
           </g>
         </svg>

@@ -426,10 +426,10 @@ export class Block_Set extends Block {
 
   /** -- */
   refreshViz_Compare(cT: CompareType, curGroup, totalGroups, prevCts) {
-    var strokeWidth = (aggr) => 0;
+    var strokeWidth = (_aggr) => 0;
     var aggrValue = (aggr, sT) => aggr.ratioToActive(sT);
     var usingFullSizeGlyph = this.usingFullSizeGlyph();
-    if (!this.browser.stackedCompare) {
+    if (!this.attrib.stackedCompare) {
       strokeWidth = (aggr) =>
         (this.setPairRadius / totalGroups) *
         (usingFullSizeGlyph ? 1 : this.getCliqueSizeRatio(aggr));
@@ -450,29 +450,29 @@ export class Block_Set extends Block {
         curGroup === totalGroups - 1 && this.browser.addedCompare ? 500 : 0
       )
       .attrTween("d", (aggr, i, nodes) => {
-        var DOM = nodes[i];
-        var offset = prevCts.reduce(
+        const DOM = nodes[i];
+        const offset = prevCts.reduce(
           (accum, sT) => accum + aggrValue(aggr, sT),
           0
         );
-        var angleInterp = d3.interpolate(
+        const angleInterp = d3.interpolate(
           DOM._currentPreviewAngle,
           aggrValue(aggr, cT)
         );
-        var r =
+        const r =
           this.setPairRadius *
             (usingFullSizeGlyph ? 1 : this.getCliqueSizeRatio(aggr)) -
-          (this.browser.stackedCompare
+          (this.attrib.stackedCompare
             ? 0
             : (curGroup + 0.5) * strokeWidth(aggr)); // side-by-side radius adjust
         return (t) => {
-          var newAngle = angleInterp(t);
+          const newAngle = angleInterp(t);
           DOM._currentPreviewAngle = newAngle;
           return Util.getPieSVGPath(
             offset,
             newAngle,
             r,
-            !this.browser.stackedCompare
+            !this.attrib.stackedCompare
           );
         };
       });

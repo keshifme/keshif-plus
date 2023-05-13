@@ -150,7 +150,7 @@ export class RecordView_Scatter extends RecordView {
 
     this.scatterZoom = d3
       .zoom()
-      .filter(() => this.rd.visMouseMode === "pan" && this.rd.curHeight)
+      .filter(() => this.rd.visMouseMode === "pan" && this.rd.curHeight > 0)
       .scaleExtent([1, 8]) // 1 covers the whole dataset. 2 is double-zoom-in.
       .on("start", () => {
         this.DOM.recordDisplayWrapper.classed("dragging", true);
@@ -286,9 +286,9 @@ export class RecordView_Scatter extends RecordView {
           .classed("drawSelecting", true);
         d3.select("body")
           .on("mousemove", (event2) => {
-            var targetPos: number = d3
+            var targetPos: number[] = d3
               .pointer(event2, this.DOM.recordGroup_Scatter.node().parentNode)
-              .map((_, i) => this["scatterAxisScale_" + (i ? "Y" : "X")].invert(_) );
+              .map((_: number, i: number) => this["scatterAxisScale_" + (i ? "Y" : "X")].invert(_) );
             if (t === "l") {
               this.scatterXAttrib.setRangeFilter_Custom(
                 targetPos[0],
@@ -959,8 +959,8 @@ export class RecordView_Scatter extends RecordView {
       var lineGenerator = d3
         .line()
         .curve(d3.curveNatural || d3.curveCatmullRomOpen)
-        .x((d) => this.scatterScaleX(d.x))
-        .y((d) => this.scatterScaleY(d.y));
+        .x((d: any) => this.scatterScaleX(d.x))
+        .y((d: any) => this.scatterScaleY(d.y));
 
       this.DOM.recordTrail.style("opacity", 1);
 

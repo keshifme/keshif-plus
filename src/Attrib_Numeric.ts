@@ -8,7 +8,7 @@ import { Attrib_Timeseries } from "./Attrib_Timeseries";
 import { TimeKey } from "./TimeSeriesData";
 
 import { Block_Numeric } from "./Block_Numeric";
-import { LinearOrLog, RecordVisCoding, SummarySpec } from "./Types";
+import { LinearOrLog, NumberRange, RecordVisCoding, SummarySpec } from "./Types";
 import { Browser } from "./Browser";
 import { Config } from "./Config";
 import { i18n } from "./i18n";
@@ -210,15 +210,16 @@ export class Attrib_Numeric extends Attrib_Interval<number> {
       t = d3.format("~s");
     }
 
-    this.intervalTickPrint = (v: number) => {
+    this.intervalTickPrint = (v: number): string => {
       if (!this.hasFloat) v = Math.round(v);
-      var r = t(v);
-      var _r = v.toLocaleString();
+      let r = t(v);
+      let _r = v.toLocaleString();
       // if value is 1021 and summary doesn't have float, formatted value returns "1,021k" - Stupid!
       if (_r.length <= r.length) return _r;
       if (r.substr(-1) === "m") {
-        r = parseFloat(r) / 1000;
-        r = Math.round((r + 0.000001) * 1000) / 1000;
+        let v = parseFloat(r) / 1000;
+        v = Math.round((v + 0.000001) * 1000) / 1000;
+        r = v.toString();
       }
       return r;
     };
@@ -334,10 +335,10 @@ export class Attrib_Numeric extends Attrib_Interval<number> {
     return this.valueScale(v) + (this.stepTicks ? this.block.aggrWidth / 2 : 0);
   }
 
-  getVizDomain(): [number, number] {
+  getVizDomain(): NumberRange {
     if (this.timeseriesParent) {
       this.timeseriesParent.initializeAggregates();
-      return this.timeseriesParent.timeSeriesScale_Value.domain();
+      return this.timeseriesParent.timeSeriesScale_Value.domain() as NumberRange;
     }
     return super.getVizDomain();
   }

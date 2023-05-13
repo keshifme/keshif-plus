@@ -37,7 +37,7 @@ export class Block_Timestamp extends Block_Interval<Date> {
 
     this.updateViz_Areas(
       "Active",
-      !this.browser.stackedCompare && this.browser.activeComparisonsCount > 0
+      !this.attrib.stackedCompare && this.browser.activeComparisonsCount > 0
     );
   }
   /** - */
@@ -46,14 +46,14 @@ export class Block_Timestamp extends Block_Interval<Date> {
     super.refreshViz_Compare(cT, curGroup, totalGroups, prevCts);
 
     if (
-      this.browser.stackedCompare &&
+      this.attrib.stackedCompare &&
       this.browser.addedCompare &&
       curGroup === totalGroups - 1
     ) {
       // smoother animation, sets it as a chart-line at offset first - instead of area chart
       this.DOM["measure_Area_" + cT].attr("d", this.getVizArea(cT, true));
     }
-    this.updateViz_Areas(cT, !this.browser.stackedCompare);
+    this.updateViz_Areas(cT, !this.attrib.stackedCompare);
   }
 
   /** -- */
@@ -114,8 +114,8 @@ export class Block_Timestamp extends Block_Interval<Date> {
   }
 
   /** -- */
-  getVizArea(sT: MeasureType, asLine) {
-    if(sT==="Other") return;
+  getVizArea(sT: MeasureType, asLine): d3.Area<[number, number]> {
+    if (sT==="Other") return;
 
     var _area = d3
       .area()
@@ -123,12 +123,11 @@ export class Block_Timestamp extends Block_Interval<Date> {
       .x(this.attrib.timeAxis_XFunc)
       .y(
         // sets y0 and y1
-        (aggr: Aggregate_Interval<Date>) =>
-          this.height_hist - aggr.sumOffsetScale(sT)
+        (aggr) => this.height_hist - (aggr as any).sumOffsetScale(sT)
       );
 
     if (!asLine) {
-      _area.y1((aggr) => this.height_hist - aggr.offset(sT));
+      _area.y1((aggr) => this.height_hist - (aggr as any).offset(sT));
     }
 
     /*
@@ -145,7 +144,7 @@ export class Block_Timestamp extends Block_Interval<Date> {
     return _area;
   }
   /** - */
-  updateViz_Areas(sT: MeasureType, asLine) {
+  updateViz_Areas(sT: MeasureType, asLine: boolean): void {
     if(sT==="Other") return;
 
     return this.DOM["measure_Area_" + sT]
@@ -157,7 +156,7 @@ export class Block_Timestamp extends Block_Interval<Date> {
   }
 
   /** -- */
-  showValuePicker(DOM, d: "min" | "max") {
+  showValuePicker(DOM, d: "min" | "max"): void {
     if (typeof Pikaday === "undefined") return;
     var skipSelect = false;
 

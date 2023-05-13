@@ -184,27 +184,26 @@ export class RecordView_Map extends RecordView {
       // When zoom is triggered by fly, the leaflet-zoom-anim is not set.
       .on("zoomstart", () => {
         resetPointSizes.call(this);
-        var _ = d3.select(this.leafletRecordMap.getPane("mapPane"));
-        _.classed("leaflet-zoom-anim", true);
+        d3.select(this.leafletRecordMap.getPane("mapPane"))
+          .classed("leaflet-zoom-anim", true);
       })
       .on("zoomend", () => {
-        var _ = d3.select(this.leafletRecordMap.getPane("mapPane"));
-        _.classed("leaflet-zoom-anim", false);
+        d3.select(this.leafletRecordMap.getPane("mapPane"))
+          .classed("leaflet-zoom-anim", false);
       });
 
     if (!this.mapConfig.tileConfig.disabled) {
-      let leafletTileLayer = new L.TileLayer(
+      this.leafletRecordMap.addLayer(new L.TileLayer(
         this.mapConfig.tileTemplate,
         this.mapConfig.tileConfig
-      );
-      this.leafletRecordMap.addLayer(leafletTileLayer);
+      ));
     }
 
     this.leafletRecordMap.attributionControl.setPosition("topright");
 
     this.recordGeoPath = d3.geoPath().projection(
       d3.geoTransform({
-        point: function (x, y) {
+        point: function (x: number, y: number) {
           var point = me.leafletRecordMap.latLngToLayerPoint(
             new L.latLng(y, x)
           );
@@ -282,14 +281,16 @@ export class RecordView_Map extends RecordView {
 
       this.DOM.root.attr("data-geotype", this.geoAttrib.geoType);
 
-      this.DOM.root
-        .select(".mapView-UnmatchedData")
+      this.DOM.root.select(".mapView-UnmatchedData")
         .classed("active", this.geoAttrib.noValueAggr.records.length > 0);
 
       if (this.geoAttrib.geoType === "Point") {
+        this.geoAttrib.setPointClusterRadius(this.rd.config.pointClusterRadius, this.leafletRecordMap);
+
         // size
         if (!this.rd.codeBy.size && this.rd.config.sizeBy) {
           await this.rd.setAttrib("size", this.rd.config.sizeBy);
+
         } else {
           this.rd.refreshAttribOptions("size");
         }
@@ -306,24 +307,24 @@ export class RecordView_Map extends RecordView {
 
     // update rendering of point clusters
     if (this.rd.hasAggregates()) {
-      var sideBySide = this.browser.stackedCompare.is(false);
 
       // compute "offset" for each aggregate
       this.geoAttrib._aggrs.forEach((aggr: Aggregate_PointCluster) => {
-        var _offset = 0;
+        let _offset = 0;
         aggr._glyphOrder = {};
         // re-order the comparisons so that the larger ones come first
         this.browser.activeComparisons
           .slice()
-          .sort((a, b) => aggr.measure(b) - aggr.measure(a))
-          .forEach((cT2, i_cT) => {
+          .sort((a: CompareType, b: CompareType) => aggr.measure(b) - aggr.measure(a))
+          .forEach((cT2, i_cT: number) => {
             aggr._glyphOrder[cT2] = i_cT;
             aggr.setOffset(cT2, _offset);
             _offset += aggr.measure(cT2);
           });
       });
 
-      var numComparisons = this.browser.activeComparisonsCount;
+      const sideBySide = this.browser.stackedCompare.is(false);
+      const numComparisons = this.browser.activeComparisonsCount;
       this.browser.activeComparisons.forEach((cT2) => {
         this.DOM["clusterGlyphs_" + cT2]
           .style("stroke-width", (aggr) => {
@@ -334,22 +335,22 @@ export class RecordView_Map extends RecordView {
           .ease(d3.easePoly.exponent(3))
           .duration(700)
           .attrTween("d", (aggr, i, nodes) => {
-            var DOM = nodes[i];
-            var offset = sideBySide
+            const DOM = nodes[i];
+            const offset = sideBySide
               ? 0
               : aggr.offset(cT2) / (aggr.measure("Active") || 1);
-            var angleInterp = d3.interpolate(
-              DOM._currentPreviewAngle,
-              aggr.ratioToActive(cT2)
-            );
-            var r = aggr.cluster._radius;
+              const angleInterp = d3.interpolate(
+                DOM._currentPreviewAngle,
+                aggr.ratioToActive(cT2)
+              );
+            let r = aggr.cluster._radius;
             if (sideBySide) {
               r -=
                 (aggr._glyphOrder[cT2] + 0.5) *
                 (aggr.cluster._radius / numComparisons);
             }
-            return (t) => {
-              var newAngle = angleInterp(t);
+            return (t: number) => {
+              const newAngle = angleInterp(t);
               DOM._currentPreviewAngle = newAngle;
               return Util.getPieSVGPath(offset, newAngle, r - 1, sideBySide);
             };
@@ -362,23 +363,21 @@ export class RecordView_Map extends RecordView {
   }
   // map / point
 
-  leafletRecordMap: any;
+  leafletRecordMap: L.Map;
 
-  constructor(rd: RecordDisplay, config) {
+  constructor(rd: RecordDisplay, _config) {
     super(rd);
   }
 
   refreshQueryBox_Filter(bounds = null) {
     if (this.rd.collapsed) return;
-    var _left, _right, _top, _bottom, temp;
-
-    var isVisible: boolean = false;
+    let isVisible: boolean = false;
 
     if (typeof L === "undefined") {
       throw Error("Leaflet not initialized");
     }
 
-    var north_west, south_east;
+    let north_west: L.Point, south_east: L.Point;
     if (bounds === null) {
       isVisible = this.geoAttrib.isFiltered();
       if (!isVisible) return;
@@ -398,10 +397,11 @@ export class RecordView_Map extends RecordView {
     } else {
       throw Error("Invalud value");
     }
-    _left = north_west.x;
-    _right = south_east.x;
-    _top = north_west.y;
-    _bottom = south_east.y;
+
+    let _left = north_west.x;
+    let _right = south_east.x;
+    let _top = north_west.y;
+    let _bottom = south_east.y;
 
     this.rd.DOM.recordDisplayWrapper
       .select(".recordBase_Map  .spatialQueryBox_Filter")
@@ -419,21 +419,21 @@ export class RecordView_Map extends RecordView {
   }
 
   /** -- */
-  refreshAttribUnitName(attrib: Attrib) {
+  refreshAttribUnitName(_attrib: Attrib) {
     this.rd.refreshColorLegendTicks();
   }
 
   zoomedBefore = false;
   /** -- */
-  zoomIn() {
+  zoomIn(): void {
     this.leafletRecordMap.zoomIn();
   }
   /** -- */
-  zoomOut() {
+  zoomOut(): void {
     this.leafletRecordMap.zoomOut();
   }
   /** -- */
-  zoomToFit() {
+  zoomToFit(): void {
     if (!this.zoomedBefore) {
       if (this.rd.config.mapInitView) {
         var _c = this.rd.config.mapInitView;
@@ -454,22 +454,22 @@ export class RecordView_Map extends RecordView {
     this.leafletRecordMap.fitBounds(bounds);
   }
   /** -- */
-  setMaxBounds() {
+  setMaxBounds(): void {
     if (this.rd.config.map_NoFitBounds) return;
     this.leafletRecordMap.setMaxBounds(
       Util.addMarginToBounds(this.geoAttrib.getRecordBounds(false))
     );
   }
 
-  translate_glyph(v) {
-    var point = this.leafletRecordMap.latLngToLayerPoint(
+  translate_glyph(v: [number, number]): string {
+    let point = this.leafletRecordMap.latLngToLayerPoint(
       new L.latLng(v[1], v[0])
     );
     return `translate(${point.x},${point.y})`;
   }
 
   /** -- */
-  refreshPointClusters() {
+  refreshPointClusters(): void {
     if (!this.geoAttrib) return;
     if (this.geoAttrib?.geoType !== "Point") return;
     if (!this.geoAttrib.PointCluster) return;
@@ -505,7 +505,7 @@ export class RecordView_Map extends RecordView {
           // filter - TODO needs to have its own filter logic
           return;
         }
-        var latlong = aggr.cluster.geometry.coordinates;
+        let latlong = aggr.cluster.geometry.coordinates;
         this.leafletRecordMap.setZoomAround(
           new L.latLng(latlong[1], latlong[0]),
           this.leafletRecordMap.getZoom() + 1
@@ -536,14 +536,14 @@ export class RecordView_Map extends RecordView {
   }
 
   /** -- */
-  private refreshPointDOM() {
+  private refreshPointDOM(): void {
     this.rd.refreshRecordDOM();
     this.rd.updateRecordSizeScale();
     this.rd.updateRecordColorScale();
   }
 
   /** --  */
-  refreshRecordVis() {
+  refreshRecordVis(): void {
     if (!this.geoAttrib) return;
 
     if (this.geoAttrib.geoType === "Point") {
@@ -570,16 +570,16 @@ export class RecordView_Map extends RecordView {
   }
 
   /** -- */
-  refreshPointClusterVis() {
+  refreshPointClusterVis(): void {
     if (!this.rd.hasAggregates()) return;
     if (!this.rd.recordRadiusScale) return;
 
-    var clusterArc = d3
+    let clusterArc = d3
       .arc()
       .innerRadius(0)
       .startAngle(0)
       .endAngle(2 * Math.PI);
-    var circleDraw = (aggr) => clusterArc.outerRadius(aggr.cluster._radius)();
+    let circleDraw = (aggr) => clusterArc.outerRadius(aggr.cluster._radius)(null);
 
     this.DOM.clusterGlyphs
       .each((aggr) => {
@@ -604,10 +604,10 @@ export class RecordView_Map extends RecordView {
       //
     } else {
       this.DOM.clusterGlyphs_Active.each((cluster, i, nodes) => {
-        var v = cluster.Active.measure;
-        var _fill =
+        let v = cluster.Active.measure;
+        let _fill =
           v != null ? this.rd.recordColorScale(v) : "url(#diagonalHatch)";
-        var darkBg = v != null ? d3.hsl(_fill).l < 0.6 : false;
+        let darkBg = v != null ? d3.hsl(_fill).l < 0.6 : false;
 
         nodes[i].style.fill = _fill;
 
@@ -621,11 +621,11 @@ export class RecordView_Map extends RecordView {
     this.refreshSelect_Compare();
   }
 
-  /** --
+  /**
    * Returns the records that fit/intersect within the bounds (if point) or has geofeat (if polygon)
-   **/
-  getRecordsForDOM() {
-    var bounds = this.leafletRecordMap.getBounds();
+   */
+  getRecordsForDOM(): Record[] {
+    let bounds = this.leafletRecordMap.getBounds();
     return this.browser.records.filter((record) => {
       var _feat = this.geoAttrib.getRecordValue(record)?.geoFeat;
       if (!_feat) return false;
@@ -645,17 +645,17 @@ export class RecordView_Map extends RecordView {
     if (this.colorAttrib) {
       if (!this.rd.recordColorScale) return;
 
-      var s_f;
-      var s_log = false;
-      var s_ts = (_record) => false;
+      let s_f;
+      let s_log = false;
+      let s_ts = (_record) => false;
 
       if (this.colorAttrib instanceof Attrib_Interval) {
         s_f = this.colorAttrib.template.func;
         s_log = this.colorAttrib.isValueScale_Log;
         if (this.colorAttrib.hasTimeSeriesParent()) {
-          var f_ps = this.colorAttrib.timeseriesParent.template.func;
+          let f_ps = this.colorAttrib.timeseriesParent.template.func;
           s_ts = function (record) {
-            var _ = f_ps.call(this, record);
+            let _ = f_ps.call(this, record);
             if (!_ || !_._timeseries_) return false;
             return _._timeseries_.length === 0;
           };
@@ -668,12 +668,12 @@ export class RecordView_Map extends RecordView {
 
       this.DOM.kshfRecords_Path.each((record, i, nodes) => {
         if (record.filteredOut) return;
-        var DOM = nodes[i];
-        var _fill = "url(#diagonalHatch)";
-        var _stroke = "#111111";
-        var darkBg = false;
+        let DOM = nodes[i];
+        let _fill = "url(#diagonalHatch)";
+        let _stroke = "#111111";
+        let darkBg = false;
 
-        var v = s_f.call(record.data, record);
+        let v = s_f.call(record.data, record);
 
         if (v === "" || v == null || typeof v !== "number" || (s_log && v <= 0))
           v = null;

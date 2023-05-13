@@ -22,6 +22,7 @@ import {
   MeasureType,
   SummaryCatView,
 } from "./Types";
+import { Panel } from "./UI/Panel";
 
 declare let L: any;
 
@@ -82,7 +83,7 @@ export class Block_Categorical extends Block {
     }
   }
 
-  addToPanel(panel, index, force = false) {
+  addToPanel(panel: Panel, index: number, force = false) {
     var _do = () => {
       super.addToPanel(panel, index);
 
@@ -127,17 +128,17 @@ export class Block_Categorical extends Block {
 
   public viewType: SummaryCatView = "list";
 
-  get isView_Dropdown() {
+  get isView_Dropdown(): boolean {
     return this.viewType === "dropdown";
   }
-  get isView_List() {
+  get isView_List(): boolean {
     return this.viewType === "list";
   }
-  get isView_Map() {
+  get isView_Map(): boolean {
     return this.viewType === "map";
   }
 
-  async catViewAs(_type) {
+  async catViewAs(_type: SummaryCatView): Promise<void> {
     if (_type === "map") {
       try {
         if (!this.attrib.catGeo) throw new Error("No mapping specified");
@@ -162,10 +163,11 @@ export class Block_Categorical extends Block {
     this.noRefreshVizAxis = this.isView_Dropdown;
 
     if (!this.DOM.inited) return;
+
     this.DOM.root.attr("viewType", this.viewType);
-    this.DOM.root.selectAll(".summaryViewAs").classed("active", false);
-    this.DOM.root
-      .selectAll(".summaryViewAs_" + this.viewType)
+    this.DOM.root.selectAll(".summaryViewAs")
+      .classed("active", false);
+    this.DOM.root.selectAll(".summaryViewAs_" + this.viewType)
       .classed("active", true);
 
     if (this.viewType === "list") {
@@ -242,12 +244,11 @@ export class Block_Categorical extends Block {
   }
   /** -- */
   get catLabelFontSize() {
-    var fontSize = this.heightCat - 2;
-    if (this.heightCat > 15) fontSize = 13;
-    if (this.heightCat > 25) fontSize = 15;
-    if (this.heightCat > 30) fontSize = 17;
-    if (this.heightCat > 35) fontSize = 19;
-    return fontSize;
+    if (this.heightCat > 35) return 19;
+    if (this.heightCat > 30) return 17;
+    if (this.heightCat > 25) return 15;
+    if (this.heightCat > 15) return 13;
+    return this.heightCat - 2;
   }
 
   hasStaticHeight(): boolean {
@@ -273,7 +274,7 @@ export class Block_Categorical extends Block {
       this.heightCat * this.catCount_Active - 1
     );
   }
-  refreshHeight_Category() {
+  refreshHeight_Category(): void {
     if (!this.DOM.inited) return;
     if (!this.isView_List) return;
 
@@ -289,8 +290,7 @@ export class Block_Categorical extends Block {
   refreshHeight_Category_do() {
     this.DOM.aggrGlyphs.style("height", this.heightCat + "px");
 
-    this.DOM.root
-      .selectAll(".catLabel")
+    this.DOM.root.selectAll(".catLabel")
       .style("font-size", this.catLabelFontSize + "px");
 
     this.DOM.chartBackground.style("height", this.height_VisibleAttrib + "px");
@@ -316,7 +316,7 @@ export class Block_Categorical extends Block {
     }
 
     // update catCount_InDisplay
-    var c = Math.floor(this._height_Categories / this.heightCat);
+    let c = Math.floor(this._height_Categories / this.heightCat);
     if (c < 0) c = 1;
     if (c > this.catCount_Active) c = this.catCount_Active;
     if (this.catCount_Active <= 2) {
@@ -324,6 +324,7 @@ export class Block_Categorical extends Block {
     } else {
       c = Math.max(c, 2);
     }
+
     this.catCount_InDisplay = c + 1;
     this.catCount_InDisplay = Math.min(
       this.catCount_InDisplay,
@@ -341,18 +342,23 @@ export class Block_Categorical extends Block {
 
     if (this.isView_Map) {
       this.DOM.catMap_Base.style("height", null);
-      if (this.leafletAttrMap) this.leafletAttrMap.invalidateSize();
+      this.leafletAttrMap?.invalidateSize();
     }
   }
 
   catList_cullCategories() {
     if (!this.isView_List) return;
     if (!this.DOM.aggrGlyphs) return;
+
     this.DOM.aggrGlyphs
-      .style("display", (_cat) => (_cat.isVisible ? null : "none"))
-      .style("opacity", (_cat) => (_cat.isVisible ? 1 : 0))
-      .style("transform", (_cat) =>
-        _cat.isVisible ? `translate(0px,${_cat.posY}px)` : null
+      .style("display", (ctrgry: Aggregate_Category) =>
+        ctrgry.isVisible ? null : "none"
+      )
+      .style("opacity", (ctrgry: Aggregate_Category) =>
+        ctrgry.isVisible ? 1 : 0
+      )
+      .style("transform", (ctrgry: Aggregate_Category) =>
+        ctrgry.isVisible ? `translate(0px,${ctrgry.posY}px)` : null
       );
 
     if (this.setAttrib && !this.setAttrib.block.pausePanning) {
@@ -373,16 +379,16 @@ export class Block_Categorical extends Block {
   // Width
   // ********************************************************************
 
-  get width_CatLabel() {
+  get width_CatLabel(): number {
     return this.isVisible() ? this.panel.width_CatLabel : 0;
   }
-  get width_CatMeasureLabel() {
+  get width_CatMeasureLabel(): number {
     return this.isVisible() ? this.panel.width_CatMeasureLabel : 0;
   }
-  get width_CatText() {
+  get width_CatText(): number {
     return this.isVisible() ? this.panel.width_CatText : 0;
   }
-  get width_CatBars() {
+  get width_CatBars(): number {
     return this.isVisible() ? this.panel.width_CatBars : 0;
   }
   refreshWidth(): void {
@@ -406,7 +412,7 @@ export class Block_Categorical extends Block {
     return this._aggrs.length >= 15;
   }
 
-  initDOM_CatTextSearch() {
+  initDOM_CatTextSearch(): void {
     var me = this;
     this.DOM.catTextSearch = this.DOM.summaryControls
       .append("div")
@@ -482,7 +488,7 @@ export class Block_Categorical extends Block {
       });
   }
 
-  clearCatTextSearch() {
+  clearCatTextSearch(): void {
     if (!this.hasTextSearch()) return;
     if (this.skipTextSearchClear) return;
     if (!this.DOM.catTextSearch) return;
@@ -494,12 +500,12 @@ export class Block_Categorical extends Block {
   // Managing in-display / visible categories
   // ********************************************************************
 
-  isCatActive(_cat: Aggregate_Category) {
-    if (!_cat.usedAggr) return false;
-    if (_cat.isFiltered()) return true;
-    if (_cat.recCnt('Active') !== 0) return true;
-    if (!this.attrib.isFiltered()) return _cat.recCnt('Active') !== 0;
-    if (this.viewType === "map") return _cat.recCnt('Active') !== 0;
+  isCatActive(ctgry: Aggregate_Category): boolean {
+    if (!ctgry.usedAggr) return false;
+    if (ctgry.isFiltered()) return true;
+    if (ctgry.recCnt('Active') !== 0) return true;
+    if (!this.attrib.isFiltered()) return ctgry.recCnt('Active') !== 0;
+    if (this.viewType === "map") return ctgry.recCnt('Active') !== 0;
     // Hide if multiple options are selected and selection is and
     //        if(this.summaryFilter.selecttype==="SelectAnd") return false;
     // TO-DO: Figuring out non-selected, zero-active-item attribs under "SelectOr" is tricky!
@@ -510,15 +516,15 @@ export class Block_Categorical extends Block {
   public catCount_Active: number;
   private firstCatIndexInView = 0;
 
-  areAllCatsInDisplay() {
+  areAllCatsInDisplay(): boolean {
     return this.catCount_Active === this.catCount_InDisplay;
   }
-  updateCats_IsActive() {
+  updateCats_IsActive(): void {
     this.catCount_Active = 0;
-    this._aggrs.forEach((_cat) => {
-      _cat.isActiveBefore = _cat.isActive;
-      _cat.isActive = this.isCatActive(_cat);
-      if (_cat.isActive) this.catCount_Active++;
+    this._aggrs.forEach((ctrgy) => {
+      ctrgy.isActiveBefore = ctrgy.isActive;
+      ctrgy.isActive = this.isCatActive(ctrgy);
+      if (ctrgy.isActive) this.catCount_Active++;
     });
     if (this.attrib.catOrder_Fixed) {
       // if fixed, categories do not roll up on each other, the total count is still original count
@@ -529,14 +535,13 @@ export class Block_Categorical extends Block {
     var maxVisibleNumCats = Math.ceil(
       (this.scrollTop_cache + this._height_Categories) / this.heightCat
     );
-    this._aggrs.forEach((_cat) => {
-      _cat.isVisibleBefore = _cat.isVisible;
-      _cat.isVisible =
-        this.viewType === "map"
-          ? true
-          : _cat.isActive &&
-            _cat.orderIndex >= this.firstCatIndexInView &&
-            _cat.orderIndex < maxVisibleNumCats;
+    this._aggrs.forEach((ctgry) => {
+      ctgry.isVisibleBefore = ctgry.isVisible;
+      ctgry.isVisible = this.viewType === "map"
+        ? true
+        : ctgry.isActive &&
+          ctgry.orderIndex >= this.firstCatIndexInView &&
+          ctgry.orderIndex < maxVisibleNumCats;
     });
   }
 
@@ -544,14 +549,14 @@ export class Block_Categorical extends Block {
   // Active / Compare visualizations
   // ********************************************************************
 
-  vizSideBySide() {
+  vizSideBySide(): boolean {
     if (this.browser.stackedChart) return false;
     if (this.browser.activeComparisonsCount < 2) return false;
     if (!this.attrib.isComparedAttrib()) return true;
     return this.attrib.isMultiValued && this.splitOnSelfCompare;
   }
 
-  refreshViz_Active() {
+  refreshViz_Active(): void {
     if (!this.isVisible()) return;
 
     if (this.isView_Dropdown) return;
@@ -585,7 +590,7 @@ export class Block_Categorical extends Block {
     }
   }
 
-  refreshViz_Compare(cT: CompareType, curGroup, totalGroups, prevCts = []) {
+  refreshViz_Compare(cT: CompareType, curGroup, totalGroups, prevCts = []): void {
     if (!this.isVisible()) return;
 
     if (this.isView_Dropdown) {
@@ -673,18 +678,18 @@ export class Block_Categorical extends Block {
   private show_set_matrix = false;
   public splitOnSelfCompare = true;
 
-  showSetMatrix(v: boolean) {
+  showSetMatrix(v: boolean): void {
     if (!this.isView_List && v === true) {
       return;
     }
     this.show_set_matrix = v;
     this.refreshShowSetMatrix();
   }
-  hideSetMatrix() {
+  hideSetMatrix(): void {
     this.showSetMatrix(false);
   }
 
-  refreshShowSetMatrix() {
+  refreshShowSetMatrix(): void {
     this.DOM.root?.classed("show_set_matrix", this.show_set_matrix);
 
     if (this.show_set_matrix) {
@@ -731,8 +736,9 @@ export class Block_Categorical extends Block {
   // Main block setup (header / root)
   // ********************************************************************
 
-  insertHeader() {
+  insertHeader(): void {
     super.insertHeader();
+
     [
       [
         "summaryViewAs setMatrixButton",
@@ -752,7 +758,7 @@ export class Block_Categorical extends Block {
         "fal fa-globe",
         () => this.catViewAs("map"),
       ],
-    ].forEach((button: any[], i, arr) => {
+    ].forEach((button: any[]) => {
       this.DOM.summaryIcons
         .append("span")
         .attr("class", button[0])
@@ -767,11 +773,11 @@ export class Block_Categorical extends Block {
   // Filtering
   // ********************************************************************
 
-  onClearFilter(forceUpdate) {
+  onClearFilter(forceUpdate: boolean): void {
     this.attrib.noValueAggr.filtered = false;
     this.attrib.unselectAllCategories();
     this.clearCatTextSearch();
-    if (forceUpdate !== false && this.isView_Dropdown) {
+    if (forceUpdate && this.isView_Dropdown) {
       this.dropdown_refreshCategories();
     }
     this.DOM.root?.classed("hasMultiAnd", false);
@@ -809,7 +815,7 @@ export class Block_Categorical extends Block {
     }
   }
 
-  refreshLabelWidth() {
+  refreshLabelWidth(): void {
     if (!this.isVisible()) return;
     if (!this.DOM.summaryCategorical) return;
     if (!this.isView_List) return;
@@ -831,7 +837,7 @@ export class Block_Categorical extends Block {
     );
   }
 
-  refreshScrollDisplayMore(bottomItem) {
+  refreshScrollDisplayMore(bottomItem: number): void {
     if (!this.isView_List) {
       return;
     }
@@ -856,15 +862,15 @@ export class Block_Categorical extends Block {
   // Mapping
   // ********************************************************************
 
-  private leafletAttrMap: any = null;
-  private mapIsReady: any;
-  public invertedColorTheme: any;
+  private leafletAttrMap: L.Map = null;
+  private mapIsReady: boolean;
+  public invertedColorTheme: boolean;
   private mapColorScale: any;
-  private mapBounds_Active: any;
-  private geoPath: any;
+  private mapBounds_Active: L.LatLngBounds;
+  private geoPath: d3.GeoPath<any, d3.GeoPermissibleObjects>;
   private mapConfig: any; // todo
 
-  removeCatGeo() {
+  removeCatGeo(): void {
     if (this.viewType === "map") {
       this.catViewAs("list");
     }
@@ -873,17 +879,18 @@ export class Block_Categorical extends Block {
     this.leafletAttrMap = null;
   }
 
-  catMap_projectCategories() {
+  catMap_projectCategories(): void {
     if (!this.panel) return;
+
     // the following is temporary
     var missingRegions = [];
-    this.DOM.measure_Active.attr("d", (aggr, i, nodes) => {
-      if (!aggr._geo_) {
-        missingRegions.push(aggr.label);
+    this.DOM.measure_Active.attr("d", (ctgry: Aggregate_Category, i: number, nodes) => {
+      if (!ctgry._geo_) {
+        missingRegions.push(ctgry.label);
         nodes[i].parentNode.style.display = "none";
         return;
       }
-      return this.geoPath(aggr._geo_);
+      return this.geoPath(ctgry._geo_);
     });
 
     this.DOM.root
@@ -891,13 +898,13 @@ export class Block_Categorical extends Block {
       .classed("active", missingRegions.length > 0);
 
     this.DOM.measureLabel
-      .attr("transform", (_cat) => {
-        var centroid = this.geoPath.centroid(_cat._geo_);
+      .attr("transform", (ctgry: Aggregate_Category) => {
+        const centroid = this.geoPath.centroid(ctgry._geo_);
         return `translate(${centroid[0]},${centroid[1]})`;
       })
-      .style("display", (_cat) => {
-        var bounds = this.geoPath.bounds(_cat._geo_);
-        var width = Math.abs(bounds[0][0] - bounds[1][0]);
+      .style("display", (ctgry: Aggregate_Category) => {
+        const bounds = this.geoPath.bounds(ctgry._geo_);
+        const width = Math.abs(bounds[0][0] - bounds[1][0]);
         return width < this.width_CatMeasureLabel ? "none" : "block";
       });
   }
@@ -932,14 +939,14 @@ export class Block_Categorical extends Block {
     this.leafletAttrMap.setMaxBounds(this.catMap_getBounds());
   }
 
-  catMap_getBounds(onlyActive = false) {
-    var bs = [];
+  catMap_getBounds(onlyActive = false): L.LatLngBounds {
+    const bs = [];
     // Insert the bounds for each record path into the bs
     this._aggrs.forEach((_cat) => {
       if (!_cat._geo_) return;
       if (onlyActive && !_cat.isActive) return;
       // get bounding box, cached in _geo_ property
-      var b = _cat._geo_._bounds;
+      let b = _cat._geo_._bounds;
       if (b === undefined) {
         b = d3.geoBounds(_cat._geo_);
         if (isNaN(b[0][0])) {
@@ -948,8 +955,8 @@ export class Block_Categorical extends Block {
         _cat._geo_._bounds = b;
       }
       if (b === null) return;
-      var p1 = L.latLng(b[0][1], b[0][0]);
-      var p2 = L.latLng(b[1][1], b[1][0]);
+      const p1 = L.latLng(b[0][1], b[0][0]);
+      const p2 = L.latLng(b[1][1], b[1][0]);
       bs.push(p1);
       bs.push(p2);
     });
@@ -959,8 +966,8 @@ export class Block_Categorical extends Block {
     return Util.addMarginToBounds(new L.latLngBounds(bs));
   }
 
-  catMap_invertColorTheme(v = null) {
-    if (v === null) v = !this.invertedColorTheme; // invert
+  catMap_invertColorTheme(v?: boolean) {
+    if (v == null) v = !this.invertedColorTheme; // invert
     this.invertedColorTheme = v;
     if (this.mapColorScale) {
       this.mapColorScale.range(this.invertedColorTheme ? [9, 0] : [0, 9]);
@@ -974,7 +981,8 @@ export class Block_Categorical extends Block {
 
   catMap_refreshColorScale() {
     if (!this.DOM.mapColorBlocks) return;
-    var colorTheme = this.browser.colorTheme.getDiscrete(9);
+    
+    let colorTheme = this.browser.colorTheme.getDiscrete(9);
     if (this.invertedColorTheme) {
       colorTheme = colorTheme.reverse();
     }
@@ -1246,7 +1254,7 @@ export class Block_Categorical extends Block {
       var _fill = "url(#diagonalHatch)";
       var _stroke = "#111111";
       if (_visV != null) {
-        _fill = mapColorQuantize(this.mapColorScale(_visV));
+        _fill = mapColorQuantize(this.mapColorScale(_visV)).toString();
         _stroke = d3.hsl(_fill).l > 0.5 ? "#111111" : "#EEEEEE";
       }
       DOM.style.fill = _fill;
@@ -1454,29 +1462,31 @@ export class Block_Categorical extends Block {
         .append("span")
         .attr("class", "filterButton far fa-filter")
         .tooltip(i18n.Filter)
-        .on("click", (event, _cat: Aggregate_Category) => {
-          var menuConfig = { name: "Filter", items: [] };
-          var _only = true,
-            _and = !_cat.filtered_AND(),
-            _or = !_cat.filtered_OR(),
-            _not = !_cat.filtered_NOT(),
-            _remove = _cat.isFiltered();
-          var _Or_And =
+        .on("click", (event, ctgry: Aggregate_Category) => {
+          const menuConfig = { name: "Filter", items: [] };
+
+          let _only = true,
+            _and = !ctgry.filtered_AND(),
+            _or = !ctgry.filtered_OR(),
+            _not = !ctgry.filtered_NOT(),
+            _remove = ctgry.isFiltered();
+
+          const _Or_And =
             this.attrib.summaryFilter.selected_OR.length > 0 ||
             this.attrib.summaryFilter.selected_AND.length > 0;
 
           if (!this.attrib.isMultiValued) {
-            _only = !_cat.filtered_AND();
+            _only = !ctgry.filtered_AND();
             _and = false;
-            _or = _or && _Or_And && !_cat.filtered_AND();
-            _not = _not && (!_Or_And || _cat.filtered_AND());
+            _or = _or && _Or_And && !ctgry.filtered_AND();
+            _not = _not && (!_Or_And || ctgry.filtered_AND());
           } else {
             _only = true;
             _and = _and && _Or_And;
             _or = _or && _Or_And;
           }
 
-          var _label = `<span class='filterContextLabel'>${_cat.label}</span>`;
+          const _label = `<span class='filterContextLabel'>${ctgry.label}</span>`;
 
           if (_remove) {
             menuConfig.items.push({
@@ -1533,7 +1543,7 @@ export class Block_Categorical extends Block {
               do: (_cat: Aggregate_Category) => this.attrib.filterCategory(_cat, "NOT"),
             });
           }
-          Modal.popupMenu(event, menuConfig, _cat, {
+          Modal.popupMenu(event, menuConfig, ctgry, {
             placement: "bottom-start",
           });
           event.stopPropagation();
@@ -1561,12 +1571,12 @@ export class Block_Categorical extends Block {
         .append("span")
         .attr("class", "catLabelOrder fa fa-bars")
         .tooltip(i18n["Reorder"])
-        .on("mousedown", (event, aggr: Aggregate_Category) => {
+        .on("mousedown", (event, ctgry: Aggregate_Category) => {
           var catNode = event.currentTarget.parentNode.parentNode;
           var catGroupNode =
             event.currentTarget.parentNode.parentNode.parentNode;
           me.browser.DOM.root.classed("noPointerEvents", true);
-          var srcIndex = aggr.orderIndex;
+          var srcIndex = ctgry.orderIndex;
 
           d3.select("body")
             .on("mousemove.reordercat", function (event2) {
@@ -1610,9 +1620,9 @@ export class Block_Categorical extends Block {
               }
 
               // update orderIndex!
-              aggr.orderIndex = targetIndex;
+              ctgry.orderIndex = targetIndex;
               me.DOM.aggrGlyphs
-                .filter((_cat: Aggregate_Category) => _cat.label !== aggr.label) // all but the moved one
+                .filter((_cat: Aggregate_Category) => _cat.label !== ctgry.label) // all but the moved one
                 .each((_cat: Aggregate_Category) => {
                   if (
                     _cat.orderIndex >= skip.from &&
@@ -1650,11 +1660,11 @@ export class Block_Categorical extends Block {
           }
           event.currentTarget.tippy.setContent(i18n.EditTitle + info);
         })
-        .on("click", function (event, d: Aggregate_Category) {
+        .on("click", function (event, ctgry: Aggregate_Category) {
           this.tippy.hide();
           if (event.shiftKey) {
-            delete me.attrib.catLabel_attr[d.id];
-            this.nextSibling.innerHTML = DOMPurify.sanitize(d.id);
+            delete me.attrib.catLabel_attr[ctgry.id];
+            this.nextSibling.innerHTML = DOMPurify.sanitize(ctgry.id);
             return;
           }
           this.style.display = "none";
@@ -1666,7 +1676,7 @@ export class Block_Categorical extends Block {
       domAttrLabel
         .append("span")
         .attr("class", "catLabel")
-        .html((aggr: Aggregate_Category) => aggr.label)
+        .html((ctgry: Aggregate_Category) => ctgry.label)
         .on("focus", function () {
           this._initValue = DOMPurify.sanitize(this.innerHTML);
           document.execCommand("selectAll", false, null);
@@ -1677,7 +1687,7 @@ export class Block_Categorical extends Block {
           this.previousSibling.style.display = "";
           this.previousSibling.previousSibling.style.display = "";
         })
-        .on("keydown", function (event, d: Aggregate_Category) {
+        .on("keydown", function (event, ctgry: Aggregate_Category) {
           if (event.keyCode === 27) {
             // Escape key
             // Do not apply the new label
@@ -1694,8 +1704,8 @@ export class Block_Categorical extends Block {
               this.blur();
               return;
             }
-            d.label = newLabel;
-            me.attrib.catLabel_attr[d.id] = newLabel;
+            ctgry.label = newLabel;
+            me.attrib.catLabel_attr[ctgry.id] = newLabel;
             this.blur();
           }
         });
@@ -1704,10 +1714,10 @@ export class Block_Categorical extends Block {
         "class",
         "measureLabelGroup"
       );
-      Base.Active_Compare_List.forEach((m) => {
+      Base.Active_Compare_List.forEach((measureType) => {
         labelGroup
           .append("span")
-          .attr("class", "measureLabel measureLabel_" + m);
+          .attr("class", "measureLabel measureLabel_" + measureType);
       });
 
       var measureGroup = DOM_cats_new.append("div").attr(
@@ -1715,27 +1725,27 @@ export class Block_Categorical extends Block {
         "measureGroup"
       );
 
-      Base.Total_Active_Compare_List.forEach((t) => {
+      Base.Total_Active_Compare_List.forEach((measureType) => {
         measureGroup
           .append("span")
-          .attr("class", `measure_${t} bg_${t}`)
+          .attr("class", `measure_${measureType} bg_${measureType}`)
           .on("mouseenter", (event, aggr: Aggregate_Category) => {
             aggr.DOM.aggrGlyph
-              .querySelector(".measureLabel_" + t)
+              .querySelector(".measureLabel_" + measureType)
               .classList.add("forceShow");
 
-            if (Base.Compare_List.find((_) => _ === t)) {
-              this.browser.refreshAllMeasureLabels(t);
+            if (Base.Compare_List.find((_) => _ === measureType)) {
+              this.browser.refreshAllMeasureLabels(measureType);
             }
             event.preventDefault();
             event.stopPropagation();
           })
           .on("mouseleave", (_event, aggr: Aggregate_Category) => {
             var labelDOM = aggr.DOM.aggrGlyph.querySelector(
-              ".measureLabel_" + t
+              ".measureLabel_" + measureType
             );
             if (labelDOM) labelDOM.classList.remove("forceShow");
-            if (Base.Compare_List.find((_) => _ === t)) {
+            if (Base.Compare_List.find((_) => _ === measureType)) {
               this.browser.refreshAllMeasureLabels("Active");
             }
           });
@@ -1761,26 +1771,27 @@ export class Block_Categorical extends Block {
     var _top = this.height_bar_topGap;
     var barHeight = this.barHeight_Full;
 
-    if (this.browser.stackedCompare.get() && !this.panel.hiddenCatBars()) {
-      var baseline = this.measureLineZero;
-      var maxWidth = this.width_CatBars;
+    let labelDOM = this.DOM["measureLabel_" + sT];
 
-      var endOfBar = !this.browser.isCompared();
+    if (this.attrib.stackedCompare && !this.panel.hiddenCatBars()) {
+      const baseline = this.measureLineZero;
+      const maxWidth = this.width_CatBars;
 
-      this.DOM["measureLabel_" + sT].each(
+      const endOfBar = !this.browser.isCompared();
+
+      labelDOM.each(
         (aggr: Aggregate_Category, i, nodes) => {
-          var _width = aggr.scale(sT);
-          var _left = baseline + aggr.offset(sT);
-          var _right = _left + _width;
+          let _width = aggr.scale(sT);
+          let _left = baseline + aggr.offset(sT);
+          let _right = _left + _width;
 
-          var _hidden = this.browser.getMeasureValue(aggr, sT) == 0;
-
+          let _hidden = this.browser.getMeasureValue(aggr, sT) == 0;
           if (!_hidden && this.browser.isCompared()) {
             _hidden = aggr.scale(sT) < this.width_CatMeasureLabel - 4;
           }
 
           // label alignment
-          var _labelAlign =
+          let _labelAlign =
             Math.abs(_left - baseline) < 2
               ? "left"
               : Math.abs(_right - maxWidth) < 2 &&
@@ -1813,14 +1824,12 @@ export class Block_Categorical extends Block {
         _top += barHeight * curGroup;
       }
 
-      var onlySelectedNoSplit =
-        true &&
-        !this.browser.stackedChart &&
-        this.attrib.isComparedAttrib() &&
-        this.attrib.isMultiValued &&
-        !this.splitOnSelfCompare;
+      const onlySelectedNoSplit = !this.browser.stackedChart
+        && this.attrib.isComparedAttrib()
+        && this.attrib.isMultiValued
+        && !this.splitOnSelfCompare;
 
-      this.DOM["measureLabel_" + sT]
+      labelDOM
         .attr("labelAlign", null)
         .classed("hidden", (aggr) => {
           if (onlySelectedNoSplit) return aggr.compared !== sT;
@@ -1835,7 +1844,7 @@ export class Block_Categorical extends Block {
         .style("width", null);
     }
 
-    this.DOM["measureLabel_" + sT].style("line-height", barHeight + "px");
+    labelDOM.style("line-height", barHeight + "px");
   }
 
   refreshDOMcats() {
@@ -1955,30 +1964,30 @@ export class Block_Categorical extends Block {
         skip.mult = -1;
       }
       this.DOM.aggrGlyphs
-        .filter((_cat) => _cat.orderIndex !== selfOrder)
+        .filter((ctgry: Aggregate_Category) => ctgry.orderIndex !== selfOrder)
         .transition()
         .duration(sortDelay)
-        .style("transform", (_cat) => {
+        .style("transform", (ctgry: Aggregate_Category) => {
           var offset =
-            _cat.orderIndex >= skip.from && _cat.orderIndex <= skip.to
+            ctgry.orderIndex >= skip.from && ctgry.orderIndex <= skip.to
               ? this.heightCat * skip.mult
               : 0;
-          return `translate(${_cat.posX}px, ${_cat.posY + offset}px)`;
+          return `translate(${ctgry.posX}px, ${ctgry.posY + offset}px)`;
         });
 
       return;
     }
 
     var cats_NotActiveBeforeAndNow = this.DOM.aggrGlyphs.filter(
-      (_cat) => !_cat.isActiveBefore && !_cat.isActive
+      (ctgry) => !ctgry.isActiveBefore && !ctgry.isActive
     );
     var cats_Disappearing = this.DOM.aggrGlyphs.filter(
-      (_cat) => _cat.isActiveBefore && !_cat.isActive
+      (ctgry) => ctgry.isActiveBefore && !ctgry.isActive
     );
     var cats_Appearing = this.DOM.aggrGlyphs.filter(
-      (_cat) => !_cat.isActiveBefore && _cat.isActive
+      (ctgry) => !ctgry.isActiveBefore && ctgry.isActive
     );
-    var cats_Active = this.DOM.aggrGlyphs.filter((_cat) => _cat.isActive);
+    var cats_Active = this.DOM.aggrGlyphs.filter((ctgry) => ctgry.isActive);
 
     cats_NotActiveBeforeAndNow.style("display", "none");
 
@@ -1988,10 +1997,10 @@ export class Block_Categorical extends Block {
     cats_Disappearing
       .transition()
       .duration(sortDelay)
-      .on("end", function (aggr) {
+      .on("end", function (ctgry: Aggregate_Category) {
         this.style.opacity = 0;
-        aggr.posX = xRemoveOffset;
-        this.style.transform = aggr.transformPos;
+        ctgry.posX = xRemoveOffset;
+        this.style.transform = ctgry.transformPos;
       })
       .transition()
       .duration(1000)
@@ -2003,12 +2012,12 @@ export class Block_Categorical extends Block {
     cats_Appearing
       .transition()
       .duration(sortDelay)
-      .on("end", (aggr, i, nodes) => {
+      .on("end", (ctgry, i: number, nodes) => {
         var node = nodes[i];
         node.style.opacity = 0;
         node.style.display = null;
-        aggr.posX = xRemoveOffset;
-        node.style.transform = aggr.transformPos;
+        ctgry.posX = xRemoveOffset;
+        node.style.transform = ctgry.transformPos;
       });
 
     // Sort animation
@@ -2028,15 +2037,15 @@ export class Block_Categorical extends Block {
           Math.min(_cat.orderIndex, this.catCount_InDisplay + 2) * perCatDelay
         );
       })
-      .on("end", (aggr, i, nodes) => {
-        aggr.posX = 0;
+      .on("end", (ctgry, i, nodes) => {
+        ctgry.posX = 0;
         nodes[i].style.opacity = 1;
-        nodes[i].style.transform = aggr.transformPos;
+        nodes[i].style.transform = ctgry.transformPos;
       })
       .transition()
       .duration(250)
-      .on("end", (aggr, i, nodes) => {
-        if (!(aggr.isVisible || aggr.isVisibleBefore)) {
+      .on("end", (ctgry, i, nodes) => {
+        if (!(ctgry.isVisible || ctgry.isVisibleBefore)) {
           nodes[i].style.display = "none";
         }
       });
@@ -2083,9 +2092,9 @@ export class Block_Categorical extends Block {
               classes,
               obj
             );
-            var aggr = me.attrib.catTable_id[obj.label];
-            if (aggr && aggr.compared) {
-              el.classList.add(aggr.compared);
+            const ctgry = me.attrib.catTable_id[obj.label];
+            if (ctgry?.compared) {
+              el.classList.add(ctgry.compared);
             }
             return el;
           },
@@ -2096,9 +2105,9 @@ export class Block_Categorical extends Block {
               obj,
               me.dropdown_type === "MultiSelect"
             );
-            var aggr = me.attrib.catTable_id[obj.label];
-            if (aggr && aggr.compared) {
-              el.classList.add("bg_" + aggr.compared);
+            const ctgry = me.attrib.catTable_id[obj.label];
+            if (ctgry?.compared) {
+              el.classList.add("bg_" + ctgry.compared);
             }
             return el;
           },
@@ -2118,12 +2127,12 @@ export class Block_Categorical extends Block {
         "removeItem",
         (event) => {
           if (this.dropdown_type !== "MultiSelect") return;
-          var _cat = event.detail.customProperties;
-          if (!_cat) {
+          var ctgry: Aggregate_Category = event.detail.customProperties;
+          if (!ctgry) {
             // choices js: Update/remove after version update of library, feature just added.
-            _cat = this.attrib.catTable_id[event.detail.label];
+            ctgry = this.attrib.catTable_id[event.detail.label];
           }
-          if (_cat) this.attrib.onAggrClick(event, _cat);
+          if (ctgry) this.attrib.onAggrClick(event, ctgry);
         }
       );
 

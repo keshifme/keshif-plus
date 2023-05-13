@@ -5,6 +5,7 @@ import { scaleLog, scaleLinear } from "d3-scale";
 import { arc, line, curveMonotoneX } from "d3-shape";
 
 import { BlockType } from "./Types";
+import { ScaleContinuousNumeric, ScaleLinear } from "d3";
 
 const d3 = {
   utcParse,
@@ -328,7 +329,7 @@ var Util = {
   },
 
   /** -- Geo-helper */
-  addMarginToBounds: function (bounds) {
+  addMarginToBounds: function (bounds: L.LatLngBounds): L.LatLngBounds {
     if (!bounds.isValid()) return bounds;
     var _NW = bounds.getNorthWest();
     var _SE = bounds.getSouthEast();
@@ -378,7 +379,7 @@ var Util = {
   },
 
   /** -- */
-  getD3Scale: function (useLog) {
+  getD3Scale: function (useLog): ScaleContinuousNumeric<number, number, never> {
     return useLog ? d3.scaleLog().base(2) : d3.scaleLinear();
   },
 
@@ -387,16 +388,16 @@ var Util = {
     return d3
       .line()
       .curve(d3.curveMonotoneX)
-      .x((d) => timeScale(d._time))
-      .y((d) => valueScale(d._value))
-      .defined((d) => d._value != null);
+      .x((d) => timeScale((d as any)._time))
+      .y((d) => valueScale((d as any)._value))
+      .defined((d) => (d as any)._value != null);
   },
 
   /** -- */
   // http://stackoverflow.com/questions/5737975/circle-drawing-with-svgs-arc-path
   // http://stackoverflow.com/questions/15591614/svg-radial-wipe-animation-using-css3-js
   // http://jsfiddle.net/Matt_Coughlin/j3Bhz/5/
-  getPieSVGPath(_start, _angle, _r, strokeOnly) {
+  getPieSVGPath(_start: number, _angle: number, radius: number, strokeOnly: boolean): string {
     var _end = Math.min(_start + _angle, 0.999999);
     var startRadian = (Math.PI * (360 * _start - 90)) / 180;
     var endRadian = (Math.PI * (360 * _end - 90)) / 180;
@@ -404,34 +405,34 @@ var Util = {
 
     return (
       "M " +
-      Math.cos(startRadian) * _r +
+      Math.cos(startRadian) * radius +
       "," +
-      Math.sin(startRadian) * _r +
+      Math.sin(startRadian) * radius +
       " A " +
-      _r +
+      radius +
       "," +
-      _r +
+      radius +
       " " +
       largeArcFlag +
       " " +
       largeArcFlag +
       " 1 " +
-      Math.cos(endRadian) * _r +
+      Math.cos(endRadian) * radius +
       "," +
-      Math.sin(endRadian) * _r +
+      Math.sin(endRadian) * radius +
       " " +
       (!strokeOnly ? "L0,0" : "")
     );
   },
 
   /** -- */
-  getCirclePath: function () {
+  getCirclePath: function (): string {
     return d3
       .arc()
       .innerRadius(0)
       .outerRadius(0.001)
       .startAngle(0)
-      .endAngle(2 * Math.PI)();
+      .endAngle(2 * Math.PI)(null);
   },
 };
 

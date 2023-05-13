@@ -2305,9 +2305,9 @@ export class Browser {
                   nodes[i].parentNode.classList.toggle("collapsed");
                 });
 
-                _dom
+                (_dom
                   .append("div")
-                  .attr("class", "groupControl")
+                  .attr("class", "groupControl") as any)
                   .tooltip(i18n["Open/Close"])
                   .on("click", (event) => {
                     event.stopPropagation();
@@ -2326,10 +2326,10 @@ export class Browser {
                     isGroup ? "fa fa-circle" : _.item?.nuggetClassName
                   );
 
-                _dom
+                (_dom
                   .append("span")
                   .attr("class", "summaryName")
-                  .html(_.name)
+                  .html(_.name) as any)
                   .tooltip(i18n.EditTitle);
 
                 var Y = _dom
@@ -2343,21 +2343,21 @@ export class Browser {
                 if (!isGroup) {
                   let a: Attrib = _.item;
                   if (a.attribName === this.idSummaryName) {
-                    Y.append("div")
-                      .attr("class", "summaryRecordIDIcon far fa-fingerprint")
+                    (Y.append("div")
+                      .attr("class", "summaryRecordIDIcon far fa-fingerprint") as any)
                       .tooltip(i18n["Record ID"], { placement: "bottom" });
                   }
 
                   if (a.type === "categorical") {
-                    Y.append("div")
-                      .attr("class", "summaryMultiCat far fa-tags")
+                    (Y.append("div")
+                      .attr("class", "summaryMultiCat far fa-tags") as any)
                       .tooltip(i18n.MultiValued, { placement: "bottom" });
                   }
 
                   // no descriptions of simple groups currently
-                  Y.append("div")
+                  (Y.append("div")
                     .attr("class", "summaryDescription far fa-info-circle")
-                    .classed("active", !!a.description)
+                    .classed("active", !!a.description) as any)
                     .tooltip(a.description, { placement: "bottom" })
                     .on("click", function () {
                       this.tippy.show();
@@ -2366,8 +2366,8 @@ export class Browser {
                   a.block?.refreshNugget(_dom);
                 }
 
-                Y.append("div")
-                  .attr("class", "showDeriveMenu fa fa-ellipsis-v")
+                (Y.append("div")
+                  .attr("class", "showDeriveMenu fa fa-ellipsis-v") as any)
                   .tooltip(i18n.Settings, { placement: "bottom" })
                   .on("mousedown", (event) => event.stopPropagation())
                   .on("click", (event) => {

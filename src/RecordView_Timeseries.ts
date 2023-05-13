@@ -425,7 +425,7 @@ export class RecordView_Timeseries extends RecordView {
       if (!c.DOM) return; // no tooltip
       c.DOM.tippy = tippy(
         c.DOM,
-        Object.assign({}, d3.selection.tippyDefaultConfig, {
+        Object.assign({}, (d3.selection as any).tippyDefaultConfig, {
           theme: "dark kshf-tooltip kshf-record",
           placement: _placement,
           animation: "fade",
@@ -1849,7 +1849,7 @@ export class RecordView_Timeseries extends RecordView {
             (exit) => exit.remove()
           )
           .each((d: TimeData, i, nodes) => {
-            d.DOM = nodes[i];
+            (d.DOM as any) = nodes[i];
           })
           .attr("cx", x_Generator)
           .attr("cy", (d: TimeData) => this.y_Generator(d, _refVal))
@@ -1883,7 +1883,7 @@ export class RecordView_Timeseries extends RecordView {
       if (slopeOnly) {
         _td = _td.filter((d) => timeKeys_src[d._time_src]);
       }
-      return lineGenerator(_td);
+      return lineGenerator(_td as any);
     };
 
     if (this.rd.timeseriesAnimInterval) {

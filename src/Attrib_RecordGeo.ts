@@ -15,10 +15,10 @@ import { Filter_Spatial as Filter_Geo } from "./Filter_Geo.js";
 import { i18n } from "./i18n.js";
 import { MapData } from "./MapData.js";
 import { Record } from "./Record.js";
+import Supercluster from "supercluster";
 
 const d3 = { geoBounds };
 
-declare let Supercluster: any;
 declare let L: any;
 
 /** -- */
@@ -50,9 +50,9 @@ export type RecordGeoData = {
 export class Attrib_RecordGeo extends Attrib {
   public _aggrs: Aggregate_PointCluster[] = [];
 
-  recordGeoMap: MapData;
+  private recordGeoMap: MapData;
 
-  geoType:
+  public geoType:
     | "Point"
     | "MultiPoint"
     | "LineString"
@@ -74,7 +74,7 @@ export class Attrib_RecordGeo extends Attrib {
   }
 
   /** Only supports "geo" encoding */
-  supportsRecordEncoding(coding: RecordVisCoding) {
+  supportsRecordEncoding(coding: RecordVisCoding): boolean {
     return coding === "geo";
   }
 
@@ -88,7 +88,7 @@ export class Attrib_RecordGeo extends Attrib {
 
   public summaryFilter: Filter_Geo | null = null;
 
-  createSummaryFilter() {
+  createSummaryFilter(): void {
     this.summaryFilter = new Filter_Geo(this.browser, this);
   }
 
@@ -96,7 +96,7 @@ export class Attrib_RecordGeo extends Attrib {
   // Aggregates / geo-cache
   // ********************************************************************
 
-  async loadGeo() {
+  async loadGeo(): Promise<void> {
     if (this.recordGeoMap) {
       await this.recordGeoMap.loadGeo();
     }
@@ -126,7 +126,7 @@ export class Attrib_RecordGeo extends Attrib {
     this.aggr_initialized = true;
   }
 
-  async applyConfig(blockCfg: SummarySpec) {
+  async applyConfig(blockCfg: SummarySpec): Promise<void> {
     super.applyConfig(blockCfg);
 
     if (blockCfg.recordGeo) {
@@ -138,17 +138,20 @@ export class Attrib_RecordGeo extends Attrib {
   }
 
   /** -- */
-  getRecordBounds(onlyIncluded) {
-    var bs = [];
+  getRecordBounds(onlyIncluded: boolean): L.LatLngBounds {
+    let bs = [];
     this.browser.records.forEach((record) => {
       if (onlyIncluded && record.filteredOut) return;
-      var v = this.getRecordValue(record);
+
+      let v = this.getRecordValue(record);
       if (!v) return;
       if (!v._bounds) return;
-      var b = v._bounds;
+
+      let b = v._bounds;
       if (isNaN(b[0][0])) return;
-      var p1 = L.latLng(b[0][1], b[0][0]);
-      var p2 = L.latLng(b[1][1], b[1][0]);
+
+      let p1 = L.latLng(b[0][1], b[0][0]);
+      let p2 = L.latLng(b[1][1], b[1][0]);
       bs.push(p1);
       bs.push(p2);
     });
@@ -161,15 +164,11 @@ export class Attrib_RecordGeo extends Attrib {
 
   readonly maxNodeRecordSize = 1000;
 
-  public PointCluster: any; // Supercluster library
+  public PointCluster: Supercluster;
 
-  async prepPointCluster(leafletMap) {
+  async prepPointCluster(leafletMap: L.Map) {
     if (this.pointClusterRadius === 0) {
       return;
-    }
-
-    if (!Supercluster) {
-      Supercluster = await import("supercluster");
     }
 
     this.PointCluster = new Supercluster({
@@ -179,7 +178,7 @@ export class Attrib_RecordGeo extends Attrib {
       //map: (props) => ({data: props.data}),
     });
 
-    var points = [];
+    let points = [];
     this.records.forEach((record) => {
       points.push({
         type: "Feature",
@@ -191,10 +190,10 @@ export class Attrib_RecordGeo extends Attrib {
     this.PointCluster.load(points);
   }
 
-  updateClusters(_bounds, zoom) {
+  updateClusters(_bounds: L.LatLngBounds, zoom: number): void {
     this.deletePointClusters();
 
-    var _clusters = this.PointCluster.getClusters(
+    let _clusters = this.PointCluster.getClusters(
       [
         _bounds.getWest(),
         _bounds.getSouth(),
@@ -207,19 +206,19 @@ export class Attrib_RecordGeo extends Attrib {
     _clusters.forEach((cluster) => {
       if (!cluster.id) {
         // single record
-        let record: Record = cluster.properties;
+        let record: Record = <Record> cluster.properties;
         record._view.inCluster = false;
         //
       } else {
-        var clusterMembers = this.PointCluster.getLeaves(
-          cluster.id,
+        let clusterMembers = this.PointCluster.getLeaves(
+          <number>cluster.id,
           this.maxNodeRecordSize
         );
 
-        var clusterAggr = new Aggregate_PointCluster(this, cluster);
+        let clusterAggr = new Aggregate_PointCluster(this, cluster);
 
         clusterMembers.forEach((member) => {
-          let record: Record = member.properties;
+          let record: Record = <Record> member.properties;
           record._view.inCluster = true;
           if (record.isIncluded) {
             clusterAggr.addRecord(record);
@@ -267,13 +266,13 @@ export class Attrib_RecordGeo extends Attrib {
   // ********************************************************************
 
   private _pointClusterRadius: number = 50;
-  public get pointClusterRadius() {
+  public get pointClusterRadius(): number {
     return this._pointClusterRadius;
   }
 
-  async setPointClusterRadius(_v, leafletRecordMap) {
+  async setPointClusterRadius(radius: number, leafletRecordMap: L.Map) {
     // must be positive integer
-    this._pointClusterRadius = Math.round(Math.max(0, _v));
+    this._pointClusterRadius = Math.round(Math.max(0, radius));
     if (this.pointClusterRadius === 0) {
       this.deletePointClusters();
       return;

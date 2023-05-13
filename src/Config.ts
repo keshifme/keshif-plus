@@ -113,19 +113,19 @@ export class Config<T> {
   }
 
   /** Current value to string */
-  public toString() {
-    var v = this.get();
+  public toString(): string {
+    let v = this.get();
     return i18n[this.lookup.get(v) || (v as undefined as string)];
   }
 
   /** Value getter */
   public get(): T {
-    // If we have a forcedValue function that returns a non-null value, that's our current value;
-    var forced = this.forcedValue?.(this);
-    if (forced != null) return forced;
-
-    // We may run an onRead function to customize the value, or directly return the value itself.
-    return this.onRead?.(this._value) ?? this._value;
+    // First, check & return if there is a forced value
+    return this.forcedValue?.(this)
+      // We may run an onRead function to customize the value
+      ?? this.onRead?.(this._value)
+      // directly return the value
+      ?? this._value;
   }
 
   public is(v: T): boolean {
@@ -133,11 +133,8 @@ export class Config<T> {
   }
 
   /** Value setter - onSet function may be async*/
-  public async set(v: T) {
+  public async set(v: T): Promise<void> {
     if (v == null) return; // cannot set to null or undefined. (false is ok)
-
-    var forced = this.forcedValue?.(this);
-    if (forced !== null && forced === v) return; // trying to set to current forced value. No need.
 
     if (this.preSet) {
       try {
@@ -157,6 +154,9 @@ export class Config<T> {
     this._prevValue = this._value;
     this._value = v;
 
+    const forced = this.forcedValue?.(this);
+    if (forced === v) return; // trying to set to current forced value. No need to call onSet/refresh
+
     await this.onSet?.(this.get(), this);
 
     if (this.parent?.refreshConfigs) {
@@ -167,12 +167,12 @@ export class Config<T> {
   }
 
   // sets the value to previous value
-  public async undoChange(){
+  public async undoChange(): Promise<void>{
     await this.set(this._prevValue);
   }
 
   /** -- */
-  public async refresh() {
+  public async refresh(): Promise<void>{
     this.onRefreshDOM?.(this);
 
     if (this.DOM) {

@@ -217,26 +217,24 @@ export class Block_Numeric extends Block_Interval<number> {
       maxPos = this.valueScale(filter_max);
     }
 
-    var _do = (withScale) => {
+    var _do = (withScale: boolean) => {
       this.DOM["measure_" + cT].style(
         "transform",
         (aggr: Aggregate_Interval<number>) => {
-          var _w = this.width_Bin;
-          var _translateX = 0;
+          let _w = this.width_Bin;
+          let _translateX = 0;
 
           if (maybePartial) {
-            var aggr_min = aggr.minV;
-            var aggr_max = aggr.maxV;
             // it is within the filtered range
-            if (aggr_max > filter_min && aggr_min < filter_max) {
-              if (aggr_min < filter_min) {
-                var lostWidth = minPos - this.valueScale(aggr_min);
+            if (aggr.maxV > filter_min && aggr.minV < filter_max) {
+              if (aggr.minV < filter_min) {
+                var lostWidth = minPos - this.valueScale(aggr.minV);
                 _translateX = lostWidth;
                 _w -= lostWidth;
               }
-              if (aggr_max > filter_max) {
+              if (aggr.maxV > filter_max) {
                 _w -=
-                  this.valueScale(aggr_max) -
+                  this.valueScale(aggr.maxV) -
                   maxPos -
                   Base.width_HistBarGap * 2;
               }
@@ -245,7 +243,7 @@ export class Block_Numeric extends Block_Interval<number> {
             }
           }
 
-          if (!this.browser.stackedCompare) {
+          if (!this.attrib.stackedCompare) {
             _w = _w / totalGroups;
             _translateX = _w * curGroup;
           }

@@ -45,7 +45,7 @@ function mergeDeep(target, ...sources) {
   return mergeDeep(target, ...sources);
 }
 
-selection.tippyDefaultConfig = {
+(selection as any).tippyDefaultConfig = {
   allowHTML: true,
   animation: "scale", //'fade', 'shift-away', 'scale',
   animateFill: false,
@@ -77,7 +77,7 @@ selection.prototype.tooltip = function (param1, param2) {
 
   var tippyConfig = Object.assign(
     { appendTo: appendTo },
-    selection.tippyDefaultConfig
+    (selection as any).tippyDefaultConfig
   );
   mergeDeep(tippyConfig, config);
   tippyConfig.popperOptions.modifiers[0].options.boundariesElement =
@@ -134,4 +134,8 @@ selection.prototype.html = function (value) {
     : this.node().innerHTML;
 };
 
-export { select, selection, pointer };
+interface D3Selection<T1 extends d3.BaseType, T2, T3 extends d3.BaseType, T4> extends d3.Selection<T1, T2, T3, T4> {
+  tooltip(arg1: any, arg2: any): d3.Selection<T1, T2, T3, T4>;
+};
+
+export { select, selection, pointer, D3Selection };

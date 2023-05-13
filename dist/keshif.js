@@ -1,4 +1,5 @@
-import { _ as __awaiter, p as purify, s as selection, t as tippy, R as ROUND_ARROW, a as select, c as createPopper, e as extent, l as linear, b as log, m as min, d as max, n as noUiSlider, u as utcParse, f as format, g as cubicOut, h as arc, i as line, j as monotoneX, k as pointer, q as quantile, o as deviation, r as geoBounds, v as time, w as polyInOut, x as hsl, y as geoPath, z as geoTransform, A as quantize, B as linear$1, C as interpolate, D as interpolateHsl, E as rgb, F as curveLinear, G as schemeCategory10, H as polyOut, I as zoom, J as transform, K as identity, L as curveNatural, M as curveCatmullRomOpen, N as DateTime, P as Pikaday, O as area, Q as Interval, S as utcFormat, T as utcTime, U as second, V as utcMinute, W as utcHour, X as utcDay, Y as utcSunday, Z as utcMonth, $ as utcYear, a0 as sqrt, a1 as threshold, a2 as d3Chromatic } from './vendor.js';
+import { _ as __awaiter, p as purify, s as selection, t as tippy, R as ROUND_ARROW, a as select, c as createPopper, e as extent, l as linear, b as log, m as min, d as max, n as noUiSlider, u as utcParse, f as format, g as cubicOut, h as arc, i as line, j as monotoneX, k as pointer, q as quantile, o as deviation, r as geoBounds, v as time, w as polyInOut, x as hsl, y as geoPath, z as geoTransform, A as quantize, B as linear$1, C as interpolate, D as interpolateHsl, E as rgb, F as curveLinear, G as schemeCategory10, H as polyOut, I as zoom, J as transform, L as identity, M as curveNatural, N as curveCatmullRomOpen, P as Pikaday, O as DateTime, Q as area, S as Interval, T as utcFormat, U as utcTime, V as second, W as utcMinute, X as utcHour, Y as utcDay, Z as utcSunday, $ as utcMonth, a0 as utcYear, a1 as sqrt, a2 as threshold, a3 as d3Chromatic } from './vendor.js';
+import { S as Supercluster } from './vendor_mapping.js';
 
 class kshfBase {
     constructor() {
@@ -542,6 +543,9 @@ var i18n = new Proxy({}, {
 
 /** -- */
 class Filter_Base {
+    get isFiltered() {
+        return this._isFiltered;
+    }
     /** -- */
     constructor(_browser) {
         // Each filter has its own breadcrumb
@@ -553,9 +557,6 @@ class Filter_Base {
         // Initialize all records to true (Not filtered) for current filter ID
         this.browser.records.forEach((record) => record.setFilterCache(this.filterID, true));
         this.browser.filters.push(this);
-    }
-    get isFiltered() {
-        return this._isFiltered;
     }
     /** -- */
     setFiltered(update = true) {
@@ -1549,6 +1550,13 @@ class TimeSeriesData {
   ->Change(#)
 */
 class AttribTemplate {
+    // used for easy serialization
+    toString() {
+        return this.str;
+    }
+    get pathStr() {
+        return this.path.join("->");
+    }
     constructor(input, dashboard) {
         var _a;
         // the string representation of the template
@@ -1688,13 +1696,6 @@ class AttribTemplate {
             };
         }
     }
-    // used for easy serialization
-    toString() {
-        return this.str;
-    }
-    get pathStr() {
-        return this.path.join("->");
-    }
 }
 
 const d3$o = {
@@ -1705,6 +1706,145 @@ const d3$o = {
 };
 /** -- */
 class Attrib {
+    get block() {
+        return this._block;
+    }
+    applyTemplateSpecial() { }
+    isEmpty() {
+        return this._aggrs.length === 0;
+    }
+    // TODO: review/remove, as we should not check for a specific type here.
+    uniqueCategories() {
+        return (this.type === "categorical" &&
+            !this.isEmpty() &&
+            this._aggrs.length === this.browser.records.length);
+    }
+    isFiltered() {
+        var _a, _b;
+        return (_b = (_a = this.summaryFilter) === null || _a === void 0 ? void 0 : _a.isFiltered) !== null && _b !== void 0 ? _b : false;
+    }
+    // cen be extended by sub-classes
+    createSummaryFilter() { }
+    get parent() {
+        var _a;
+        return this._parent || ((_a = this.template) === null || _a === void 0 ? void 0 : _a.parent);
+    }
+    // overwritten by numeric summary
+    hasTimeSeriesParent() {
+        return false;
+    }
+    createDerivedAttrib(_special, name = null) {
+        if (this.derivatives[_special])
+            return;
+        this.derivatives[_special] = this.browser.createAttrib(name || `${this.attribName}->${_special.replace("()", "")}`, `${this.template}->${_special}`);
+        this.browser.refreshAttribList();
+    }
+    // aka blockName
+    get attribName() {
+        return this._attribName;
+    }
+    get printName() {
+        return this._attribName.split("->").pop();
+    }
+    // name without last key item
+    get pathName() {
+        return this._attribName.split("->").slice(0, -1); // removes last item
+    }
+    // specialized method to consider/change behavior if with timeseries parent
+    get groupPath() {
+        return this.pathName;
+    }
+    get attribNameHTML() {
+        return `<span class='blockName_Path ${this.pathName.length ? "visible" : ""}'>${this.pathName
+            .map((_) => `<span class='groupName'>${_}</span><span class='fa fa-caret-right'></span>`)
+            .join("")}</span><span class='blockName_Print'>${this.printName}</span>`;
+    }
+    set attribName(newName) {
+        var _a, _b, _c;
+        let curName = this._attribName;
+        if (curName === newName)
+            return;
+        if (this.browser.attribWithName(newName))
+            return;
+        this.browser.removeAttribFromGroupIndex(this); // remove it from previous newName index
+        this._attribName = newName;
+        this.browser.insertAttribIntoGroupIndex(this);
+        this.browser.refreshAttribList();
+        (_a = this.block) === null || _a === void 0 ? void 0 : _a.refreshSummaryName_DOM();
+        if ((_c = (_b = this.summaryFilter) === null || _b === void 0 ? void 0 : _b.breadcrumb) === null || _c === void 0 ? void 0 : _c.DOM) {
+            this.addDOMBlockName(this.summaryFilter.breadcrumb.DOM.select(".crumbHeader"));
+        }
+    }
+    get description() {
+        if (!this._description && this._parent)
+            return this._parent.description;
+        return this._description;
+    }
+    set description(v) {
+        var _a;
+        this._description = purify.sanitize(v, {}) || null;
+        (_a = this.block) === null || _a === void 0 ? void 0 : _a.updateDescription();
+    }
+    refreshConfigs() {
+        Object.values(this.configs).forEach((cfg) => cfg.refresh());
+    }
+    /** -- */
+    isIDAttrib() {
+        return this.browser.idSummaryName === this.attribName;
+    }
+    isComparedAttrib() {
+        return this === this.browser.comparedAttrib;
+    }
+    autoCompare() { }
+    get canHaveMetricFuncs() {
+        return false;
+    }
+    get supportedMetricFuncs() {
+        return []; // none supported by default
+    }
+    /** -- */
+    addSupportedMetricFunc(t) {
+        if (this._metricFuncs.includes(t))
+            return;
+        this._metricFuncs.push(t);
+        this.browser.measureSummary.refresh();
+    }
+    /** -- */
+    removeSupportedMetricFunc(t) {
+        var _a;
+        if (!this._metricFuncs.includes(t))
+            return; // not included already
+        this._metricFuncs = this._metricFuncs.filter((_) => _ != t);
+        if (this.attribID === ((_a = this.measureSummary) === null || _a === void 0 ? void 0 : _a.attribID) &&
+            this.browser.measureFunc.is(t)) {
+            this.browser.measureFunc.set("Count");
+            this.browser.measureFunc.refresh();
+        }
+        else {
+            this.browser.measureSummary.refresh(); // drop-down options refresh
+        }
+    }
+    // Does not support record encoding by default, can be extended
+    supportsRecordEncoding(_coding) {
+        return false;
+    }
+    // ********************************************************************
+    // Record value access
+    // ********************************************************************
+    getRecordValue(record) {
+        return record.getValue(this);
+    }
+    setRecordValueCacheToMissing(record) {
+        // TO-DO: Remove record from its existing aggregate for this summary
+        record.setValue(this, null);
+        this.noValueAggr.addRecord(record);
+    }
+    getFormattedValue(_v, _isSVG) {
+        return "";
+    }
+    renderRecordValue(_v, _d3_selection) {
+        return "";
+    }
     // ********************************************************************
     // ********************************************************************
     constructor(browser, name, template = null, _type, blockClassName = "", nuggetClassName = "") {
@@ -1849,145 +1989,6 @@ class Attrib {
                 (_a = this.block) === null || _a === void 0 ? void 0 : _a.refreshViz_All();
             },
         });
-    }
-    get block() {
-        return this._block;
-    }
-    applyTemplateSpecial() { }
-    isEmpty() {
-        return this._aggrs.length === 0;
-    }
-    // TODO: review/remove, as we should not check for a specific type here.
-    uniqueCategories() {
-        return (this.type === "categorical" &&
-            !this.isEmpty() &&
-            this._aggrs.length === this.browser.records.length);
-    }
-    isFiltered() {
-        var _a, _b;
-        return (_b = (_a = this.summaryFilter) === null || _a === void 0 ? void 0 : _a.isFiltered) !== null && _b !== void 0 ? _b : false;
-    }
-    // cen be extended by sub-classes
-    createSummaryFilter() { }
-    get parent() {
-        var _a;
-        return this._parent || ((_a = this.template) === null || _a === void 0 ? void 0 : _a.parent);
-    }
-    // overwritten by numeric summary
-    hasTimeSeriesParent() {
-        return false;
-    }
-    createDerivedAttrib(_special, name = null) {
-        if (this.derivatives[_special])
-            return;
-        this.derivatives[_special] = this.browser.createAttrib(name || `${this.attribName}->${_special.replace("()", "")}`, `${this.template}->${_special}`);
-        this.browser.refreshAttribList();
-    }
-    // aka blockName
-    get attribName() {
-        return this._attribName;
-    }
-    get printName() {
-        return this._attribName.split("->").pop();
-    }
-    // name without last key item
-    get pathName() {
-        return this._attribName.split("->").slice(0, -1); // removes last item
-    }
-    // specialized method to consider/change behavior if with timeseries parent
-    get groupPath() {
-        return this.pathName;
-    }
-    get attribNameHTML() {
-        return `<span class='blockName_Path ${this.pathName.length ? "visible" : ""}'>${this.pathName
-            .map((_) => `<span class='groupName'>${_}</span><span class='fa fa-caret-right'></span>`)
-            .join("")}</span><span class='blockName_Print'>${this.printName}</span>`;
-    }
-    set attribName(newName) {
-        var _a, _b, _c;
-        let curName = this._attribName;
-        if (curName === newName)
-            return;
-        if (this.browser.attribWithName(newName))
-            return;
-        this.browser.removeAttribFromGroupIndex(this); // remove it from previous newName index
-        this._attribName = newName;
-        this.browser.insertAttribIntoGroupIndex(this);
-        this.browser.refreshAttribList();
-        (_a = this.block) === null || _a === void 0 ? void 0 : _a.refreshSummaryName_DOM();
-        if ((_c = (_b = this.summaryFilter) === null || _b === void 0 ? void 0 : _b.breadcrumb) === null || _c === void 0 ? void 0 : _c.DOM) {
-            this.addDOMBlockName(this.summaryFilter.breadcrumb.DOM.select(".crumbHeader"));
-        }
-    }
-    get description() {
-        if (!this._description && this._parent)
-            return this._parent.description;
-        return this._description;
-    }
-    set description(v) {
-        var _a;
-        this._description = purify.sanitize(v, {}) || null;
-        (_a = this.block) === null || _a === void 0 ? void 0 : _a.updateDescription();
-    }
-    refreshConfigs() {
-        Object.values(this.configs).forEach((cfg) => cfg.refresh());
-    }
-    /** -- */
-    isIDAttrib() {
-        return this.browser.idSummaryName === this.attribName;
-    }
-    isComparedAttrib() {
-        return this === this.browser.comparedAttrib;
-    }
-    autoCompare() { }
-    get canHaveMetricFuncs() {
-        return false;
-    }
-    get supportedMetricFuncs() {
-        return []; // none supported by default
-    }
-    /** -- */
-    addSupportedMetricFunc(t) {
-        if (this._metricFuncs.includes(t))
-            return;
-        this._metricFuncs.push(t);
-        this.browser.measureSummary.refresh();
-    }
-    /** -- */
-    removeSupportedMetricFunc(t) {
-        var _a;
-        if (!this._metricFuncs.includes(t))
-            return; // not included already
-        this._metricFuncs = this._metricFuncs.filter((_) => _ != t);
-        if (this.attribID === ((_a = this.measureSummary) === null || _a === void 0 ? void 0 : _a.attribID) &&
-            this.browser.measureFunc.is(t)) {
-            this.browser.measureFunc.set("Count");
-            this.browser.measureFunc.refresh();
-        }
-        else {
-            this.browser.measureSummary.refresh(); // drop-down options refresh
-        }
-    }
-    // Does not support record encoding by default, can be extended
-    supportsRecordEncoding(_coding) {
-        return false;
-    }
-    // ********************************************************************
-    // Record value access
-    // ********************************************************************
-    getRecordValue(record) {
-        return record.getValue(this);
-    }
-    setRecordValueCacheToMissing(record) {
-        // TO-DO: Remove record from its existing aggregate for this summary
-        record.setValue(this, null);
-        this.noValueAggr.addRecord(record);
-    }
-    getFormattedValue(_v, _isSVG) {
-        return "";
-    }
-    renderRecordValue(_v, _d3_selection) {
-        return "";
     }
     finishTemplateSpecial() {
         if (this.template.special) {
@@ -2275,18 +2276,14 @@ class Config {
     }
     /** Current value to string */
     toString() {
-        var v = this.get();
+        let v = this.get();
         return i18n[this.lookup.get(v) || v];
     }
     /** Value getter */
     get() {
-        var _a, _b, _c;
-        // If we have a forcedValue function that returns a non-null value, that's our current value;
-        var forced = (_a = this.forcedValue) === null || _a === void 0 ? void 0 : _a.call(this, this);
-        if (forced != null)
-            return forced;
-        // We may run an onRead function to customize the value, or directly return the value itself.
-        return (_c = (_b = this.onRead) === null || _b === void 0 ? void 0 : _b.call(this, this._value)) !== null && _c !== void 0 ? _c : this._value;
+        var _a, _b, _c, _d;
+        // First, check & return if there is a forced value
+        return (_d = (_b = (_a = this.forcedValue) === null || _a === void 0 ? void 0 : _a.call(this, this)) !== null && _b !== void 0 ? _b : (_c = this.onRead) === null || _c === void 0 ? void 0 : _c.call(this, this._value)) !== null && _d !== void 0 ? _d : this._value;
     }
     is(v) {
         return this.get() === v;
@@ -2297,15 +2294,12 @@ class Config {
         return __awaiter(this, void 0, void 0, function* () {
             if (v == null)
                 return; // cannot set to null or undefined. (false is ok)
-            var forced = (_a = this.forcedValue) === null || _a === void 0 ? void 0 : _a.call(this, this);
-            if (forced !== null && forced === v)
-                return; // trying to set to current forced value. No need.
             if (this.preSet) {
                 try {
                     v = yield this.preSet(v, this);
                 }
                 catch (error) {
-                    if ((_b = this.parent) === null || _b === void 0 ? void 0 : _b.finalized) {
+                    if ((_a = this.parent) === null || _a === void 0 ? void 0 : _a.finalized) {
                         Modal.alert(error); // show alert only after dashboard loading
                     }
                     return;
@@ -2317,6 +2311,9 @@ class Config {
                 return; // prevent setting it to current value - no change
             this._prevValue = this._value;
             this._value = v;
+            const forced = (_b = this.forcedValue) === null || _b === void 0 ? void 0 : _b.call(this, this);
+            if (forced === v)
+                return; // trying to set to current forced value. No need to call onSet/refresh
             yield ((_c = this.onSet) === null || _c === void 0 ? void 0 : _c.call(this, this.get(), this));
             if ((_d = this.parent) === null || _d === void 0 ? void 0 : _d.refreshConfigs) {
                 this.parent.refreshConfigs();
@@ -2816,27 +2813,27 @@ var Util = {
     // http://stackoverflow.com/questions/5737975/circle-drawing-with-svgs-arc-path
     // http://stackoverflow.com/questions/15591614/svg-radial-wipe-animation-using-css3-js
     // http://jsfiddle.net/Matt_Coughlin/j3Bhz/5/
-    getPieSVGPath(_start, _angle, _r, strokeOnly) {
+    getPieSVGPath(_start, _angle, radius, strokeOnly) {
         var _end = Math.min(_start + _angle, 0.999999);
         var startRadian = (Math.PI * (360 * _start - 90)) / 180;
         var endRadian = (Math.PI * (360 * _end - 90)) / 180;
         var largeArcFlag = _angle > 0.5 ? 1 : 0;
         return ("M " +
-            Math.cos(startRadian) * _r +
+            Math.cos(startRadian) * radius +
             "," +
-            Math.sin(startRadian) * _r +
+            Math.sin(startRadian) * radius +
             " A " +
-            _r +
+            radius +
             "," +
-            _r +
+            radius +
             " " +
             largeArcFlag +
             " " +
             largeArcFlag +
             " 1 " +
-            Math.cos(endRadian) * _r +
+            Math.cos(endRadian) * radius +
             "," +
-            Math.sin(endRadian) * _r +
+            Math.sin(endRadian) * radius +
             " " +
             (!strokeOnly ? "L0,0" : ""));
     },
@@ -2847,20 +2844,12 @@ var Util = {
             .innerRadius(0)
             .outerRadius(0.001)
             .startAngle(0)
-            .endAngle(2 * Math.PI)();
+            .endAngle(2 * Math.PI)(null);
     },
 };
 
 /** -- */
 class Aggregate_Interval extends Aggregate {
-    constructor(attrib, minV, maxV) {
-        super(attrib);
-        this._minV = null;
-        this._maxV = null;
-        // true if the maximum value is included within the scale
-        this.isMaxIncluded = false;
-        this.setRange(minV, maxV);
-    }
     get minV() {
         return this._minV;
     }
@@ -2885,6 +2874,14 @@ class Aggregate_Interval extends Aggregate {
     }
     updateRecords() {
         this.records = this.attrib.sortedRecords.filter((record) => this.isRecordWithin(record));
+    }
+    constructor(attrib, minV, maxV) {
+        super(attrib);
+        this._minV = null;
+        this._maxV = null;
+        // true if the maximum value is included within the scale
+        this.isMaxIncluded = false;
+        this.setRange(minV, maxV);
     }
     setRange(_minV, _maxV) {
         this._minV = _minV;
@@ -3286,32 +3283,6 @@ class Record {
 
 const d3$m = { extent };
 class Attrib_Interval extends Attrib {
-    constructor(browser, name, template, _type, blockClassName, nuggetClassName) {
-        super(browser, name, template, _type, "kshfSummary_Interval " + blockClassName, // adds "kshfSummary_Interval" to given class name
-        nuggetClassName);
-        this._aggrs = [];
-        this.sortedRecords = [];
-        // ********************************************************************
-        // Value scale and Ticks
-        // ********************************************************************
-        this.intervalTicks = [];
-        // d3 scale object (linear / log / time
-        // depends on whether it is numeric or timestamp attibute
-        this.valueScale = null;
-        this.valueScale_prev = null;
-        // looks like a function, but created like a member in subclasses dynamically
-        this.intervalTickPrint = null;
-        // ********************************************************************
-        // Step ticks
-        // ********************************************************************
-        this._stepTicks = false;
-        this.rangeFilterTimer = 0;
-        // ********************************************************************
-        // Sort labels (when attribute is used for sorting)
-        // ********************************************************************
-        this._sortLabel = null;
-        this.createSummaryFilter();
-    }
     get block() {
         return this._block;
     }
@@ -3505,6 +3476,32 @@ class Attrib_Interval extends Attrib {
     getRecordValue(record) {
         return record.getValue(this);
     }
+    constructor(browser, name, template, _type, blockClassName, nuggetClassName) {
+        super(browser, name, template, _type, "kshfSummary_Interval " + blockClassName, // adds "kshfSummary_Interval" to given class name
+        nuggetClassName);
+        this._aggrs = [];
+        this.sortedRecords = [];
+        // ********************************************************************
+        // Value scale and Ticks
+        // ********************************************************************
+        this.intervalTicks = [];
+        // d3 scale object (linear / log / time
+        // depends on whether it is numeric or timestamp attibute
+        this.valueScale = null;
+        this.valueScale_prev = null;
+        // looks like a function, but created like a member in subclasses dynamically
+        this.intervalTickPrint = null;
+        // ********************************************************************
+        // Step ticks
+        // ********************************************************************
+        this._stepTicks = false;
+        this.rangeFilterTimer = 0;
+        // ********************************************************************
+        // Sort labels (when attribute is used for sorting)
+        // ********************************************************************
+        this._sortLabel = null;
+        this.createSummaryFilter();
+    }
     updateChartScale_Measure(skipRefreshViz = false) {
         if (!this.block.isVisible())
             return;
@@ -3602,17 +3599,6 @@ class Attrib_Interval extends Attrib {
 
 const d3$l = { select, pointer };
 class Block {
-    constructor(attrib) {
-        this.DOM = { inited: false };
-        // The panel this block appears in (if placed in dashboard)
-        this.panel = null;
-        // Can be accessed by called .collapsed
-        this._collapsed = false;
-        this._height_header = 0; // TODO
-        // This can be set to true to prevent refreshViz_Axis from executing
-        this.noRefreshVizAxis = false;
-        this.attrib = attrib;
-    }
     // browser of the block (retrieved from attribute)
     get browser() {
         return this.attrib.browser;
@@ -3623,6 +3609,17 @@ class Block {
     }
     get collapsed() {
         return this._collapsed;
+    }
+    constructor(attrib) {
+        this.DOM = { inited: false };
+        // The panel this block appears in (if placed in dashboard)
+        this.panel = null;
+        // Can be accessed by called .collapsed
+        this._collapsed = false;
+        this._height_header = 0; // TODO
+        // This can be set to true to prevent refreshViz_Axis from executing
+        this.noRefreshVizAxis = false;
+        this.attrib = attrib;
     }
     get inDashboard() {
         return this.panel !== null;
@@ -4317,6 +4314,10 @@ const d3$k = {
     extent,
 };
 class Block_Interval extends Block {
+    // shorthand
+    get valueScale() {
+        return this.attrib.valueScale;
+    }
     constructor(attrib) {
         super(attrib);
         // pixel width settings...
@@ -4470,10 +4471,6 @@ class Block_Interval extends Block {
         this.attrib.configs.optimumBinWidth = this.optimumBinWidth;
         this.attrib.configs.maxHeightRatio = this.maxHeightRatio;
         this.attrib.configs.showHistogram = this.showHistogram;
-    }
-    // shorthand
-    get valueScale() {
-        return this.attrib.valueScale;
     }
     get _aggrs() {
         return this.attrib._aggrs;
@@ -5450,21 +5447,19 @@ class Block_Numeric extends Block_Interval {
         }
         var _do = (withScale) => {
             this.DOM["measure_" + cT].style("transform", (aggr) => {
-                var _w = this.width_Bin;
-                var _translateX = 0;
+                let _w = this.width_Bin;
+                let _translateX = 0;
                 if (maybePartial) {
-                    var aggr_min = aggr.minV;
-                    var aggr_max = aggr.maxV;
                     // it is within the filtered range
-                    if (aggr_max > filter_min && aggr_min < filter_max) {
-                        if (aggr_min < filter_min) {
-                            var lostWidth = minPos - this.valueScale(aggr_min);
+                    if (aggr.maxV > filter_min && aggr.minV < filter_max) {
+                        if (aggr.minV < filter_min) {
+                            var lostWidth = minPos - this.valueScale(aggr.minV);
                             _translateX = lostWidth;
                             _w -= lostWidth;
                         }
-                        if (aggr_max > filter_max) {
+                        if (aggr.maxV > filter_max) {
                             _w -=
-                                this.valueScale(aggr_max) -
+                                this.valueScale(aggr.maxV) -
                                     maxPos -
                                     Base.width_HistBarGap * 2;
                         }
@@ -5473,7 +5468,7 @@ class Block_Numeric extends Block_Interval {
                         aggr.setScale(cT, 0);
                     }
                 }
-                if (!this.browser.stackedCompare) {
+                if (!this.attrib.stackedCompare) {
                     _w = _w / totalGroups;
                     _translateX = _w * curGroup;
                 }
@@ -5616,6 +5611,24 @@ class Block_Numeric extends Block_Interval {
 
 const d3$i = { format, deviation };
 class Attrib_Numeric extends Attrib_Interval {
+    get block() {
+        return this._block;
+    }
+    hasTimeSeriesParent() {
+        var _a;
+        return ((_a = this.parent) === null || _a === void 0 ? void 0 : _a.type) === "timeseries";
+    }
+    get timeseriesParent() {
+        var _a;
+        return ((_a = this.parent) === null || _a === void 0 ? void 0 : _a.type) === "timeseries"
+            ? this.parent
+            : null;
+    }
+    // specialized method to consider/change behavior if with timeseries parent
+    get groupPath() {
+        var _a;
+        return ((_a = this.timeseriesParent) === null || _a === void 0 ? void 0 : _a.attribName.split("->")) || this.pathName;
+    }
     constructor(browser, name, template) {
         super(browser, name, template, "numeric", "kshfSummary_Numeric", "far fa-hashtag");
         // has floating numbers as data points
@@ -5662,24 +5675,6 @@ class Attrib_Numeric extends Attrib_Interval {
         });
         this.finishTemplateSpecial();
         // TODO: maintain good order for UI, delete showHistogram index and add it at appropriate position
-    }
-    get block() {
-        return this._block;
-    }
-    hasTimeSeriesParent() {
-        var _a;
-        return ((_a = this.parent) === null || _a === void 0 ? void 0 : _a.type) === "timeseries";
-    }
-    get timeseriesParent() {
-        var _a;
-        return ((_a = this.parent) === null || _a === void 0 ? void 0 : _a.type) === "timeseries"
-            ? this.parent
-            : null;
-    }
-    // specialized method to consider/change behavior if with timeseries parent
-    get groupPath() {
-        var _a;
-        return ((_a = this.timeseriesParent) === null || _a === void 0 ? void 0 : _a.attribName.split("->")) || this.pathName;
     }
     createAggregate(minV, maxV) {
         return new Aggregate_Interval_Numeric(this, minV, maxV);
@@ -5792,14 +5787,15 @@ class Attrib_Numeric extends Attrib_Interval {
         this.intervalTickPrint = (v) => {
             if (!this.hasFloat)
                 v = Math.round(v);
-            var r = t(v);
-            var _r = v.toLocaleString();
+            let r = t(v);
+            let _r = v.toLocaleString();
             // if value is 1021 and summary doesn't have float, formatted value returns "1,021k" - Stupid!
             if (_r.length <= r.length)
                 return _r;
             if (r.substr(-1) === "m") {
-                r = parseFloat(r) / 1000;
-                r = Math.round((r + 0.000001) * 1000) / 1000;
+                let v = parseFloat(r) / 1000;
+                v = Math.round((v + 0.000001) * 1000) / 1000;
+                r = v.toString();
             }
             return r;
         };
@@ -6468,20 +6464,20 @@ class Attrib_RecordGeo extends Attrib {
     }
     /** -- */
     getRecordBounds(onlyIncluded) {
-        var bs = [];
+        let bs = [];
         this.browser.records.forEach((record) => {
             if (onlyIncluded && record.filteredOut)
                 return;
-            var v = this.getRecordValue(record);
+            let v = this.getRecordValue(record);
             if (!v)
                 return;
             if (!v._bounds)
                 return;
-            var b = v._bounds;
+            let b = v._bounds;
             if (isNaN(b[0][0]))
                 return;
-            var p1 = L.latLng(b[0][1], b[0][0]);
-            var p2 = L.latLng(b[1][1], b[1][0]);
+            let p1 = L.latLng(b[0][1], b[0][0]);
+            let p2 = L.latLng(b[1][1], b[1][0]);
             bs.push(p1);
             bs.push(p2);
         });
@@ -6492,16 +6488,13 @@ class Attrib_RecordGeo extends Attrib {
             if (this.pointClusterRadius === 0) {
                 return;
             }
-            if (!Supercluster) {
-                Supercluster = yield import('./vendor_mapping.js').then(function (n) { return n.s; });
-            }
             this.PointCluster = new Supercluster({
                 radius: this.pointClusterRadius,
                 maxZoom: leafletMap.getMaxZoom() - 1,
                 minZoom: leafletMap.getMinZoom(),
                 //map: (props) => ({data: props.data}),
             });
-            var points = [];
+            let points = [];
             this.records.forEach((record) => {
                 points.push({
                     type: "Feature",
@@ -6514,7 +6507,7 @@ class Attrib_RecordGeo extends Attrib {
     }
     updateClusters(_bounds, zoom) {
         this.deletePointClusters();
-        var _clusters = this.PointCluster.getClusters([
+        let _clusters = this.PointCluster.getClusters([
             _bounds.getWest(),
             _bounds.getSouth(),
             _bounds.getEast(),
@@ -6528,8 +6521,8 @@ class Attrib_RecordGeo extends Attrib {
                 //
             }
             else {
-                var clusterMembers = this.PointCluster.getLeaves(cluster.id, this.maxNodeRecordSize);
-                var clusterAggr = new Aggregate_PointCluster(this, cluster);
+                let clusterMembers = this.PointCluster.getLeaves(cluster.id, this.maxNodeRecordSize);
+                let clusterAggr = new Aggregate_PointCluster(this, cluster);
                 clusterMembers.forEach((member) => {
                     let record = member.properties;
                     record._view.inCluster = true;
@@ -6569,10 +6562,10 @@ class Attrib_RecordGeo extends Attrib {
     get pointClusterRadius() {
         return this._pointClusterRadius;
     }
-    setPointClusterRadius(_v, leafletRecordMap) {
+    setPointClusterRadius(radius, leafletRecordMap) {
         return __awaiter(this, void 0, void 0, function* () {
             // must be positive integer
-            this._pointClusterRadius = Math.round(Math.max(0, _v));
+            this._pointClusterRadius = Math.round(Math.max(0, radius));
             if (this.pointClusterRadius === 0) {
                 this.deletePointClusters();
                 return;
@@ -6603,6 +6596,9 @@ const d3$f = {
 var _tempClipPathCounter;
 /** -- */
 class Attrib_Timeseries extends Attrib {
+    get measureRangeMax() {
+        throw new Error("Not applicable.");
+    }
     constructor(browser, name, template) {
         super(browser, name, template, "timeseries", "", "far fa-chart-line");
         this.tickPrecision = 3;
@@ -6652,9 +6648,6 @@ class Attrib_Timeseries extends Attrib {
             return m.replace(".0", "");
         };
         this.finishTemplateSpecial();
-    }
-    get measureRangeMax() {
-        throw new Error("Not applicable.");
     }
     getRecordValue(record) {
         return record.getValue(this);
@@ -7005,7 +6998,7 @@ class Attrib_Timeseries extends Attrib {
             .rangeRound([5, timeseriesWidth - 5]);
         let timeData = v._timeseries_;
         var [value_min, value_max] = d3$f.extent(timeData, (d) => d._value);
-        var steadyValue = false;
+        let steadyValue;
         if (value_min === value_max) {
             steadyValue = value_max;
             value_min -= 0.00001;
@@ -7057,7 +7050,7 @@ class Attrib_Timeseries extends Attrib {
             .attr("offset", "100%");
         _timeSeriesSvg
             .selectAll(".extentValueGroup")
-            .data(steadyValue !== false ? [steadyValue] : [value_min, value_max])
+            .data(steadyValue != null ? [steadyValue] : [value_min, value_max])
             .enter()
             .append("g")
             .attr("class", "extentValueGroup")
@@ -7103,7 +7096,7 @@ class Attrib_Timeseries extends Attrib {
                 .attr("class", "recordTimeseriesLine")
                 .datum(timeData)
                 .attr("d", Util.getLineGenerator(timeScale, valueScale))
-                .attr("stroke", steadyValue !== false
+                .attr("stroke", steadyValue != null
                 ? colorOut(mapp(value_max))
                 : "url(#GradientPath_" + _tempClipPathCounter + ")");
             _g.selectAll(".recordTimeseriesDot")
@@ -7274,9 +7267,9 @@ class Block_Categorical extends Block {
             if (!this.DOM.inited)
                 return;
             this.DOM.root.attr("viewType", this.viewType);
-            this.DOM.root.selectAll(".summaryViewAs").classed("active", false);
-            this.DOM.root
-                .selectAll(".summaryViewAs_" + this.viewType)
+            this.DOM.root.selectAll(".summaryViewAs")
+                .classed("active", false);
+            this.DOM.root.selectAll(".summaryViewAs_" + this.viewType)
                 .classed("active", true);
             if (this.viewType === "list") {
                 this.list_prepView();
@@ -7351,16 +7344,15 @@ class Block_Categorical extends Block {
     }
     /** -- */
     get catLabelFontSize() {
-        var fontSize = this.heightCat - 2;
-        if (this.heightCat > 15)
-            fontSize = 13;
-        if (this.heightCat > 25)
-            fontSize = 15;
-        if (this.heightCat > 30)
-            fontSize = 17;
         if (this.heightCat > 35)
-            fontSize = 19;
-        return fontSize;
+            return 19;
+        if (this.heightCat > 30)
+            return 17;
+        if (this.heightCat > 25)
+            return 15;
+        if (this.heightCat > 15)
+            return 13;
+        return this.heightCat - 2;
     }
     hasStaticHeight() {
         return this.isView_Dropdown;
@@ -7394,8 +7386,7 @@ class Block_Categorical extends Block {
     /** -- */
     refreshHeight_Category_do() {
         this.DOM.aggrGlyphs.style("height", this.heightCat + "px");
-        this.DOM.root
-            .selectAll(".catLabel")
+        this.DOM.root.selectAll(".catLabel")
             .style("font-size", this.catLabelFontSize + "px");
         this.DOM.chartBackground.style("height", this.height_VisibleAttrib + "px");
         this.DOM.catChart.classed("multiLine", this.heightCat >= 56 && // 4x
@@ -7403,6 +7394,7 @@ class Block_Categorical extends Block {
         this.refreshViz_All();
     }
     refreshHeight() {
+        var _a;
         super.refreshHeight();
         if (this.attrib.isEmpty() || !this.inDashboard || !this.DOM.inited)
             return;
@@ -7415,7 +7407,7 @@ class Block_Categorical extends Block {
             return;
         }
         // update catCount_InDisplay
-        var c = Math.floor(this._height_Categories / this.heightCat);
+        let c = Math.floor(this._height_Categories / this.heightCat);
         if (c < 0)
             c = 1;
         if (c > this.catCount_Active)
@@ -7434,8 +7426,7 @@ class Block_Categorical extends Block {
         this.DOM.headerGroup.attr("allCatsInDisplay", this.areAllCatsInDisplay());
         if (this.isView_Map) {
             this.DOM.catMap_Base.style("height", null);
-            if (this.leafletAttrMap)
-                this.leafletAttrMap.invalidateSize();
+            (_a = this.leafletAttrMap) === null || _a === void 0 ? void 0 : _a.invalidateSize();
         }
     }
     catList_cullCategories() {
@@ -7444,9 +7435,9 @@ class Block_Categorical extends Block {
         if (!this.DOM.aggrGlyphs)
             return;
         this.DOM.aggrGlyphs
-            .style("display", (_cat) => (_cat.isVisible ? null : "none"))
-            .style("opacity", (_cat) => (_cat.isVisible ? 1 : 0))
-            .style("transform", (_cat) => _cat.isVisible ? `translate(0px,${_cat.posY}px)` : null);
+            .style("display", (ctrgry) => ctrgry.isVisible ? null : "none")
+            .style("opacity", (ctrgry) => ctrgry.isVisible ? 1 : 0)
+            .style("transform", (ctrgry) => ctrgry.isVisible ? `translate(0px,${ctrgry.posY}px)` : null);
         if (this.setAttrib && !this.setAttrib.block.pausePanning) {
             this.setAttrib.block.refreshSVGViewBox();
         }
@@ -7574,17 +7565,17 @@ class Block_Categorical extends Block {
     // ********************************************************************
     // Managing in-display / visible categories
     // ********************************************************************
-    isCatActive(_cat) {
-        if (!_cat.usedAggr)
+    isCatActive(ctgry) {
+        if (!ctgry.usedAggr)
             return false;
-        if (_cat.isFiltered())
+        if (ctgry.isFiltered())
             return true;
-        if (_cat.recCnt('Active') !== 0)
+        if (ctgry.recCnt('Active') !== 0)
             return true;
         if (!this.attrib.isFiltered())
-            return _cat.recCnt('Active') !== 0;
+            return ctgry.recCnt('Active') !== 0;
         if (this.viewType === "map")
-            return _cat.recCnt('Active') !== 0;
+            return ctgry.recCnt('Active') !== 0;
         // Hide if multiple options are selected and selection is and
         //        if(this.summaryFilter.selecttype==="SelectAnd") return false;
         // TO-DO: Figuring out non-selected, zero-active-item attribs under "SelectOr" is tricky!
@@ -7595,10 +7586,10 @@ class Block_Categorical extends Block {
     }
     updateCats_IsActive() {
         this.catCount_Active = 0;
-        this._aggrs.forEach((_cat) => {
-            _cat.isActiveBefore = _cat.isActive;
-            _cat.isActive = this.isCatActive(_cat);
-            if (_cat.isActive)
+        this._aggrs.forEach((ctrgy) => {
+            ctrgy.isActiveBefore = ctrgy.isActive;
+            ctrgy.isActive = this.isCatActive(ctrgy);
+            if (ctrgy.isActive)
                 this.catCount_Active++;
         });
         if (this.attrib.catOrder_Fixed) {
@@ -7608,14 +7599,13 @@ class Block_Categorical extends Block {
     }
     updateCats_IsVisible() {
         var maxVisibleNumCats = Math.ceil((this.scrollTop_cache + this._height_Categories) / this.heightCat);
-        this._aggrs.forEach((_cat) => {
-            _cat.isVisibleBefore = _cat.isVisible;
-            _cat.isVisible =
-                this.viewType === "map"
-                    ? true
-                    : _cat.isActive &&
-                        _cat.orderIndex >= this.firstCatIndexInView &&
-                        _cat.orderIndex < maxVisibleNumCats;
+        this._aggrs.forEach((ctgry) => {
+            ctgry.isVisibleBefore = ctgry.isVisible;
+            ctgry.isVisible = this.viewType === "map"
+                ? true
+                : ctgry.isActive &&
+                    ctgry.orderIndex >= this.firstCatIndexInView &&
+                    ctgry.orderIndex < maxVisibleNumCats;
         });
     }
     // ********************************************************************
@@ -7782,7 +7772,7 @@ class Block_Categorical extends Block {
                 "fal fa-globe",
                 () => this.catViewAs("map"),
             ],
-        ].forEach((button, i, arr) => {
+        ].forEach((button) => {
             this.DOM.summaryIcons
                 .append("span")
                 .attr("class", button[0])
@@ -7800,7 +7790,7 @@ class Block_Categorical extends Block {
         this.attrib.noValueAggr.filtered = false;
         this.attrib.unselectAllCategories();
         this.clearCatTextSearch();
-        if (forceUpdate !== false && this.isView_Dropdown) {
+        if (forceUpdate && this.isView_Dropdown) {
             this.dropdown_refreshCategories();
         }
         (_a = this.DOM.root) === null || _a === void 0 ? void 0 : _a.classed("hasMultiAnd", false);
@@ -7876,25 +7866,25 @@ class Block_Categorical extends Block {
             return;
         // the following is temporary
         var missingRegions = [];
-        this.DOM.measure_Active.attr("d", (aggr, i, nodes) => {
-            if (!aggr._geo_) {
-                missingRegions.push(aggr.label);
+        this.DOM.measure_Active.attr("d", (ctgry, i, nodes) => {
+            if (!ctgry._geo_) {
+                missingRegions.push(ctgry.label);
                 nodes[i].parentNode.style.display = "none";
                 return;
             }
-            return this.geoPath(aggr._geo_);
+            return this.geoPath(ctgry._geo_);
         });
         this.DOM.root
             .select(".mapView-UnmatchedData")
             .classed("active", missingRegions.length > 0);
         this.DOM.measureLabel
-            .attr("transform", (_cat) => {
-            var centroid = this.geoPath.centroid(_cat._geo_);
+            .attr("transform", (ctgry) => {
+            const centroid = this.geoPath.centroid(ctgry._geo_);
             return `translate(${centroid[0]},${centroid[1]})`;
         })
-            .style("display", (_cat) => {
-            var bounds = this.geoPath.bounds(_cat._geo_);
-            var width = Math.abs(bounds[0][0] - bounds[1][0]);
+            .style("display", (ctgry) => {
+            const bounds = this.geoPath.bounds(ctgry._geo_);
+            const width = Math.abs(bounds[0][0] - bounds[1][0]);
             return width < this.width_CatMeasureLabel ? "none" : "block";
         });
     }
@@ -7920,7 +7910,7 @@ class Block_Categorical extends Block {
         this.leafletAttrMap.setMaxBounds(this.catMap_getBounds());
     }
     catMap_getBounds(onlyActive = false) {
-        var bs = [];
+        const bs = [];
         // Insert the bounds for each record path into the bs
         this._aggrs.forEach((_cat) => {
             if (!_cat._geo_)
@@ -7928,7 +7918,7 @@ class Block_Categorical extends Block {
             if (onlyActive && !_cat.isActive)
                 return;
             // get bounding box, cached in _geo_ property
-            var b = _cat._geo_._bounds;
+            let b = _cat._geo_._bounds;
             if (b === undefined) {
                 b = d3$e.geoBounds(_cat._geo_);
                 if (isNaN(b[0][0])) {
@@ -7938,8 +7928,8 @@ class Block_Categorical extends Block {
             }
             if (b === null)
                 return;
-            var p1 = L.latLng(b[0][1], b[0][0]);
-            var p2 = L.latLng(b[1][1], b[1][0]);
+            const p1 = L.latLng(b[0][1], b[0][0]);
+            const p2 = L.latLng(b[1][1], b[1][0]);
             bs.push(p1);
             bs.push(p2);
         });
@@ -7948,8 +7938,8 @@ class Block_Categorical extends Block {
         }
         return Util.addMarginToBounds(new L.latLngBounds(bs));
     }
-    catMap_invertColorTheme(v = null) {
-        if (v === null)
+    catMap_invertColorTheme(v) {
+        if (v == null)
             v = !this.invertedColorTheme; // invert
         this.invertedColorTheme = v;
         if (this.mapColorScale) {
@@ -7964,7 +7954,7 @@ class Block_Categorical extends Block {
     catMap_refreshColorScale() {
         if (!this.DOM.mapColorBlocks)
             return;
-        var colorTheme = this.browser.colorTheme.getDiscrete(9);
+        let colorTheme = this.browser.colorTheme.getDiscrete(9);
         if (this.invertedColorTheme) {
             colorTheme = colorTheme.reverse();
         }
@@ -8173,7 +8163,7 @@ class Block_Categorical extends Block {
             var _fill = "url(#diagonalHatch)";
             var _stroke = "#111111";
             if (_visV != null) {
-                _fill = mapColorQuantize(this.mapColorScale(_visV));
+                _fill = mapColorQuantize(this.mapColorScale(_visV)).toString();
                 _stroke = d3$e.hsl(_fill).l > 0.5 ? "#111111" : "#EEEEEE";
             }
             DOM.style.fill = _fill;
@@ -8333,23 +8323,23 @@ class Block_Categorical extends Block {
                 .append("span")
                 .attr("class", "filterButton far fa-filter")
                 .tooltip(i18n.Filter)
-                .on("click", (event, _cat) => {
-                var menuConfig = { name: "Filter", items: [] };
-                var _only = true, _and = !_cat.filtered_AND(), _or = !_cat.filtered_OR(), _not = !_cat.filtered_NOT(), _remove = _cat.isFiltered();
-                var _Or_And = this.attrib.summaryFilter.selected_OR.length > 0 ||
+                .on("click", (event, ctgry) => {
+                const menuConfig = { name: "Filter", items: [] };
+                let _only = true, _and = !ctgry.filtered_AND(), _or = !ctgry.filtered_OR(), _not = !ctgry.filtered_NOT(), _remove = ctgry.isFiltered();
+                const _Or_And = this.attrib.summaryFilter.selected_OR.length > 0 ||
                     this.attrib.summaryFilter.selected_AND.length > 0;
                 if (!this.attrib.isMultiValued) {
-                    _only = !_cat.filtered_AND();
+                    _only = !ctgry.filtered_AND();
                     _and = false;
-                    _or = _or && _Or_And && !_cat.filtered_AND();
-                    _not = _not && (!_Or_And || _cat.filtered_AND());
+                    _or = _or && _Or_And && !ctgry.filtered_AND();
+                    _not = _not && (!_Or_And || ctgry.filtered_AND());
                 }
                 else {
                     _only = true;
                     _and = _and && _Or_And;
                     _or = _or && _Or_And;
                 }
-                var _label = `<span class='filterContextLabel'>${_cat.label}</span>`;
+                const _label = `<span class='filterContextLabel'>${ctgry.label}</span>`;
                 if (_remove) {
                     menuConfig.items.push({
                         id: "filterOption_Remove",
@@ -8401,7 +8391,7 @@ class Block_Categorical extends Block {
                         do: (_cat) => this.attrib.filterCategory(_cat, "NOT"),
                     });
                 }
-                Modal.popupMenu(event, menuConfig, _cat, {
+                Modal.popupMenu(event, menuConfig, ctgry, {
                     placement: "bottom-start",
                 });
                 event.stopPropagation();
@@ -8425,11 +8415,11 @@ class Block_Categorical extends Block {
                 .append("span")
                 .attr("class", "catLabelOrder fa fa-bars")
                 .tooltip(i18n["Reorder"])
-                .on("mousedown", (event, aggr) => {
+                .on("mousedown", (event, ctgry) => {
                 var catNode = event.currentTarget.parentNode.parentNode;
                 var catGroupNode = event.currentTarget.parentNode.parentNode.parentNode;
                 me.browser.DOM.root.classed("noPointerEvents", true);
-                var srcIndex = aggr.orderIndex;
+                var srcIndex = ctgry.orderIndex;
                 d3$e.select("body")
                     .on("mousemove.reordercat", function (event2) {
                     catNode.classList.add("draggedCategory");
@@ -8455,9 +8445,9 @@ class Block_Categorical extends Block {
                         skip.mult = -1;
                     }
                     // update orderIndex!
-                    aggr.orderIndex = targetIndex;
+                    ctgry.orderIndex = targetIndex;
                     me.DOM.aggrGlyphs
-                        .filter((_cat) => _cat.label !== aggr.label) // all but the moved one
+                        .filter((_cat) => _cat.label !== ctgry.label) // all but the moved one
                         .each((_cat) => {
                         if (_cat.orderIndex >= skip.from &&
                             _cat.orderIndex <= skip.to)
@@ -8488,11 +8478,11 @@ class Block_Categorical extends Block {
                 }
                 event.currentTarget.tippy.setContent(i18n.EditTitle + info);
             })
-                .on("click", function (event, d) {
+                .on("click", function (event, ctgry) {
                 this.tippy.hide();
                 if (event.shiftKey) {
-                    delete me.attrib.catLabel_attr[d.id];
-                    this.nextSibling.innerHTML = purify.sanitize(d.id);
+                    delete me.attrib.catLabel_attr[ctgry.id];
+                    this.nextSibling.innerHTML = purify.sanitize(ctgry.id);
                     return;
                 }
                 this.style.display = "none";
@@ -8503,7 +8493,7 @@ class Block_Categorical extends Block {
             domAttrLabel
                 .append("span")
                 .attr("class", "catLabel")
-                .html((aggr) => aggr.label)
+                .html((ctgry) => ctgry.label)
                 .on("focus", function () {
                 this._initValue = purify.sanitize(this.innerHTML);
                 document.execCommand("selectAll", false, null);
@@ -8514,7 +8504,7 @@ class Block_Categorical extends Block {
                 this.previousSibling.style.display = "";
                 this.previousSibling.previousSibling.style.display = "";
             })
-                .on("keydown", function (event, d) {
+                .on("keydown", function (event, ctgry) {
                 if (event.keyCode === 27) {
                     // Escape key
                     // Do not apply the new label
@@ -8531,37 +8521,37 @@ class Block_Categorical extends Block {
                         this.blur();
                         return;
                     }
-                    d.label = newLabel;
-                    me.attrib.catLabel_attr[d.id] = newLabel;
+                    ctgry.label = newLabel;
+                    me.attrib.catLabel_attr[ctgry.id] = newLabel;
                     this.blur();
                 }
             });
             var labelGroup = DOM_cats_new.append("div").attr("class", "measureLabelGroup");
-            Base.Active_Compare_List.forEach((m) => {
+            Base.Active_Compare_List.forEach((measureType) => {
                 labelGroup
                     .append("span")
-                    .attr("class", "measureLabel measureLabel_" + m);
+                    .attr("class", "measureLabel measureLabel_" + measureType);
             });
             var measureGroup = DOM_cats_new.append("div").attr("class", "measureGroup");
-            Base.Total_Active_Compare_List.forEach((t) => {
+            Base.Total_Active_Compare_List.forEach((measureType) => {
                 measureGroup
                     .append("span")
-                    .attr("class", `measure_${t} bg_${t}`)
+                    .attr("class", `measure_${measureType} bg_${measureType}`)
                     .on("mouseenter", (event, aggr) => {
                     aggr.DOM.aggrGlyph
-                        .querySelector(".measureLabel_" + t)
+                        .querySelector(".measureLabel_" + measureType)
                         .classList.add("forceShow");
-                    if (Base.Compare_List.find((_) => _ === t)) {
-                        this.browser.refreshAllMeasureLabels(t);
+                    if (Base.Compare_List.find((_) => _ === measureType)) {
+                        this.browser.refreshAllMeasureLabels(measureType);
                     }
                     event.preventDefault();
                     event.stopPropagation();
                 })
                     .on("mouseleave", (_event, aggr) => {
-                    var labelDOM = aggr.DOM.aggrGlyph.querySelector(".measureLabel_" + t);
+                    var labelDOM = aggr.DOM.aggrGlyph.querySelector(".measureLabel_" + measureType);
                     if (labelDOM)
                         labelDOM.classList.remove("forceShow");
-                    if (Base.Compare_List.find((_) => _ === t)) {
+                    if (Base.Compare_List.find((_) => _ === measureType)) {
                         this.browser.refreshAllMeasureLabels("Active");
                     }
                 });
@@ -8587,20 +8577,21 @@ class Block_Categorical extends Block {
             return;
         var _top = this.height_bar_topGap;
         var barHeight = this.barHeight_Full;
-        if (this.browser.stackedCompare.get() && !this.panel.hiddenCatBars()) {
-            var baseline = this.measureLineZero;
-            var maxWidth = this.width_CatBars;
-            var endOfBar = !this.browser.isCompared();
-            this.DOM["measureLabel_" + sT].each((aggr, i, nodes) => {
-                var _width = aggr.scale(sT);
-                var _left = baseline + aggr.offset(sT);
-                var _right = _left + _width;
-                var _hidden = this.browser.getMeasureValue(aggr, sT) == 0;
+        let labelDOM = this.DOM["measureLabel_" + sT];
+        if (this.attrib.stackedCompare && !this.panel.hiddenCatBars()) {
+            const baseline = this.measureLineZero;
+            const maxWidth = this.width_CatBars;
+            const endOfBar = !this.browser.isCompared();
+            labelDOM.each((aggr, i, nodes) => {
+                let _width = aggr.scale(sT);
+                let _left = baseline + aggr.offset(sT);
+                let _right = _left + _width;
+                let _hidden = this.browser.getMeasureValue(aggr, sT) == 0;
                 if (!_hidden && this.browser.isCompared()) {
                     _hidden = aggr.scale(sT) < this.width_CatMeasureLabel - 4;
                 }
                 // label alignment
-                var _labelAlign = Math.abs(_left - baseline) < 2
+                let _labelAlign = Math.abs(_left - baseline) < 2
                     ? "left"
                     : Math.abs(_right - maxWidth) < 2 &&
                         this.browser.relativeBreakdown
@@ -8624,11 +8615,11 @@ class Block_Categorical extends Block {
                 barHeight = barHeight / this.browser.activeComparisonsCount;
                 _top += barHeight * curGroup;
             }
-            var onlySelectedNoSplit = !this.browser.stackedChart &&
-                this.attrib.isComparedAttrib() &&
-                this.attrib.isMultiValued &&
-                !this.splitOnSelfCompare;
-            this.DOM["measureLabel_" + sT]
+            const onlySelectedNoSplit = !this.browser.stackedChart
+                && this.attrib.isComparedAttrib()
+                && this.attrib.isMultiValued
+                && !this.splitOnSelfCompare;
+            labelDOM
                 .attr("labelAlign", null)
                 .classed("hidden", (aggr) => {
                 if (onlySelectedNoSplit)
@@ -8641,7 +8632,7 @@ class Block_Categorical extends Block {
                 .style("transform", `translateY(${_top}px)`)
                 .style("width", null);
         }
-        this.DOM["measureLabel_" + sT].style("line-height", barHeight + "px");
+        labelDOM.style("line-height", barHeight + "px");
     }
     refreshDOMcats() {
         this.DOM.aggrGlyphs = this.DOM.aggrGroup
@@ -8734,31 +8725,31 @@ class Block_Categorical extends Block {
                 skip.mult = -1;
             }
             this.DOM.aggrGlyphs
-                .filter((_cat) => _cat.orderIndex !== selfOrder)
+                .filter((ctgry) => ctgry.orderIndex !== selfOrder)
                 .transition()
                 .duration(sortDelay)
-                .style("transform", (_cat) => {
-                var offset = _cat.orderIndex >= skip.from && _cat.orderIndex <= skip.to
+                .style("transform", (ctgry) => {
+                var offset = ctgry.orderIndex >= skip.from && ctgry.orderIndex <= skip.to
                     ? this.heightCat * skip.mult
                     : 0;
-                return `translate(${_cat.posX}px, ${_cat.posY + offset}px)`;
+                return `translate(${ctgry.posX}px, ${ctgry.posY + offset}px)`;
             });
             return;
         }
-        var cats_NotActiveBeforeAndNow = this.DOM.aggrGlyphs.filter((_cat) => !_cat.isActiveBefore && !_cat.isActive);
-        var cats_Disappearing = this.DOM.aggrGlyphs.filter((_cat) => _cat.isActiveBefore && !_cat.isActive);
-        var cats_Appearing = this.DOM.aggrGlyphs.filter((_cat) => !_cat.isActiveBefore && _cat.isActive);
-        var cats_Active = this.DOM.aggrGlyphs.filter((_cat) => _cat.isActive);
+        var cats_NotActiveBeforeAndNow = this.DOM.aggrGlyphs.filter((ctgry) => !ctgry.isActiveBefore && !ctgry.isActive);
+        var cats_Disappearing = this.DOM.aggrGlyphs.filter((ctgry) => ctgry.isActiveBefore && !ctgry.isActive);
+        var cats_Appearing = this.DOM.aggrGlyphs.filter((ctgry) => !ctgry.isActiveBefore && ctgry.isActive);
+        var cats_Active = this.DOM.aggrGlyphs.filter((ctgry) => ctgry.isActive);
         cats_NotActiveBeforeAndNow.style("display", "none");
         var xRemoveOffset = -100;
         // Disappear animation
         cats_Disappearing
             .transition()
             .duration(sortDelay)
-            .on("end", function (aggr) {
+            .on("end", function (ctgry) {
             this.style.opacity = 0;
-            aggr.posX = xRemoveOffset;
-            this.style.transform = aggr.transformPos;
+            ctgry.posX = xRemoveOffset;
+            this.style.transform = ctgry.transformPos;
         })
             .transition()
             .duration(1000)
@@ -8769,12 +8760,12 @@ class Block_Categorical extends Block {
         cats_Appearing
             .transition()
             .duration(sortDelay)
-            .on("end", (aggr, i, nodes) => {
+            .on("end", (ctgry, i, nodes) => {
             var node = nodes[i];
             node.style.opacity = 0;
             node.style.display = null;
-            aggr.posX = xRemoveOffset;
-            node.style.transform = aggr.transformPos;
+            ctgry.posX = xRemoveOffset;
+            node.style.transform = ctgry.transformPos;
         });
         // Sort animation
         var perCatDelay = 30;
@@ -8792,15 +8783,15 @@ class Block_Categorical extends Block {
                 x +
                 Math.min(_cat.orderIndex, this.catCount_InDisplay + 2) * perCatDelay);
         })
-            .on("end", (aggr, i, nodes) => {
-            aggr.posX = 0;
+            .on("end", (ctgry, i, nodes) => {
+            ctgry.posX = 0;
             nodes[i].style.opacity = 1;
-            nodes[i].style.transform = aggr.transformPos;
+            nodes[i].style.transform = ctgry.transformPos;
         })
             .transition()
             .duration(250)
-            .on("end", (aggr, i, nodes) => {
-            if (!(aggr.isVisible || aggr.isVisibleBefore)) {
+            .on("end", (ctgry, i, nodes) => {
+            if (!(ctgry.isVisible || ctgry.isVisibleBefore)) {
                 nodes[i].style.display = "none";
             }
         });
@@ -8817,7 +8808,7 @@ class Block_Categorical extends Block {
             return;
         if (!this.isVisible())
             return;
-        import('./vendor.js').then(function (n) { return n.a3; }).then((Choices) => {
+        import('./vendor.js').then(function (n) { return n.a4; }).then((Choices) => {
             var me = this; // callbacks set their own this context for choices library
             var cfg = {
                 searchEnabled: this._aggrs.length > 15,
@@ -8833,17 +8824,17 @@ class Block_Categorical extends Block {
                 callbackOnCreateTemplates: () => ({
                     choice(classes, obj) {
                         const el = Choices.defaults.templates.choice.call(this, classes, obj);
-                        var aggr = me.attrib.catTable_id[obj.label];
-                        if (aggr && aggr.compared) {
-                            el.classList.add(aggr.compared);
+                        const ctgry = me.attrib.catTable_id[obj.label];
+                        if (ctgry === null || ctgry === void 0 ? void 0 : ctgry.compared) {
+                            el.classList.add(ctgry.compared);
                         }
                         return el;
                     },
                     item(classes, obj) {
                         const el = Choices.defaults.templates.item.call(this, classes, obj, me.dropdown_type === "MultiSelect");
-                        var aggr = me.attrib.catTable_id[obj.label];
-                        if (aggr && aggr.compared) {
-                            el.classList.add("bg_" + aggr.compared);
+                        const ctgry = me.attrib.catTable_id[obj.label];
+                        if (ctgry === null || ctgry === void 0 ? void 0 : ctgry.compared) {
+                            el.classList.add("bg_" + ctgry.compared);
                         }
                         return el;
                     },
@@ -8859,13 +8850,13 @@ class Block_Categorical extends Block {
             this.DOM.ChoicesSelectDOM.node().addEventListener("removeItem", (event) => {
                 if (this.dropdown_type !== "MultiSelect")
                     return;
-                var _cat = event.detail.customProperties;
-                if (!_cat) {
+                var ctgry = event.detail.customProperties;
+                if (!ctgry) {
                     // choices js: Update/remove after version update of library, feature just added.
-                    _cat = this.attrib.catTable_id[event.detail.label];
+                    ctgry = this.attrib.catTable_id[event.detail.label];
                 }
-                if (_cat)
-                    this.attrib.onAggrClick(event, _cat);
+                if (ctgry)
+                    this.attrib.onAggrClick(event, ctgry);
             });
             this.DOM.ChoicesSelectDOM.node().addEventListener("choice", (_event) => {
                 var selectedCat = this.attrib.summaryFilter.selected_AND[0];
@@ -9387,10 +9378,10 @@ class Block_Set extends Block {
     }
     /** -- */
     refreshViz_Compare(cT, curGroup, totalGroups, prevCts) {
-        var strokeWidth = (aggr) => 0;
+        var strokeWidth = (_aggr) => 0;
         var aggrValue = (aggr, sT) => aggr.ratioToActive(sT);
         var usingFullSizeGlyph = this.usingFullSizeGlyph();
-        if (!this.browser.stackedCompare) {
+        if (!this.attrib.stackedCompare) {
             strokeWidth = (aggr) => (this.setPairRadius / totalGroups) *
                 (usingFullSizeGlyph ? 1 : this.getCliqueSizeRatio(aggr));
             prevCts = [];
@@ -9405,18 +9396,18 @@ class Block_Set extends Block {
             .ease(d3$d.easeLinear)
             .duration(curGroup === totalGroups - 1 && this.browser.addedCompare ? 500 : 0)
             .attrTween("d", (aggr, i, nodes) => {
-            var DOM = nodes[i];
-            var offset = prevCts.reduce((accum, sT) => accum + aggrValue(aggr, sT), 0);
-            var angleInterp = d3$d.interpolate(DOM._currentPreviewAngle, aggrValue(aggr, cT));
-            var r = this.setPairRadius *
+            const DOM = nodes[i];
+            const offset = prevCts.reduce((accum, sT) => accum + aggrValue(aggr, sT), 0);
+            const angleInterp = d3$d.interpolate(DOM._currentPreviewAngle, aggrValue(aggr, cT));
+            const r = this.setPairRadius *
                 (usingFullSizeGlyph ? 1 : this.getCliqueSizeRatio(aggr)) -
-                (this.browser.stackedCompare
+                (this.attrib.stackedCompare
                     ? 0
                     : (curGroup + 0.5) * strokeWidth(aggr)); // side-by-side radius adjust
             return (t) => {
-                var newAngle = angleInterp(t);
+                const newAngle = angleInterp(t);
                 DOM._currentPreviewAngle = newAngle;
-                return Util.getPieSVGPath(offset, newAngle, r, !this.browser.stackedCompare);
+                return Util.getPieSVGPath(offset, newAngle, r, !this.attrib.stackedCompare);
             };
         });
     }
@@ -9780,21 +9771,6 @@ class Block_Set extends Block {
 
 /** -- */
 class Attrib_Set extends Attrib {
-    // ********************************************************************
-    // Constructor
-    // ********************************************************************
-    constructor(browser, parent) {
-        super(browser, i18n.SetPairTitle(parent.attribName), null, // no template, no accessor
-        "setpair", "setPairSummary", "" // not in attribute list
-        );
-        // ********************************************************************
-        // Aggregates (setpairs)
-        // ********************************************************************
-        this._aggrs = [];
-        this._setPairs_ID = {};
-        this._parent = parent;
-        this._block = new Block_Set(this);
-    }
     get parent() {
         return this._parent;
     }
@@ -9811,6 +9787,21 @@ class Attrib_Set extends Attrib {
     // sets are parent summaries aggregates
     get sets() {
         return this.setListAttrib._aggrs;
+    }
+    // ********************************************************************
+    // Constructor
+    // ********************************************************************
+    constructor(browser, parent) {
+        super(browser, i18n.SetPairTitle(parent.attribName), null, // no template, no accessor
+        "setpair", "setPairSummary", "" // not in attribute list
+        );
+        // ********************************************************************
+        // Aggregates (setpairs)
+        // ********************************************************************
+        this._aggrs = [];
+        this._setPairs_ID = {};
+        this._parent = parent;
+        this._block = new Block_Set(this);
     }
     /** -- */
     initializeAggregates() {
@@ -10193,6 +10184,34 @@ class Filter_Categorical extends Filter {
 
 const d3$c = { max };
 class Attrib_Categorical extends Attrib {
+    get block() {
+        return this._block;
+    }
+    get measureRangeMax() {
+        return this.block.width_CatBars;
+    }
+    applyTemplateSpecial() {
+        if (this.template.special === "Year") {
+            this.setSortingOption("id");
+        }
+        else if (this.template.special === "Month") {
+            this.setSortingOption("id");
+            this.setCatLabel(i18n.Lookup_Months);
+        }
+        else if (this.template.special === "WeekDay") {
+            this.setSortingOption("id");
+            this.setCatLabel(i18n.Lookup_DaysOfWeek);
+        }
+    }
+    supportsRecordEncoding(coding) {
+        if (this.isEmpty())
+            return false;
+        if (coding === "text")
+            return true;
+        if (coding === "textBrief")
+            return true;
+        return false;
+    }
     constructor(browser, name, template) {
         super(browser, name, template, "categorical", "kshfSummary_Categorical", "far fa-font");
         this._aggrs = [];
@@ -10306,34 +10325,6 @@ class Attrib_Categorical extends Attrib {
         });
         this.setSortingOption();
         this.finishTemplateSpecial();
-    }
-    get block() {
-        return this._block;
-    }
-    get measureRangeMax() {
-        return this.block.width_CatBars;
-    }
-    applyTemplateSpecial() {
-        if (this.template.special === "Year") {
-            this.setSortingOption("id");
-        }
-        else if (this.template.special === "Month") {
-            this.setSortingOption("id");
-            this.setCatLabel(i18n.Lookup_Months);
-        }
-        else if (this.template.special === "WeekDay") {
-            this.setSortingOption("id");
-            this.setCatLabel(i18n.Lookup_DaysOfWeek);
-        }
-    }
-    supportsRecordEncoding(coding) {
-        if (this.isEmpty())
-            return false;
-        if (coding === "text")
-            return true;
-        if (coding === "textBrief")
-            return true;
-        return false;
     }
     // TODO incomplete
     getAggrWithLabel(v) {
@@ -11105,11 +11096,6 @@ const d3$b = {
     easePoly: polyInOut,
 };
 class RecordView {
-    constructor(rd) {
-        this.initialized = false;
-        this.animStepDelayMs = 1000;
-        this.rd = rd;
-    }
     get browser() {
         return this.rd.browser;
     }
@@ -11139,6 +11125,11 @@ class RecordView {
     }
     get DOM() {
         return this.rd.DOM;
+    }
+    constructor(rd) {
+        this.initialized = false;
+        this.animStepDelayMs = 1000;
+        this.rd = rd;
     }
     refreshRecordSizes() { }
     refreshRecordColors() { }
@@ -11355,6 +11346,18 @@ function hideAllPoppers() {
     });
 }
 class RecordView_Timeseries extends RecordView {
+    get timeseriesAttrib() {
+        return this.rd.codeBy.timeSeries;
+    }
+    /** -- */
+    prepareAttribs() {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (!this.timeseriesAttrib) {
+                yield this.rd.setAttrib("timeSeries", this.rd.config.timeSeriesBy || 0);
+            }
+            return Promise.resolve(true);
+        });
+    }
     constructor(rd, config) {
         super(rd);
         this.timeKeys_Active = [];
@@ -11582,18 +11585,6 @@ class RecordView_Timeseries extends RecordView {
             },
         };
         this.timeRange.importConfig(config.timeRange);
-    }
-    get timeseriesAttrib() {
-        return this.rd.codeBy.timeSeries;
-    }
-    /** -- */
-    prepareAttribs() {
-        return __awaiter(this, void 0, void 0, function* () {
-            if (!this.timeseriesAttrib) {
-                yield this.rd.setAttrib("timeSeries", this.rd.config.timeSeriesBy || 0);
-            }
-            return Promise.resolve(true);
-        });
     }
     /** -- */
     initView() {
@@ -12866,10 +12857,6 @@ const d3$9 = {
     arc,
 };
 class RecordView_Map extends RecordView {
-    constructor(rd, config) {
-        super(rd);
-        this.zoomedBefore = false;
-    }
     extendRecordDOM(newRecords) {
         if (this.geoAttrib.geoType === "Point") {
             if (this.rd.config.mapUsePins) {
@@ -13004,16 +12991,15 @@ class RecordView_Map extends RecordView {
                 // When zoom is triggered by fly, the leaflet-zoom-anim is not set.
                 .on("zoomstart", () => {
                 resetPointSizes.call(this);
-                var _ = d3$9.select(this.leafletRecordMap.getPane("mapPane"));
-                _.classed("leaflet-zoom-anim", true);
+                d3$9.select(this.leafletRecordMap.getPane("mapPane"))
+                    .classed("leaflet-zoom-anim", true);
             })
                 .on("zoomend", () => {
-                var _ = d3$9.select(this.leafletRecordMap.getPane("mapPane"));
-                _.classed("leaflet-zoom-anim", false);
+                d3$9.select(this.leafletRecordMap.getPane("mapPane"))
+                    .classed("leaflet-zoom-anim", false);
             });
             if (!this.mapConfig.tileConfig.disabled) {
-                let leafletTileLayer = new L.TileLayer(this.mapConfig.tileTemplate, this.mapConfig.tileConfig);
-                this.leafletRecordMap.addLayer(leafletTileLayer);
+                this.leafletRecordMap.addLayer(new L.TileLayer(this.mapConfig.tileTemplate, this.mapConfig.tileConfig));
             }
             this.leafletRecordMap.attributionControl.setPosition("topright");
             this.recordGeoPath = d3$9.geoPath().projection(d3$9.geoTransform({
@@ -13084,10 +13070,10 @@ class RecordView_Map extends RecordView {
             else if (t === "geo") {
                 this.rd.config.geo = this.geoAttrib.attribName;
                 this.DOM.root.attr("data-geotype", this.geoAttrib.geoType);
-                this.DOM.root
-                    .select(".mapView-UnmatchedData")
+                this.DOM.root.select(".mapView-UnmatchedData")
                     .classed("active", this.geoAttrib.noValueAggr.records.length > 0);
                 if (this.geoAttrib.geoType === "Point") {
+                    this.geoAttrib.setPointClusterRadius(this.rd.config.pointClusterRadius, this.leafletRecordMap);
                     // size
                     if (!this.rd.codeBy.size && this.rd.config.sizeBy) {
                         yield this.rd.setAttrib("size", this.rd.config.sizeBy);
@@ -13108,10 +13094,9 @@ class RecordView_Map extends RecordView {
             return;
         // update rendering of point clusters
         if (this.rd.hasAggregates()) {
-            var sideBySide = this.browser.stackedCompare.is(false);
             // compute "offset" for each aggregate
             this.geoAttrib._aggrs.forEach((aggr) => {
-                var _offset = 0;
+                let _offset = 0;
                 aggr._glyphOrder = {};
                 // re-order the comparisons so that the larger ones come first
                 this.browser.activeComparisons
@@ -13123,7 +13108,8 @@ class RecordView_Map extends RecordView {
                     _offset += aggr.measure(cT2);
                 });
             });
-            var numComparisons = this.browser.activeComparisonsCount;
+            const sideBySide = this.browser.stackedCompare.is(false);
+            const numComparisons = this.browser.activeComparisonsCount;
             this.browser.activeComparisons.forEach((cT2) => {
                 this.DOM["clusterGlyphs_" + cT2]
                     .style("stroke-width", (aggr) => {
@@ -13135,19 +13121,19 @@ class RecordView_Map extends RecordView {
                     .ease(d3$9.easePoly.exponent(3))
                     .duration(700)
                     .attrTween("d", (aggr, i, nodes) => {
-                    var DOM = nodes[i];
-                    var offset = sideBySide
+                    const DOM = nodes[i];
+                    const offset = sideBySide
                         ? 0
                         : aggr.offset(cT2) / (aggr.measure("Active") || 1);
-                    var angleInterp = d3$9.interpolate(DOM._currentPreviewAngle, aggr.ratioToActive(cT2));
-                    var r = aggr.cluster._radius;
+                    const angleInterp = d3$9.interpolate(DOM._currentPreviewAngle, aggr.ratioToActive(cT2));
+                    let r = aggr.cluster._radius;
                     if (sideBySide) {
                         r -=
                             (aggr._glyphOrder[cT2] + 0.5) *
                                 (aggr.cluster._radius / numComparisons);
                     }
                     return (t) => {
-                        var newAngle = angleInterp(t);
+                        const newAngle = angleInterp(t);
                         DOM._currentPreviewAngle = newAngle;
                         return Util.getPieSVGPath(offset, newAngle, r - 1, sideBySide);
                     };
@@ -13157,15 +13143,18 @@ class RecordView_Map extends RecordView {
         // normal comparison rendering
         super.refreshSelect_Compare(cT, status);
     }
+    constructor(rd, _config) {
+        super(rd);
+        this.zoomedBefore = false;
+    }
     refreshQueryBox_Filter(bounds = null) {
         if (this.rd.collapsed)
             return;
-        var _left, _right, _top, _bottom;
-        var isVisible = false;
+        let isVisible = false;
         if (typeof L === "undefined") {
             throw Error("Leaflet not initialized");
         }
-        var north_west, south_east;
+        let north_west, south_east;
         if (bounds === null) {
             isVisible = this.geoAttrib.isFiltered();
             if (!isVisible)
@@ -13180,10 +13169,10 @@ class RecordView_Map extends RecordView {
         else {
             throw Error("Invalud value");
         }
-        _left = north_west.x;
-        _right = south_east.x;
-        _top = north_west.y;
-        _bottom = south_east.y;
+        let _left = north_west.x;
+        let _right = south_east.x;
+        let _top = north_west.y;
+        let _bottom = south_east.y;
         this.rd.DOM.recordDisplayWrapper
             .select(".recordBase_Map  .spatialQueryBox_Filter")
             .classed("active", bounds || isVisible)
@@ -13198,7 +13187,7 @@ class RecordView_Map extends RecordView {
         setTimeout(() => this.leafletRecordMap.invalidateSize(), delayMs);
     }
     /** -- */
-    refreshAttribUnitName(attrib) {
+    refreshAttribUnitName(_attrib) {
         this.rd.refreshColorLegendTicks();
     }
     /** -- */
@@ -13235,7 +13224,7 @@ class RecordView_Map extends RecordView {
         this.leafletRecordMap.setMaxBounds(Util.addMarginToBounds(this.geoAttrib.getRecordBounds(false)));
     }
     translate_glyph(v) {
-        var point = this.leafletRecordMap.latLngToLayerPoint(new L.latLng(v[1], v[0]));
+        let point = this.leafletRecordMap.latLngToLayerPoint(new L.latLng(v[1], v[0]));
         return `translate(${point.x},${point.y})`;
     }
     /** -- */
@@ -13272,7 +13261,7 @@ class RecordView_Map extends RecordView {
                 // filter - TODO needs to have its own filter logic
                 return;
             }
-            var latlong = aggr.cluster.geometry.coordinates;
+            let latlong = aggr.cluster.geometry.coordinates;
             this.leafletRecordMap.setZoomAround(new L.latLng(latlong[1], latlong[0]), this.leafletRecordMap.getZoom() + 1);
         })
             .call((clusterGlyph) => {
@@ -13326,12 +13315,12 @@ class RecordView_Map extends RecordView {
             return;
         if (!this.rd.recordRadiusScale)
             return;
-        var clusterArc = d3$9
+        let clusterArc = d3$9
             .arc()
             .innerRadius(0)
             .startAngle(0)
             .endAngle(2 * Math.PI);
-        var circleDraw = (aggr) => clusterArc.outerRadius(aggr.cluster._radius)();
+        let circleDraw = (aggr) => clusterArc.outerRadius(aggr.cluster._radius)(null);
         this.DOM.clusterGlyphs
             .each((aggr) => {
             aggr.cluster._radius = this.rd.recordRadiusScale(aggr.Active.measure);
@@ -13351,9 +13340,9 @@ class RecordView_Map extends RecordView {
         }
         else {
             this.DOM.clusterGlyphs_Active.each((cluster, i, nodes) => {
-                var v = cluster.Active.measure;
-                var _fill = v != null ? this.rd.recordColorScale(v) : "url(#diagonalHatch)";
-                var darkBg = v != null ? d3$9.hsl(_fill).l < 0.6 : false;
+                let v = cluster.Active.measure;
+                let _fill = v != null ? this.rd.recordColorScale(v) : "url(#diagonalHatch)";
+                let darkBg = v != null ? d3$9.hsl(_fill).l < 0.6 : false;
                 nodes[i].style.fill = _fill;
                 // to adjust text color by background luminance
                 nodes[i].parentNode.parentNode.classList[darkBg ? "add" : "remove"]("darkBg");
@@ -13361,11 +13350,11 @@ class RecordView_Map extends RecordView {
         }
         this.refreshSelect_Compare();
     }
-    /** --
+    /**
      * Returns the records that fit/intersect within the bounds (if point) or has geofeat (if polygon)
-     **/
+     */
     getRecordsForDOM() {
-        var bounds = this.leafletRecordMap.getBounds();
+        let bounds = this.leafletRecordMap.getBounds();
         return this.browser.records.filter((record) => {
             var _a;
             var _feat = (_a = this.geoAttrib.getRecordValue(record)) === null || _a === void 0 ? void 0 : _a.geoFeat;
@@ -13387,16 +13376,16 @@ class RecordView_Map extends RecordView {
         if (this.colorAttrib) {
             if (!this.rd.recordColorScale)
                 return;
-            var s_f;
-            var s_log = false;
-            var s_ts = (_record) => false;
+            let s_f;
+            let s_log = false;
+            let s_ts = (_record) => false;
             if (this.colorAttrib instanceof Attrib_Interval) {
                 s_f = this.colorAttrib.template.func;
                 s_log = this.colorAttrib.isValueScale_Log;
                 if (this.colorAttrib.hasTimeSeriesParent()) {
-                    var f_ps = this.colorAttrib.timeseriesParent.template.func;
+                    let f_ps = this.colorAttrib.timeseriesParent.template.func;
                     s_ts = function (record) {
-                        var _ = f_ps.call(this, record);
+                        let _ = f_ps.call(this, record);
                         if (!_ || !_._timeseries_)
                             return false;
                         return _._timeseries_.length === 0;
@@ -13412,11 +13401,11 @@ class RecordView_Map extends RecordView {
             this.DOM.kshfRecords_Path.each((record, i, nodes) => {
                 if (record.filteredOut)
                     return;
-                var DOM = nodes[i];
-                var _fill = "url(#diagonalHatch)";
-                var _stroke = "#111111";
-                var darkBg = false;
-                var v = s_f.call(record.data, record);
+                let DOM = nodes[i];
+                let _fill = "url(#diagonalHatch)";
+                let _stroke = "#111111";
+                let darkBg = false;
+                let v = s_f.call(record.data, record);
                 if (v === "" || v == null || typeof v !== "number" || (s_log && v <= 0))
                     v = null;
                 if (v != null) {
@@ -13455,6 +13444,26 @@ const d3$8 = {
     easePolyOut: polyOut,
 };
 class RecordView_Scatter extends RecordView {
+    prepareAttribs() {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (!this.scatterYAttrib) {
+                yield this.rd.setAttrib("scatterY", this.rd.config.scatterYBy ||
+                    (this.rd.codeBy.sort instanceof Attrib_Numeric
+                        ? this.rd.codeBy.sort
+                        : 0));
+            }
+            if (!this.scatterXAttrib) {
+                yield this.rd.setAttrib("scatterX", this.rd.config.scatterXBy || 0);
+            }
+            if (!this.rd.codeBy.color && this.rd.config.colorBy) {
+                yield this.rd.setAttrib("color", this.rd.config.colorBy);
+            }
+            if (!this.rd.codeBy.size && this.rd.config.sizeBy) {
+                yield this.rd.setAttrib("size", this.rd.config.sizeBy);
+            }
+            return Promise.resolve(true);
+        });
+    }
     constructor(rd, config) {
         super(rd);
         // ********************************************************************
@@ -13544,7 +13553,7 @@ class RecordView_Scatter extends RecordView {
         });
         this.scatterZoom = d3$8
             .zoom()
-            .filter(() => this.rd.visMouseMode === "pan" && this.rd.curHeight)
+            .filter(() => this.rd.visMouseMode === "pan" && this.rd.curHeight > 0)
             .scaleExtent([1, 8]) // 1 covers the whole dataset. 2 is double-zoom-in.
             .on("start", () => {
             this.DOM.recordDisplayWrapper.classed("dragging", true);
@@ -13560,26 +13569,6 @@ class RecordView_Scatter extends RecordView {
             this.refreshRecordVis();
         });
         this.refreshZoomScaleExtent();
-    }
-    prepareAttribs() {
-        return __awaiter(this, void 0, void 0, function* () {
-            if (!this.scatterYAttrib) {
-                yield this.rd.setAttrib("scatterY", this.rd.config.scatterYBy ||
-                    (this.rd.codeBy.sort instanceof Attrib_Numeric
-                        ? this.rd.codeBy.sort
-                        : 0));
-            }
-            if (!this.scatterXAttrib) {
-                yield this.rd.setAttrib("scatterX", this.rd.config.scatterXBy || 0);
-            }
-            if (!this.rd.codeBy.color && this.rd.config.colorBy) {
-                yield this.rd.setAttrib("color", this.rd.config.colorBy);
-            }
-            if (!this.rd.codeBy.size && this.rd.config.sizeBy) {
-                yield this.rd.setAttrib("size", this.rd.config.sizeBy);
-            }
-            return Promise.resolve(true);
-        });
     }
     /** -- */
     initView() {
@@ -14264,9 +14253,6 @@ const d3$7 = {
     curveMonotoneX: monotoneX,
     easePoly: polyInOut,
 };
-// All dates are based on UTC.
-// Since dates are created with zone offset by default, need to offset them back sometimes
-var offsetUTC = DateTime.now().offset;
 class Block_Timestamp extends Block_Interval {
     constructor(attrib) {
         super(attrib);
@@ -14280,20 +14266,20 @@ class Block_Timestamp extends Block_Interval {
         if (!this.isVisible() || !this.DOM.aggrGlyphs)
             return;
         super.refreshViz_Active();
-        this.updateViz_Areas("Active", !this.browser.stackedCompare && this.browser.activeComparisonsCount > 0);
+        this.updateViz_Areas("Active", !this.attrib.stackedCompare && this.browser.activeComparisonsCount > 0);
     }
     /** - */
     refreshViz_Compare(cT, curGroup, totalGroups, prevCts = []) {
         if (!this.isVisible() || !this.DOM.aggrGlyphs)
             return;
         super.refreshViz_Compare(cT, curGroup, totalGroups, prevCts);
-        if (this.browser.stackedCompare &&
+        if (this.attrib.stackedCompare &&
             this.browser.addedCompare &&
             curGroup === totalGroups - 1) {
             // smoother animation, sets it as a chart-line at offset first - instead of area chart
             this.DOM["measure_Area_" + cT].attr("d", this.getVizArea(cT, true));
         }
-        this.updateViz_Areas(cT, !this.browser.stackedCompare);
+        this.updateViz_Areas(cT, !this.attrib.stackedCompare);
     }
     /** -- */
     insertVizDOM() {
@@ -14387,9 +14373,12 @@ class Block_Timestamp extends Block_Interval {
             return;
         var skipSelect = false;
         var pikaday = DOM.pikaday;
+        // All dates are based on UTC.
+        // Since dates are created with zone offset by default, need to offset them back sometimes
+        var offsetUTC = DateTime.now().offset;
         var refreshPikadayDate = () => {
             var aggr = this.attrib.summaryFilter.active;
-            var _date = DateTime.fromJSDate(d === "min" ? aggr.minV : aggr.maxV)
+            var _date = DateTime.fromJSDate(d === "min" ? aggr.minV : aggr.maxV, { zone: 'UTC' })
                 .plus({ minutes: -offsetUTC })
                 .toJSDate();
             skipSelect = true;
@@ -14408,7 +14397,7 @@ class Block_Timestamp extends Block_Interval {
                         return;
                     }
                     var selectedDate = this.getDate();
-                    selectedDate = DateTime.fromJSDate(selectedDate)
+                    selectedDate = DateTime.fromJSDate(selectedDate, { zone: 'UTC' })
                         // need to convert value to UTC
                         .plus({ minutes: offsetUTC })
                         .toJSDate();
@@ -14485,32 +14474,7 @@ const d3$5 = {
     utcYear,
 };
 // All dates are based on UTC.
-// Since dates are created with zone offset by default, need to offset them back sometimes
-DateTime.now().offset;
 class Attrib_Timestamp extends Attrib_Interval {
-    constructor(browser, name, template) {
-        super(browser, name, template, "timestamp", "kshfSummary_Timestamp", "far fa-calendar-day");
-        this._block = new Block_Timestamp(this);
-        this.timeAxis_XFunc = (aggr) => (this.valueScale(aggr.minV) + this.valueScale(aggr.maxV)) / 2;
-        this.configs.showHistogram.cfgTitle = "Line Chart"; // customize from "Histogram"
-        this.timeTyped = {
-            // Finest level of resolution
-            finestRes: function () {
-                if (this.second)
-                    return "Second";
-                if (this.minute)
-                    return "Minute";
-                if (this.hour)
-                    return "Hour";
-                if (this.day)
-                    return "Day";
-                if (this.month)
-                    return "Month";
-                if (this.year)
-                    return "Year";
-            },
-        };
-    }
     /** -- */
     initTimeTyped() {
         // Check time resolutions
@@ -14543,6 +14507,29 @@ class Attrib_Timestamp extends Attrib_Interval {
                 }
             }
         });
+    }
+    constructor(browser, name, template) {
+        super(browser, name, template, "timestamp", "kshfSummary_Timestamp", "far fa-calendar-day");
+        this._block = new Block_Timestamp(this);
+        this.timeAxis_XFunc = (aggr) => (this.valueScale(aggr.minV) + this.valueScale(aggr.maxV)) / 2;
+        this.configs.showHistogram.cfgTitle = "Line Chart"; // customize from "Histogram"
+        this.timeTyped = {
+            // Finest level of resolution
+            finestRes: function () {
+                if (this.second)
+                    return "Second";
+                if (this.minute)
+                    return "Minute";
+                if (this.hour)
+                    return "Hour";
+                if (this.day)
+                    return "Day";
+                if (this.month)
+                    return "Month";
+                if (this.year)
+                    return "Year";
+            },
+        };
     }
     createAggregate(minV, maxV) {
         return new Aggregate_Interval_Date(this, minV, maxV);
@@ -14598,13 +14585,13 @@ class Attrib_Timestamp extends Attrib_Interval {
     }
     refreshValueScale() {
         super.refreshValueScale();
-        var maxScale = d3$5["utc" + this.timeTyped.finestRes()];
+        let maxScale = d3$5["utc" + this.timeTyped.finestRes()];
         if (this.intervalTicks.some((tick) => maxScale(tick) < tick)) {
-            var nicing = maxScale;
+            let nicing = maxScale;
             this.valueScale = this.getValueScaleObj()
                 .domain(this.rangeActive)
                 .range([0, this.block.width_histogram])
-                .nice(nicing);
+                .nice(maxScale);
             this.intervalTicks = this.valueScale.ticks(nicing);
         }
     }
@@ -14630,6 +14617,15 @@ class Attrib_Timestamp extends Attrib_Interval {
 
 const d3$4 = { select, pointer, scaleTime: time, scaleLinear: linear, extent, arc };
 class RecordView_List extends RecordView {
+    /** -- */
+    prepareAttribs() {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (!this.sortAttrib) {
+                yield this.rd.setAttrib("sort", this.rd.config.sortBy || 0);
+            }
+            return Promise.resolve(this.sortAttrib !== null);
+        });
+    }
     constructor(rd, config) {
         super(rd);
         // temporary / internal
@@ -14874,15 +14870,6 @@ class RecordView_List extends RecordView {
         this.maxVisibleItems_Default =
             config.maxVisibleItems_Default || Base.maxVisibleItems_Default;
         this.maxVisibleRecords = this.maxVisibleItems_Default; // This is the dynamic property
-    }
-    /** -- */
-    prepareAttribs() {
-        return __awaiter(this, void 0, void 0, function* () {
-            if (!this.sortAttrib) {
-                yield this.rd.setAttrib("sort", this.rd.config.sortBy || 0);
-            }
-            return Promise.resolve(this.sortAttrib !== null);
-        });
     }
     /** -- */
     initView() {
@@ -15257,7 +15244,7 @@ class RecordView_List extends RecordView {
         }
         else if (this.list_sortVizRange.is("dynamic")) {
             // dynamic - based on filtered data
-            var [minV, maxV] = d3$4.extent(this.browser.records, (record) => {
+            let [minV, maxV] = d3$4.extent(this.browser.records, (record) => {
                 return record.filteredOut
                     ? null
                     : this.sortAttrib.getRecordValue(record);
@@ -15276,7 +15263,10 @@ class RecordView_List extends RecordView {
         if (!this.isComparable())
             return;
         // Shows evenly spaces pies next to records, filling in colors of all comparisons
-        var arcGen = d3$4.arc().innerRadius(10).outerRadius(100).padAngle(0.15);
+        var arcGen = d3$4.arc()
+            .innerRadius(10)
+            .outerRadius(100)
+            .padAngle(0.15);
         var records = this.DOM.kshfRecords.filter((record) => {
             if (!record.isIncluded)
                 return false;
@@ -15290,14 +15280,15 @@ class RecordView_List extends RecordView {
             records = records.filter((record) => record.isSelected(cT) !== status);
         }
         records.each((record) => {
-            var numPies = record.activeComparisons.length || 1;
-            var arcLen = (2 * Math.PI) / numPies;
-            var d = d3$4.select(record.DOM.record);
+            let numPies = record.activeComparisons.length || 1;
+            let arcLen = (2 * Math.PI) / numPies;
+            let d = d3$4.select(record.DOM.record);
             record.activeComparisons.forEach((cT, i) => {
                 d.select(".glyph_" + cT).attr("d", arcGen({
                     startAngle: arcLen * i,
                     endAngle: arcLen * (i + 1),
-                }));
+                }) // has other settings specified above
+                );
             });
         });
     }
@@ -15420,12 +15411,11 @@ class RecordView_List extends RecordView {
         _.append("path")
             .attr("class", "timeline")
             .attr("d", (record) => {
-            var _a;
             var lineData = ts.getRecordValue(record);
             if (!lineData || !lineData.extent_Value_raw)
                 return;
             valueScale.domain(lineData.extent_Value_raw);
-            return Util.getLineGenerator(timeScale, valueScale)((_a = ts.getRecordValue(record)) === null || _a === void 0 ? void 0 : _a._timeseries_);
+            return Util.getLineGenerator(timeScale, valueScale)(lineData._timeseries_);
         });
         var __ = _.append("g")
             .attr("transform", dotPosition)
@@ -15435,7 +15425,7 @@ class RecordView_List extends RecordView {
             var nearestTimeKey = ts.timeKeys[0];
             ts.timeKeys.some((_key) => {
                 // _keys are sorted from early to late
-                var timeDif = Math.abs(+_key._time - _time);
+                var timeDif = Math.abs(+_key._time - (+_time));
                 if (timeDif > currentDif)
                     return true; // difference increases, we had just found the right key
                 currentDif = timeDif;
@@ -15528,6 +15518,54 @@ const d3$3 = {
 };
 /** -- */
 class RecordDisplay {
+    setView(_type) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (_type === "none") {
+                this.View = null;
+                return;
+            }
+            // Create the view object if it does not exist.
+            if (!this.Views[_type]) {
+                var recordDisplayOptions = this.browser.options.recordDisplay || {};
+                if (_type === "list") {
+                    this.Views[_type] = new RecordView_List(this, recordDisplayOptions);
+                }
+                else if (_type === "map") {
+                    this.Views[_type] = new RecordView_Map(this, recordDisplayOptions);
+                }
+                else if (_type === "scatter") {
+                    this.Views[_type] = new RecordView_Scatter(this, recordDisplayOptions);
+                }
+                else if (_type === "timeseries") {
+                    this.Views[_type] = new RecordView_Timeseries(this, recordDisplayOptions);
+                }
+            }
+            this.View = this.Views[_type];
+            if (!this.codeBy.text) {
+                var potentials = this.browser.attribs.filter((attrib) => attrib instanceof Attrib_Categorical);
+                if (potentials.length === 0) {
+                    throw new Error("Data must have at least one categorical attribute.");
+                }
+                // find the categorical attribute with most number of categories (i.e. most unique)
+                var mostUnique = potentials[0];
+                potentials.forEach((catAttr) => {
+                    if (mostUnique._aggrs.length < catAttr._aggrs.length) {
+                        mostUnique = catAttr;
+                    }
+                });
+                this.codeBy.text = mostUnique;
+            }
+            this.recordConfigPanel.hide();
+            yield this.View.initView_DOM();
+            yield this.View.prepareAttribs();
+            this.refreshViewAsOptions();
+            this.View.initView();
+            this.View.initialized = true;
+            this.View.updateRecordVisibility();
+            this.refreshWidth();
+            this.View.refreshViewSize(10);
+        });
+    }
     /** -- */
     constructor(browser, config) {
         // ********************************************************************
@@ -15708,54 +15746,6 @@ class RecordDisplay {
             this.config.timeSeriesAnnotations = _converted;
         }
         config.timeseriesWidth = config.timeseriesWidth || 400;
-    }
-    setView(_type) {
-        return __awaiter(this, void 0, void 0, function* () {
-            if (_type === "none") {
-                this.View = null;
-                return;
-            }
-            // Create the view object if it does not exist.
-            if (!this.Views[_type]) {
-                var recordDisplayOptions = this.browser.options.recordDisplay || {};
-                if (_type === "list") {
-                    this.Views[_type] = new RecordView_List(this, recordDisplayOptions);
-                }
-                else if (_type === "map") {
-                    this.Views[_type] = new RecordView_Map(this, recordDisplayOptions);
-                }
-                else if (_type === "scatter") {
-                    this.Views[_type] = new RecordView_Scatter(this, recordDisplayOptions);
-                }
-                else if (_type === "timeseries") {
-                    this.Views[_type] = new RecordView_Timeseries(this, recordDisplayOptions);
-                }
-            }
-            this.View = this.Views[_type];
-            if (!this.codeBy.text) {
-                var potentials = this.browser.attribs.filter((attrib) => attrib instanceof Attrib_Categorical);
-                if (potentials.length === 0) {
-                    throw new Error("Data must have at least one categorical attribute.");
-                }
-                // find the categorical attribute with most number of categories (i.e. most unique)
-                var mostUnique = potentials[0];
-                potentials.forEach((catAttr) => {
-                    if (mostUnique._aggrs.length < catAttr._aggrs.length) {
-                        mostUnique = catAttr;
-                    }
-                });
-                this.codeBy.text = mostUnique;
-            }
-            this.recordConfigPanel.hide();
-            yield this.View.initView_DOM();
-            yield this.View.prepareAttribs();
-            this.refreshViewAsOptions();
-            this.View.initView();
-            this.View.initialized = true;
-            this.View.updateRecordVisibility();
-            this.refreshWidth();
-            this.View.refreshViewSize(10);
-        });
     }
     /** Shortcut to access browser record chart type */
     get viewRecAs() {
@@ -16327,7 +16317,7 @@ class RecordDisplay {
                 var _theme = me.browser.activeColorTheme;
                 var _temp = me.browser.colorTheme[_theme];
                 me.browser.colorTheme[_theme] = this.value;
-                var colors = me.browser.colorTheme.getDiscrete(9);
+                let colors = me.browser.colorTheme.getDiscrete(9);
                 me.browser.colorTheme[_theme] = _temp;
                 if (me.invertedColorTheme)
                     colors = colors.reverse();
@@ -17294,7 +17284,7 @@ class RecordDisplay {
         // Value scale **********************
         // compute the min-max of the tooltip using the real record values
         var [value_min, value_max] = d3$3.extent(tsd, (_) => _._value);
-        var steadyValue = false;
+        var steadyValue;
         if (value_min === value_max) {
             steadyValue = value_min;
             value_min -= 0.0001;
@@ -17574,6 +17564,10 @@ class RecordDisplay {
 }
 
 class MapData {
+    // main external access to geometric feature (polygon, etc.) given an indexed key
+    getFeature(key) {
+        return this.features[key];
+    }
     /** -- */
     constructor(name, fileName, processCfg) {
         // cache for loaded state
@@ -17592,10 +17586,6 @@ class MapData {
             this.defaultIndexedProps = this.defaultIndexedProps.concat(processCfg.indexedProps);
         }
         this._processAlternatives(); // calling this to register the names for boost-detection
-    }
-    // main external access to geometric feature (polygon, etc.) given an indexed key
-    getFeature(key) {
-        return this.features[key];
     }
     /** -- */
     get geoLoaded() {
@@ -19804,6 +19794,19 @@ const d3$2 = {
     max,
 };
 class Panel {
+    hasBlocks() {
+        return this.attribs.length > 0;
+    }
+    isEmpty() {
+        return this.attribs.length === 0;
+    }
+    get blocks() {
+        return this.attribs.map(attrib => attrib.block);
+    }
+    get attribs_Categorical() {
+        // filter using typeguard
+        return this.attribs.filter((attrib) => attrib instanceof Attrib_Categorical);
+    }
     /** -- */
     constructor(browser, name, parentDOM) {
         // ********************************************************************
@@ -19837,19 +19840,6 @@ class Panel {
         if (this.name !== "bottom")
             targetWidth /= 3;
         this.setWidth(targetWidth);
-    }
-    hasBlocks() {
-        return this.attribs.length > 0;
-    }
-    isEmpty() {
-        return this.attribs.length === 0;
-    }
-    get blocks() {
-        return this.attribs.map(attrib => attrib.block);
-    }
-    get attribs_Categorical() {
-        // filter using typeguard
-        return this.attribs.filter((attrib) => attrib instanceof Attrib_Categorical);
     }
     get name() {
         return this._name;
@@ -20411,45 +20401,6 @@ class DataLoader_GoogleSheets {
 var DataLoaderRegistry = [];
 /** -- */
 class DataTable {
-    /** -- */
-    constructor(dataDescr) {
-        var _a;
-        // ********************************************************************
-        // Records
-        // ********************************************************************
-        this.records = [];
-        this._byKey = {};
-        // ********************************************************************
-        // Loading data
-        // ********************************************************************
-        this.onLoad = null;
-        this.postLoad = null;
-        this._isLoaded = false;
-        // CSV parsin settings with defaults
-        this.header = true;
-        this.fastMode = false;
-        this.dynamicTyping = true;
-        this.download = false;
-        this.stream = false;
-        if (dataDescr instanceof File) {
-            this.type = "file";
-            this.name = dataDescr.name;
-            this.file = dataDescr;
-            return;
-        }
-        if (typeof dataDescr === "string") {
-            dataDescr = { name: dataDescr };
-        }
-        dataDescr = Object.assign({}, dataDescr);
-        for (var x in dataDescr) {
-            this[x] = dataDescr[x];
-        }
-        if (this.gdocId) {
-            this.type = "GoogleSheets";
-        }
-        this.id = (_a = this.id) !== null && _a !== void 0 ? _a : "id";
-        Base.tables.set(this.name, this);
-    }
     getRecord(key) {
         return this._byKey[key];
     }
@@ -20491,6 +20442,45 @@ class DataTable {
     /** -- */
     static registerLoader(loader) {
         DataLoaderRegistry.push(loader);
+    }
+    /** -- */
+    constructor(dataDescr) {
+        var _a;
+        // ********************************************************************
+        // Records
+        // ********************************************************************
+        this.records = [];
+        this._byKey = {};
+        // ********************************************************************
+        // Loading data
+        // ********************************************************************
+        this.onLoad = null;
+        this.postLoad = null;
+        this._isLoaded = false;
+        // CSV parsin settings with defaults
+        this.header = true;
+        this.fastMode = false;
+        this.dynamicTyping = true;
+        this.download = false;
+        this.stream = false;
+        if (dataDescr instanceof File) {
+            this.type = "file";
+            this.name = dataDescr.name;
+            this.file = dataDescr;
+            return;
+        }
+        if (typeof dataDescr === "string") {
+            dataDescr = { name: dataDescr };
+        }
+        dataDescr = Object.assign({}, dataDescr);
+        for (var x in dataDescr) {
+            this[x] = dataDescr[x];
+        }
+        if (this.gdocId) {
+            this.type = "GoogleSheets";
+        }
+        this.id = (_a = this.id) !== null && _a !== void 0 ? _a : "id";
+        Base.tables.set(this.name, this);
     }
     get fileExt() {
         return this.fileType ? "." + this.fileType.toLowerCase() : "";
@@ -20751,18 +20741,18 @@ class Block_Content extends Block {
 
 /** -- */
 class Attrib_Content extends Attrib {
+    get block() {
+        return this._block;
+    }
+    get content() {
+        return this._content;
+    }
     /** -- */
     constructor(browser, name) {
         super(browser, name, null, "content", "kshfBlock_Content", "fa fa-file-alt");
         /** -- */
         this._content = [];
         this._block = new Block_Content(this);
-    }
-    get block() {
-        return this._block;
-    }
-    get content() {
-        return this._content;
     }
     /** -- */
     isEmpty() {
@@ -21308,8 +21298,8 @@ class RecordDetailPopup {
                     diff *= -1; // flip
             }
             if (diff !== null) {
-                var threshold = attrib.timeSeriesScale_Value.domain();
-                threshold = Math.abs(threshold[1] - threshold[0]) / 50; // 1/50th of the range is the signal of change
+                let domain = attrib.timeSeriesScale_Value.domain();
+                let threshold = Math.abs(domain[1] - domain[0]) / 50; // 1/50th of the range is the signal of change
                 // TODO: make this a parameter
                 if (diff > threshold) {
                     status = "improve";
@@ -21581,6 +21571,27 @@ function applyPreProc(_key, _transform, recordList) {
     }
 }
 class Browser {
+    get attribsInDashboard() {
+        return this.attribs.filter((attrib) => { var _a; return (_a = attrib.block) === null || _a === void 0 ? void 0 : _a.inDashboard; });
+    }
+    // always in dashboard
+    get blocks() {
+        return this.attribsInDashboard.map((attrib) => attrib.block);
+    }
+    // query by attribute name
+    attribWithName(name) {
+        return this.attribs.find((attrib) => { var _a; return name === (attrib === null || attrib === void 0 ? void 0 : attrib.attribName) || name === ((_a = attrib === null || attrib === void 0 ? void 0 : attrib.template) === null || _a === void 0 ? void 0 : _a.str); }) || null;
+    }
+    get _attribs() {
+        var r = {};
+        this.attribs.forEach((attrib) => {
+            r[attrib.attribName] = attrib;
+            if (attrib.template.str) {
+                r[attrib.template.str] = attrib;
+            }
+        });
+        return r;
+    }
     constructor(options) {
         this.records = [];
         this.recordName = "";
@@ -22337,27 +22348,6 @@ class Browser {
             }, 1500); // update layout after 1.5 seconds
         });
         this.loadDataSources();
-    }
-    get attribsInDashboard() {
-        return this.attribs.filter((attrib) => { var _a; return (_a = attrib.block) === null || _a === void 0 ? void 0 : _a.inDashboard; });
-    }
-    // always in dashboard
-    get blocks() {
-        return this.attribsInDashboard.map((attrib) => attrib.block);
-    }
-    // query by attribute name
-    attribWithName(name) {
-        return this.attribs.find((attrib) => { var _a; return name === (attrib === null || attrib === void 0 ? void 0 : attrib.attribName) || name === ((_a = attrib === null || attrib === void 0 ? void 0 : attrib.template) === null || _a === void 0 ? void 0 : _a.str); }) || null;
-    }
-    get _attribs() {
-        var r = {};
-        this.attribs.forEach((attrib) => {
-            r[attrib.attribName] = attrib;
-            if (attrib.template.str) {
-                r[attrib.template.str] = attrib;
-            }
-        });
-        return r;
     }
     /** -- */
     refreshConfigs() {

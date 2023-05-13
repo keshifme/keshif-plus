@@ -308,7 +308,7 @@ export class RecordDetailPopup {
       _outline.reduce((accum, item) => {
         return !item.path
           ? accum
-          : 1 + d3.max(item.items, (_) => (_.items ? getMaxDepth(_.items) : 1));
+          : 1 + d3.max(item.items, (_: any) => (_.items ? getMaxDepth(_.items) : 1));
       }, 0);
 
     var maxDepth = getMaxDepth(outline._timeseries);
@@ -645,8 +645,8 @@ export class RecordDetailPopup {
           if (attrib.hasFlippedDomain()) diff *= -1; // flip
         }
         if (diff !== null) {
-          var threshold = attrib.timeSeriesScale_Value.domain();
-          threshold = Math.abs(threshold[1] - threshold[0]) / 50; // 1/50th of the range is the signal of change
+          let domain = attrib.timeSeriesScale_Value.domain();
+          let threshold = Math.abs(domain[1] - domain[0]) / 50; // 1/50th of the range is the signal of change
           // TODO: make this a parameter
           if (diff > threshold) {
             status = "improve";

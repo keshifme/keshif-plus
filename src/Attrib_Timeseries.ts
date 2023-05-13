@@ -46,7 +46,7 @@ export class Attrib_Timeseries extends Attrib {
   valueScaleType: Config<LinearOrLog>;
 
   public timeSeriesScale_Time: any;
-  public timeSeriesScale_Value: any;
+  public timeSeriesScale_Value: d3.ScaleContinuousNumeric<number, number, never>;
 
   // given a number, returns the formatted string
   numberFormat: (number) => string;
@@ -478,7 +478,7 @@ export class Attrib_Timeseries extends Attrib {
       });
   }
   /** -- */
-  renderRecordValue(v, d3_selection, timeKeys = null): string {
+  renderRecordValue(v, d3_selection, timeKeys: TimeKey[] = null ): string {
     if (v instanceof Record) v = this.getRecordValue(v);
 
     if (!d3_selection || !v) return;
@@ -497,7 +497,7 @@ export class Attrib_Timeseries extends Attrib {
     let timeData: TimeData[] = v._timeseries_;
 
     var [value_min, value_max] = d3.extent(timeData, (d) => d._value);
-    var steadyValue = false;
+    let steadyValue: number;
     if (value_min === value_max) {
       steadyValue = value_max;
       value_min -= 0.00001;
@@ -555,7 +555,7 @@ export class Attrib_Timeseries extends Attrib {
 
     _timeSeriesSvg
       .selectAll(".extentValueGroup")
-      .data(steadyValue !== false ? [steadyValue] : [value_min, value_max])
+      .data(steadyValue != null ? [steadyValue] : [value_min, value_max])
       .enter()
       .append("g")
       .attr("class", "extentValueGroup")
@@ -611,7 +611,7 @@ export class Attrib_Timeseries extends Attrib {
           .attr("d", Util.getLineGenerator(timeScale, valueScale))
           .attr(
             "stroke",
-            steadyValue !== false
+            steadyValue != null
               ? colorOut(mapp(value_max))
               : "url(#GradientPath_" + _tempClipPathCounter + ")"
           );

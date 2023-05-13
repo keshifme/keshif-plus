@@ -363,6 +363,8 @@ export type RecordDisplaySpec_Map = {
   // Default: Adjusts initial view to show all map - fit-to-view
   // First two numbers are map center, third is the zoom factor. See leaflet docs.
   mapInitView: [number, number, number];
+
+  pointClusterRadius?: number;
 };
 
 export type DashboardMode =

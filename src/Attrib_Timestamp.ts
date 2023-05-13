@@ -16,6 +16,7 @@ import { Browser } from "./Browser";
 import { Block_Timestamp } from "./Block_Timestamp";
 import { AttribTemplate } from "./AttribTemplate";
 import { Aggregate_Interval_Date } from "./Aggregate_Interval_Date";
+import { CountableTimeInterval } from "d3";
 
 const d3 = {
   scaleUtc,
@@ -167,24 +168,24 @@ export class Attrib_Timestamp extends Attrib_Interval<Date> {
     this.updateScaleAndBins();
   }
 
-  refreshValueScale() {
+  refreshValueScale(): void {
     super.refreshValueScale();
 
-    var maxScale: (Date) => Date = d3["utc" + this.timeTyped.finestRes()];
+    let maxScale: d3.CountableTimeInterval = d3["utc" + this.timeTyped.finestRes()];
 
     if (this.intervalTicks.some((tick: Date) => maxScale(tick) < tick)) {
-      var nicing = maxScale;
+      let nicing = maxScale;
 
       this.valueScale = this.getValueScaleObj()
         .domain(this.rangeActive)
         .range([0, this.block.width_histogram])
-        .nice(nicing);
+        .nice(maxScale); 
 
       this.intervalTicks = this.valueScale.ticks(nicing);
     }
   }
 
-  updateTickPrintFunc() {
+  updateTickPrintFunc(): void{
     const formatSecond = d3.utcFormat(":%S"),
       formatMinute = d3.utcFormat("%I:%M"),
       formatHour = d3.utcFormat("%I %p"),
