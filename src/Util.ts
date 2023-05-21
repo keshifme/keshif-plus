@@ -1,11 +1,10 @@
 import { utcParse } from "d3-time-format";
 import { format } from "d3-format";
 import { easeCubicOut } from "d3-ease";
-import { scaleLog, scaleLinear } from "d3-scale";
+import { scaleLog, scaleLinear, ScaleContinuousNumeric } from "d3-scale";
 import { arc, line, curveMonotoneX } from "d3-shape";
 
 import { BlockType } from "./Types";
-import { ScaleContinuousNumeric, ScaleLinear } from "d3";
 
 const d3 = {
   utcParse,
@@ -19,7 +18,7 @@ const d3 = {
 };
 
 /** A namespace for various independent functions */
-var Util = {
+export var Util = {
   // Does not modify _base or _extend configurations
   mergeConfig(_base, _extend = {}) {
     return Util._mergeLevel(
@@ -143,24 +142,24 @@ var Util = {
     if (b == null || b === "") return -1;
     return b.getTime() - a.getTime(); // recent first
   },
-  sortFunc_List_Number(a, b) {
+  sortFunc_List_Number(a:number, b: number): number {
     return b - a;
   },
   /** -- */
-  toProperCase: function (str) {
+  toProperCase(str: string): string {
     return str.toLowerCase().replace(/\b[a-z]/g, (f) => f.toUpperCase());
   },
 
   /** -- */
-  addUnitName: function (v, unitName, isSVG = false) {
+  addUnitName(v, unitName, isSVG = false): string {
     if (!unitName) return (v + "").replace("G", "B"); // replace abbrevation G with B;
     var s = isSVG ? unitName : "<span class='unitName'>" + unitName + "</span>";
     return ((Util.isCurrency(unitName) ? s + v : v + s) + "").replace("G", "B"); // replace abbrevation G with B;
   },
 
   /** -- */
-  isCurrency(v) {
-    switch (v) {
+  isCurrency(unitStr: string): boolean {
+    switch (unitStr) {
       case "$":
       case "€":
       case "₺":
@@ -178,16 +177,16 @@ var Util = {
       case "₲":
       case "฿":
       case "₴":
-      case "₡": // Costa rica colon
-      case "₱": // Cuba peso
-      case "₫": // Viet nam dong
+      case "₡": // Costa Rican colon
+      case "₱": // Cuban peso
+      case "₫": // Vietnamese dong
       case "₽": // Russian ruble
-      case "₹": // India rupee
-      case "៛": // Cambodia riel
+      case "₹": // Indian rupee
+      case "៛": // Cambodian riel
       case "лв":
-      case "zł": // Poland Zloty
-      case "Br": // Belarus Ruble
-      case "Lek": // Albania Lek
+      case "zł": // Polish zloty
+      case "Br": // Belarusian ruble
+      case "Lek": // Albanian lek
         return true;
       default:
         return false;
@@ -195,15 +194,13 @@ var Util = {
   },
 
   /** -- */
-  getTimeParseFunc(fmt) {
+  getTimeParseFunc(fmt: string) {
     // Note: new EPOCH config is %s (d3 standard method). Keeping for backwards compatibility!
-    if (fmt === "%EPOCH") {
-      return (v) => new Date(Math.floor(v * 1000));
-    }
+    if (fmt === "%EPOCH")
+      return (v: number) => new Date(Math.floor(v * 1000));
 
-    if (fmt !== "%sn" && fmt !== "%SN") {
+    if (fmt !== "%sn" && fmt !== "%SN")
       return d3.utcParse(fmt);
-    }
 
     // Parse (Google) Sheet Date
     // Days are counted from December 31st 1899 and are incremented by 1
@@ -227,9 +224,9 @@ var Util = {
   baseMeasureFormat: d3.format(".2s"),
 
   /** You should only display at most 3 digits + k/m/etc */
-  formatForItemCount(n, unitName = "") {
+  formatForItemCount(n, unitName = ""): string {
     n = Math.round(n);
-    var str;
+    let str: string;
     if (n < 1000 && n > -1000) {
       str = n.toString();
     } else {
@@ -242,31 +239,31 @@ var Util = {
   },
 
   /** -- */
-  isStepTicks: function (ticks) {
+  isStepTicks(ticks: number[]): boolean {
     // increasing or decreasing (+/- 1)
     return (
       ticks.length >= 2 &&
-      ticks.every((v, i) =>
+      ticks.every((_, i) =>
         i === 0 ? true : Math.abs(ticks[i] - ticks[i - 1]) === 1
       )
     );
   },
 
   /** -- */
-  insertMinorTicks: function (ticks, _scale, _out, numMinor = 4) {
+  insertMinorTicks(ticks, _scale, _out, numMinor = 4): void {
     // if ticks[0] is larger than ticks[last], reverse
     if (ticks[0] > ticks[ticks.length - 1]) ticks = ticks.reverse();
     for (var i = 1; i < ticks.length; i++) {
-      var _minR = ticks[i - 1];
-      var _maxR = ticks[i];
-      var _difR = (_maxR - _minR) / numMinor;
-      var _min = _scale(_minR);
-      var _max = _scale(_maxR);
-      for (var j = 1; j < numMinor; j++) {
+      let _minR = ticks[i - 1];
+      const _maxR = ticks[i];
+      const _difR = (_maxR - _minR) / numMinor;
+      let _min = _scale(_minR);
+      const _max = _scale(_maxR);
+      for (let j = 1; j < numMinor; j++) {
         if (numMinor === 4) {
           // base 2
-          var x = (_min + _max) / 2;
-          var _midR = (_minR + _maxR) / 2;
+          let x = (_min + _max) / 2;
+          const _midR = (_minR + _maxR) / 2;
           _out.push({
             tickValue: _scale.invert(x),
             major: false,
@@ -276,7 +273,7 @@ var Util = {
           _minR = _midR;
         } else {
           // new way
-          x = ticks[i - 1] + j * _difR;
+          let x = ticks[i - 1] + j * _difR;
           _out.push({ tickValue: x, major: false, tickUnique: x });
         }
       }
@@ -312,33 +309,33 @@ var Util = {
     window.requestAnimationFrame(animateToTop);
   },
 
-  removeEmptyKeys: function(cfg){
+  removeEmptyKeys(cfg): void {
     Object.keys(cfg).forEach(
       (key) => cfg[key] === undefined && delete cfg[key]
     );
   },
 
   // http://stackoverflow.com/questions/13627308/add-st-nd-rd-and-th-ordinal-suffix-to-a-number
-  ordinal_suffix_of: function (i) {
-    var j = i % 10,
-      k = i % 100;
-    if (j == 1 && k != 11) return i + "st";
-    if (j == 2 && k != 12) return i + "nd";
-    if (j == 3 && k != 13) return i + "rd";
-    return i + "th";
+  ordinal_suffix_of(i): string {
+    const j = i % 10, k = i % 100;
+    if (j == 1 && k != 11) return `${i}st`;
+    if (j == 2 && k != 12) return `${i}nd`;
+    if (j == 3 && k != 13) return `${i}rd`;
+    return `${i}th`;
   },
 
   /** -- Geo-helper */
-  addMarginToBounds: function (bounds: L.LatLngBounds): L.LatLngBounds {
+  addMarginToBounds(bounds: L.LatLngBounds): L.LatLngBounds {
     if (!bounds.isValid()) return bounds;
-    var _NW = bounds.getNorthWest();
-    var _SE = bounds.getSouthEast();
-    var dist = _NW.distanceTo(_SE);
-    return bounds.extend(_NW.toBounds(dist / 5)).extend(_SE.toBounds(dist / 5));
+
+    const NW = bounds.getNorthWest();
+    const SE = bounds.getSouthEast();
+    const dist = NW.distanceTo(SE);
+    return bounds.extend(NW.toBounds(dist / 10)).extend(SE.toBounds(dist / 10));
   },
 
   /** The order of data type sorting on the attribute panel */
-  getAttribTypeOrder: (t: BlockType) => {
+  getAttribTypeOrder(t: BlockType): number {
     switch (t) {
       case "categorical":
         return 1;
@@ -360,7 +357,7 @@ var Util = {
   },
 
   /* -- */
-  intersects(d3bound, leafletbound) {
+  intersects(d3bound, leafletbound): boolean {
     if (d3bound[0][0] > leafletbound._northEast.lng) return false;
     if (d3bound[0][1] > leafletbound._northEast.lat) return false;
     if (d3bound[1][0] < leafletbound._southWest.lng) return false;
@@ -369,7 +366,7 @@ var Util = {
   },
 
   /** -- */
-  intersectsDOMRect(R1, R2) {
+  intersectsDOMRect(R1, R2): boolean {
     if (!R1 || !R2) return false;
     if (R1.left > R2.right) return false;
     if (R1.right < R2.left) return false;
@@ -379,7 +376,7 @@ var Util = {
   },
 
   /** -- */
-  getD3Scale: function (useLog): ScaleContinuousNumeric<number, number, never> {
+  getD3Scale(useLog): ScaleContinuousNumeric<number, number, never> {
     return useLog ? d3.scaleLog().base(2) : d3.scaleLinear();
   },
 
@@ -398,10 +395,10 @@ var Util = {
   // http://stackoverflow.com/questions/15591614/svg-radial-wipe-animation-using-css3-js
   // http://jsfiddle.net/Matt_Coughlin/j3Bhz/5/
   getPieSVGPath(_start: number, _angle: number, radius: number, strokeOnly: boolean): string {
-    var _end = Math.min(_start + _angle, 0.999999);
-    var startRadian = (Math.PI * (360 * _start - 90)) / 180;
-    var endRadian = (Math.PI * (360 * _end - 90)) / 180;
-    var largeArcFlag = _angle > 0.5 ? 1 : 0;
+    const _end = Math.min(_start + _angle, 0.999999);
+    const startRadian = (Math.PI * (360 * _start - 90)) / 180;
+    const endRadian = (Math.PI * (360 * _end - 90)) / 180;
+    const largeArcFlag = _angle > 0.5 ? 1 : 0;
 
     return (
       "M " +
@@ -426,7 +423,7 @@ var Util = {
   },
 
   /** -- */
-  getCirclePath: function (): string {
+  getCirclePath(): string {
     return d3
       .arc()
       .innerRadius(0)
@@ -435,5 +432,3 @@ var Util = {
       .endAngle(2 * Math.PI)(null);
   },
 };
-
-export { Util };

@@ -121,11 +121,11 @@ function applyPreProc(_key: string, _transform: string, recordList: Record[]) {
   let transformFunc: Function = null;
 
   /* jshint ignore:start */
-  var isTimeseries = RegExp(/(.+)->\$\{(.+)\}/).exec(_transform);
-  var isDateTime = RegExp("DATETIME\\((.+)\\)").exec(_transform);
-  var isMultiVal = RegExp("MULTIVAL\\((.+)\\)").exec(_transform);
-  var isSplit = RegExp("SPLIT\\((.+)\\)").exec(_transform);
-  var isLatLong = RegExp("LAT_LONG\\((.+),(.+)\\)").exec(_transform);
+  const isTimeseries = RegExp(/(.+)->\$\{(.+)\}/).exec(_transform);
+  const isDateTime = RegExp("DATETIME\\((.+)\\)").exec(_transform);
+  const isMultiVal = RegExp("MULTIVAL\\((.+)\\)").exec(_transform);
+  const isSplit = RegExp("SPLIT\\((.+)\\)").exec(_transform);
+  const isLatLong = RegExp("LAT_LONG\\((.+),(.+)\\)").exec(_transform);
   /* jshint ignore:end */
 
   if (_transform === "STR()") {
@@ -170,16 +170,14 @@ function applyPreProc(_key: string, _transform: string, recordList: Record[]) {
     };
   } else if (isMultiVal && isMultiVal.length > 1) {
     // merge data from multiple columns
-    var splitExpr = RegExp("\\s*;\\s*");
-
-    var colNames = isMultiVal[1]
-      .split(splitExpr)
+    const colNames = isMultiVal[1]
+      .split(RegExp("\\s*;\\s*"))
       .map((x) => x.trim())
       .filter((x) => x !== "");
 
     if (colNames.length >= 2) {
       transformFunc = (v, r) => {
-        var _return = [];
+        let _return = [];
         colNames.forEach((c) => {
           if (r[c]) {
             _return.push(r[c]);
@@ -193,7 +191,7 @@ function applyPreProc(_key: string, _transform: string, recordList: Record[]) {
     // prepare timeseries structure
     var _isDateTime = RegExp("DATETIME\\((.+)\\)").exec(isTimeseries[2]);
 
-    if (_isDateTime && _isDateTime.length > 1) {
+    if (_isDateTime?.length > 1) {
       var __timeParse = Util.getTimeParseFunc(_isDateTime[1]);
 
       var valueKey = null;
@@ -231,7 +229,7 @@ function applyPreProc(_key: string, _transform: string, recordList: Record[]) {
 
   if (transformFunc) {
     recordList.forEach((r) => {
-      var host = keyHostFunc(r.data);
+      let host = keyHostFunc(r.data);
       if (host == null) return;
       try {
         host[keyIndex] = transformFunc(host[keyIndex], r.data);
@@ -243,8 +241,8 @@ function applyPreProc(_key: string, _transform: string, recordList: Record[]) {
   }
 
   if (isLatLong && isLatLong.length > 1) {
-    var latAttrib = isLatLong[1];
-    var lonAttrib = isLatLong[2];
+    const latAttrib = isLatLong[1];
+    const lonAttrib = isLatLong[2];
     recordList.forEach((r) => {
       var host = keyHostFunc(r.data);
       if (!host) return;
@@ -1072,10 +1070,9 @@ export class Browser {
     this.insertDOM_AttribPanel();
 
     this.DOM.panel_Wrapper = this.DOM.root
-      //.append("div").attr("class","panel_Data_Wrapper")
       .append("div")
       .attr("class", "panel_Wrapper")
-      .classed("emptyDashboard", true) // empty dashboard by default on initialization.
+      .classed("emptyDashboard", true)
       .classed("panel_bottom_empty", true);
 
     this.insertDOM_PanelBasic();

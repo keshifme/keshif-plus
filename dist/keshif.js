@@ -2574,19 +2574,19 @@ var Util = {
         return b - a;
     },
     /** -- */
-    toProperCase: function (str) {
+    toProperCase(str) {
         return str.toLowerCase().replace(/\b[a-z]/g, (f) => f.toUpperCase());
     },
     /** -- */
-    addUnitName: function (v, unitName, isSVG = false) {
+    addUnitName(v, unitName, isSVG = false) {
         if (!unitName)
             return (v + "").replace("G", "B"); // replace abbrevation G with B;
         var s = isSVG ? unitName : "<span class='unitName'>" + unitName + "</span>";
         return ((Util.isCurrency(unitName) ? s + v : v + s) + "").replace("G", "B"); // replace abbrevation G with B;
     },
     /** -- */
-    isCurrency(v) {
-        switch (v) {
+    isCurrency(unitStr) {
+        switch (unitStr) {
             case "$":
             case "€":
             case "₺":
@@ -2608,7 +2608,7 @@ var Util = {
             case "₱": // Cuba peso
             case "₫": // Viet nam dong
             case "₽": // Russian ruble
-            case "₹": // India rupee
+            case "₹": // Indian rupee
             case "៛": // Cambodia riel
             case "лв":
             case "zł": // Poland Zloty
@@ -2661,13 +2661,13 @@ var Util = {
         return Util.addUnitName(str, unitName, false);
     },
     /** -- */
-    isStepTicks: function (ticks) {
+    isStepTicks(ticks) {
         // increasing or decreasing (+/- 1)
         return (ticks.length >= 2 &&
             ticks.every((v, i) => i === 0 ? true : Math.abs(ticks[i] - ticks[i - 1]) === 1));
     },
     /** -- */
-    insertMinorTicks: function (ticks, _scale, _out, numMinor = 4) {
+    insertMinorTicks(ticks, _scale, _out, numMinor = 4) {
         // if ticks[0] is larger than ticks[last], reverse
         if (ticks[0] > ticks[ticks.length - 1])
             ticks = ticks.reverse();
@@ -2726,31 +2726,31 @@ var Util = {
         };
         window.requestAnimationFrame(animateToTop);
     },
-    removeEmptyKeys: function (cfg) {
+    removeEmptyKeys(cfg) {
         Object.keys(cfg).forEach((key) => cfg[key] === undefined && delete cfg[key]);
     },
     // http://stackoverflow.com/questions/13627308/add-st-nd-rd-and-th-ordinal-suffix-to-a-number
-    ordinal_suffix_of: function (i) {
-        var j = i % 10, k = i % 100;
+    ordinal_suffix_of(i) {
+        const j = i % 10, k = i % 100;
         if (j == 1 && k != 11)
-            return i + "st";
+            return `${i}st`;
         if (j == 2 && k != 12)
-            return i + "nd";
+            return `${i}nd`;
         if (j == 3 && k != 13)
-            return i + "rd";
-        return i + "th";
+            return `${i}rd`;
+        return `${i}th`;
     },
     /** -- Geo-helper */
-    addMarginToBounds: function (bounds) {
+    addMarginToBounds(bounds) {
         if (!bounds.isValid())
             return bounds;
-        var _NW = bounds.getNorthWest();
-        var _SE = bounds.getSouthEast();
-        var dist = _NW.distanceTo(_SE);
-        return bounds.extend(_NW.toBounds(dist / 5)).extend(_SE.toBounds(dist / 5));
+        const NW = bounds.getNorthWest();
+        const SE = bounds.getSouthEast();
+        const dist = NW.distanceTo(SE);
+        return bounds.extend(NW.toBounds(dist / 10)).extend(SE.toBounds(dist / 10));
     },
     /** The order of data type sorting on the attribute panel */
-    getAttribTypeOrder: (t) => {
+    getAttribTypeOrder(t) {
         switch (t) {
             case "categorical":
                 return 1;
@@ -2797,7 +2797,7 @@ var Util = {
         return true;
     },
     /** -- */
-    getD3Scale: function (useLog) {
+    getD3Scale(useLog) {
         return useLog ? d3$n.scaleLog().base(2) : d3$n.scaleLinear();
     },
     /** -- */
@@ -2814,10 +2814,10 @@ var Util = {
     // http://stackoverflow.com/questions/15591614/svg-radial-wipe-animation-using-css3-js
     // http://jsfiddle.net/Matt_Coughlin/j3Bhz/5/
     getPieSVGPath(_start, _angle, radius, strokeOnly) {
-        var _end = Math.min(_start + _angle, 0.999999);
-        var startRadian = (Math.PI * (360 * _start - 90)) / 180;
-        var endRadian = (Math.PI * (360 * _end - 90)) / 180;
-        var largeArcFlag = _angle > 0.5 ? 1 : 0;
+        const _end = Math.min(_start + _angle, 0.999999);
+        const startRadian = (Math.PI * (360 * _start - 90)) / 180;
+        const endRadian = (Math.PI * (360 * _end - 90)) / 180;
+        const largeArcFlag = _angle > 0.5 ? 1 : 0;
         return ("M " +
             Math.cos(startRadian) * radius +
             "," +
@@ -2838,7 +2838,7 @@ var Util = {
             (!strokeOnly ? "L0,0" : ""));
     },
     /** -- */
-    getCirclePath: function () {
+    getCirclePath() {
         return d3$n
             .arc()
             .innerRadius(0)
@@ -22317,10 +22317,9 @@ class Browser {
         this.insertDOM_Panel_Overlay();
         this.insertDOM_AttribPanel();
         this.DOM.panel_Wrapper = this.DOM.root
-            //.append("div").attr("class","panel_Data_Wrapper")
             .append("div")
             .attr("class", "panel_Wrapper")
-            .classed("emptyDashboard", true) // empty dashboard by default on initialization.
+            .classed("emptyDashboard", true)
             .classed("panel_bottom_empty", true);
         this.insertDOM_PanelBasic();
         this.dashboardConfigPanel = new ConfigPanel(this.DOM.panel_Wrapper, "DashboardAnalyticsConfig", "DashboardAnalyticsConfig", Object.values(this.configs), this, this.DOM.metricFuncSelectButton);
