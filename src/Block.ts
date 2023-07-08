@@ -169,6 +169,7 @@ export abstract class Block {
 
     if (panelChanged) {
       this.refreshWidth();
+      this.refreshViz_Axis();
     }
 
     this.browser.refreshIsEmpty();
@@ -533,14 +534,17 @@ export abstract class Block {
   refreshViz_All(withAxisRefresh = true) {
     if (!this.isVisible()) return;
     if (!this.attrib.chartScale_Measure) return;
+
     this.refreshViz_Active();
     this.refreshViz_Compare_All();
     this.refreshViz_NoValueAggr();
     if (withAxisRefresh) this.refreshViz_Axis();
   }
+
   // -- TODO: incomplete / check references, not used much
   refreshViz(sT) {
     if (this.attrib.type === "content") return;
+
     return sT === "Active"
       ? this.refreshViz_Active()
       : this.refreshViz_Compare(sT, 0, 0, null);
@@ -613,8 +617,7 @@ export abstract class Block {
       }
     }
 
-    var _transform =
-      this.attrib.type === "categorical"
+    var _transform = this.attrib.type === "categorical"
         ? (d, _scale) => `translateX(${_scale(d.tickValue) - 0.5}px)`
         : (d, _scale) => `translateY(${-_scale(d.tickValue)}px)`;
 
@@ -642,19 +645,17 @@ export abstract class Block {
           !this.browser.preventAxisScaleTransition
         ) {
           // to transition position from previous scale, set position based on previous scale first
-          ticks
+          ticks = ticks
             .style("opacity", 0)
             .classed("noAnim", true)
             .style("transform", (tick) =>
               _transform(tick, this.attrib.chartScale_Measure_prev)
             )
             .classed("noAnim", false)
-            .call((ticks) =>
-              finalAnim(ticks.transition().duration(0).delay(10))
-            );
-        } else {
-          finalAnim(ticks);
+            .transition().duration(0).delay(10);
         }
+
+        finalAnim(ticks);
       })
       .merge(selection)
       .classed("major", (tick) => tick.major)

@@ -133,13 +133,13 @@ export var Util = {
     numeric: true,
   }),
   // ***************
-  sortFunc_List_String(a, b) {
+  sortFunc_List_String(a: string, b: string): number {
     return Util.strCollate.compare("" + a, "" + b);
   },
   // ***************
-  sortFunc_List_Date(a, b) {
-    if (a == null || a === "") return 1;
-    if (b == null || b === "") return -1;
+  sortFunc_List_Date(a: Date, b: Date): number {
+    if (a == null) return 1;
+    if (b == null) return -1;
     return b.getTime() - a.getTime(); // recent first
   },
   sortFunc_List_Number(a:number, b: number): number {
@@ -194,7 +194,7 @@ export var Util = {
   },
 
   /** -- */
-  getTimeParseFunc(fmt: string) {
+  getTimeParseFunc(fmt: string): (arg: number | string) => Date {
     // Note: new EPOCH config is %s (d3 standard method). Keeping for backwards compatibility!
     if (fmt === "%EPOCH")
       return (v: number) => new Date(Math.floor(v * 1000));
@@ -205,8 +205,8 @@ export var Util = {
     // Parse (Google) Sheet Date
     // Days are counted from December 31st 1899 and are incremented by 1
     // Decimals are fractions of a day.
-    return function (v) {
-      if (v && v !== "") {
+    return function (v: number) {
+      if (v !== null) {
         var utc_days = Math.floor(v - 25569);
         var utc_base = utc_days * 86400;
 

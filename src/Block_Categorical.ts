@@ -1230,7 +1230,7 @@ export class Block_Categorical extends Block {
 
     this.DOM.mapColorScaleGroup
       .selectAll(".mapColorScaleLabels > .mapColorScaleLabel > .tickLabel")
-      .html((d, i) =>
+      .html((_d, i) =>
         this.browser.getValueLabel(
           this.mapColorScale.invert((this.invertedColorTheme ? 3 - i : i) * 3)
         )
@@ -1269,6 +1269,7 @@ export class Block_Categorical extends Block {
 
   list_prepView() {
     this.DOM.aggrGroup = this.DOM.aggrGroup_list;
+    this.attrib.updateChartScale_Measure(true);
     this.insertCategoryGlyphs();
     if (this.heightRow_category_dirty) this.refreshHeight_Category();
     this.updateCats_IsActive();

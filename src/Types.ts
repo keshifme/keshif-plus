@@ -6,6 +6,8 @@ import { DataTable } from "./DataTable";
 
 export type IntervalT = number | Date;
 
+export type SortableT = number | Date | string;
+
 export type d3Selection = any;
 
 export type TableSpec = {

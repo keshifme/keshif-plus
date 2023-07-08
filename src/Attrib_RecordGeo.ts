@@ -180,11 +180,14 @@ export class Attrib_RecordGeo extends Attrib {
 
     let points = [];
     this.records.forEach((record) => {
-      points.push({
-        type: "Feature",
-        properties: record,
-        geometry: this.getRecordValue(record).geoFeat,
-      });
+      let value = this.getRecordValue(record);
+      if (value) {
+        points.push({
+          type: "Feature",
+          properties: record,
+          geometry: value.geoFeat,
+        });
+      }
     });
 
     this.PointCluster.load(points);

@@ -866,6 +866,14 @@ export class Attrib_Categorical extends Attrib {
     this.mapTable = null;
   }
 
+  uniqueCategories() {
+    return (
+      !this.isEmpty() &&
+      this._aggrs.length === this.browser.records.length && 
+      !this.isMultiValued
+    );
+  }
+
   async setCatGeo_(template) {
     if (!this.uniqueCategories()) {
       this.setCatGeo(template);

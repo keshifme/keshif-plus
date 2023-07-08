@@ -78,15 +78,6 @@ export abstract class Attrib {
     return this._aggrs.length === 0;
   }
 
-  // TODO: review/remove, as we should not check for a specific type here.
-  uniqueCategories() {
-    return (
-      this.type === "categorical" &&
-      !this.isEmpty() &&
-      this._aggrs.length === this.browser.records.length
-    );
-  }
-
   // ********************************************************************
   // Filtering
   // ********************************************************************
@@ -356,7 +347,7 @@ export abstract class Attrib {
         if (this.browser.measureSumWithNegativeValues()) return "linear";
       },
       onSet: (v) => {
-        this.refreshScale_Measure(v);
+        this.refreshChartScale_Measure(v);
         this.block?.refreshViz_All();
       },
     });
@@ -526,33 +517,34 @@ export abstract class Attrib {
     if (this.axisScaleType.is("sync")) {
       return this.block?.panel.syncedMeasureExtent;
     }
+
     // fallback, just in case
     return this.measureExtent_Self;
   }
 
   public measureLogBase = 10;
 
-  refreshScale_Measure(v = null) {
+  refreshChartScale_Measure(v = null) {
     v ??= this.measureScaleType.get();
 
-    this.chartScale_Measure_prev = this.chartScale_Measure
-      ? this.chartScale_Measure.copy().clamp(false)
-      : null;
+    this.chartScale_Measure_prev = this.chartScale_Measure?.copy().clamp(false) ?? null;
 
     this.measureLogBase = 10;
-    this.chartScale_Measure =
-      v === "log" ? d3.scaleLog().base(this.measureLogBase) : d3.scaleLinear();
+    this.chartScale_Measure = v === "log"
+      ? d3.scaleLog().base(this.measureLogBase)
+      : d3.scaleLinear();
     this.chartScale_Measure.clamp(true);
 
     if (this.chartScale_Measure_prev) {
       var domain = this.chartScale_Measure_prev.domain();
-      var range = this.chartScale_Measure_prev.range();
       if (this.measureScale_Log) {
         if (domain[0] === 0) domain[0] = 1;
       } else {
         domain[0] = Math.min(0, domain[0]);
       }
-      this.chartScale_Measure.domain(domain).range(range);
+
+      this.chartScale_Measure.domain(domain)
+        .range(this.chartScale_Measure_prev.range()); // same range
     }
   }
 
@@ -562,9 +554,7 @@ export abstract class Attrib {
       return; // nothing to do
     }
 
-    this.chartScale_Measure_prev = this.chartScale_Measure
-      ? this.chartScale_Measure.copy().clamp(false)
-      : null;
+    this.chartScale_Measure_prev = this.chartScale_Measure?.copy().clamp(false) ?? null;
 
     var newDomain = this.measureDomain_Final;
 

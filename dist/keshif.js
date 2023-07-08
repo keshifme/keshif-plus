@@ -1713,12 +1713,6 @@ class Attrib {
     isEmpty() {
         return this._aggrs.length === 0;
     }
-    // TODO: review/remove, as we should not check for a specific type here.
-    uniqueCategories() {
-        return (this.type === "categorical" &&
-            !this.isEmpty() &&
-            this._aggrs.length === this.browser.records.length);
-    }
     isFiltered() {
         var _a, _b;
         return (_b = (_a = this.summaryFilter) === null || _a === void 0 ? void 0 : _a.isFiltered) !== null && _b !== void 0 ? _b : false;
@@ -1956,7 +1950,7 @@ class Attrib {
             },
             onSet: (v) => {
                 var _a;
-                this.refreshScale_Measure(v);
+                this.refreshChartScale_Measure(v);
                 (_a = this.block) === null || _a === void 0 ? void 0 : _a.refreshViz_All();
             },
         });
@@ -2103,18 +2097,17 @@ class Attrib {
         // fallback, just in case
         return this.measureExtent_Self;
     }
-    refreshScale_Measure(v = null) {
+    refreshChartScale_Measure(v = null) {
+        var _a, _b;
         v !== null && v !== void 0 ? v : (v = this.measureScaleType.get());
-        this.chartScale_Measure_prev = this.chartScale_Measure
-            ? this.chartScale_Measure.copy().clamp(false)
-            : null;
+        this.chartScale_Measure_prev = (_b = (_a = this.chartScale_Measure) === null || _a === void 0 ? void 0 : _a.copy().clamp(false)) !== null && _b !== void 0 ? _b : null;
         this.measureLogBase = 10;
-        this.chartScale_Measure =
-            v === "log" ? d3$o.scaleLog().base(this.measureLogBase) : d3$o.scaleLinear();
+        this.chartScale_Measure = v === "log"
+            ? d3$o.scaleLog().base(this.measureLogBase)
+            : d3$o.scaleLinear();
         this.chartScale_Measure.clamp(true);
         if (this.chartScale_Measure_prev) {
             var domain = this.chartScale_Measure_prev.domain();
-            var range = this.chartScale_Measure_prev.range();
             if (this.measureScale_Log) {
                 if (domain[0] === 0)
                     domain[0] = 1;
@@ -2122,18 +2115,17 @@ class Attrib {
             else {
                 domain[0] = Math.min(0, domain[0]);
             }
-            this.chartScale_Measure.domain(domain).range(range);
+            this.chartScale_Measure.domain(domain)
+                .range(this.chartScale_Measure_prev.range()); // same range
         }
     }
     /** -- */
     updateChartScale_Measure(skipRefreshViz = false) {
-        var _a, _b, _c;
+        var _a, _b, _c, _d, _e;
         if (!this.aggr_initialized || this.isEmpty()) {
             return; // nothing to do
         }
-        this.chartScale_Measure_prev = this.chartScale_Measure
-            ? this.chartScale_Measure.copy().clamp(false)
-            : null;
+        this.chartScale_Measure_prev = (_b = (_a = this.chartScale_Measure) === null || _a === void 0 ? void 0 : _a.copy().clamp(false)) !== null && _b !== void 0 ? _b : null;
         var newDomain = this.measureDomain_Final;
         if (this.measureScale_Log && newDomain[0] === 0) {
             newDomain[0] = 1;
@@ -2142,14 +2134,14 @@ class Attrib {
         if (this.relativeBreakdown && this.browser.activeComparisonsCount > 0) {
             hideActive = newDomain[1] !== 100;
         }
-        (_b = (_a = this.block) === null || _a === void 0 ? void 0 : _a.DOM.root) === null || _b === void 0 ? void 0 : _b.classed("hideActive", hideActive);
+        (_d = (_c = this.block) === null || _c === void 0 ? void 0 : _c.DOM.root) === null || _d === void 0 ? void 0 : _d.classed("hideActive", hideActive);
         this.chartScale_Measure.domain(newDomain).range([0, this.measureRangeMax]);
         if (!skipRefreshViz && this.chartScale_Measure_prev) {
             var oldDomain = this.chartScale_Measure_prev.domain();
             if (newDomain[0] !== oldDomain[0] ||
                 newDomain[1] !== oldDomain[1] ||
                 this.measureRangeMax !== this.chartScale_Measure_prev.range()[1]) {
-                (_c = this.block) === null || _c === void 0 ? void 0 : _c.refreshViz_All();
+                (_e = this.block) === null || _e === void 0 ? void 0 : _e.refreshViz_All();
             }
         }
     }
@@ -2564,9 +2556,9 @@ var Util = {
     },
     // ***************
     sortFunc_List_Date(a, b) {
-        if (a == null || a === "")
+        if (a == null)
             return 1;
-        if (b == null || b === "")
+        if (b == null)
             return -1;
         return b.getTime() - a.getTime(); // recent first
     },
@@ -2604,16 +2596,16 @@ var Util = {
             case "₲":
             case "฿":
             case "₴":
-            case "₡": // Costa rica colon
-            case "₱": // Cuba peso
-            case "₫": // Viet nam dong
+            case "₡": // Costa Rican colon
+            case "₱": // Cuban peso
+            case "₫": // Vietnamese dong
             case "₽": // Russian ruble
             case "₹": // Indian rupee
-            case "៛": // Cambodia riel
+            case "៛": // Cambodian riel
             case "лв":
-            case "zł": // Poland Zloty
-            case "Br": // Belarus Ruble
-            case "Lek": // Albania Lek
+            case "zł": // Polish zloty
+            case "Br": // Belarusian ruble
+            case "Lek": // Albanian lek
                 return true;
             default:
                 return false;
@@ -2622,17 +2614,15 @@ var Util = {
     /** -- */
     getTimeParseFunc(fmt) {
         // Note: new EPOCH config is %s (d3 standard method). Keeping for backwards compatibility!
-        if (fmt === "%EPOCH") {
+        if (fmt === "%EPOCH")
             return (v) => new Date(Math.floor(v * 1000));
-        }
-        if (fmt !== "%sn" && fmt !== "%SN") {
+        if (fmt !== "%sn" && fmt !== "%SN")
             return d3$n.utcParse(fmt);
-        }
         // Parse (Google) Sheet Date
         // Days are counted from December 31st 1899 and are incremented by 1
         // Decimals are fractions of a day.
         return function (v) {
-            if (v && v !== "") {
+            if (v !== null) {
                 var utc_days = Math.floor(v - 25569);
                 var utc_base = utc_days * 86400;
                 var fractional_day = v - Math.floor(v);
@@ -2648,7 +2638,7 @@ var Util = {
     /** You should only display at most 3 digits + k/m/etc */
     formatForItemCount(n, unitName = "") {
         n = Math.round(n);
-        var str;
+        let str;
         if (n < 1000 && n > -1000) {
             str = n.toString();
         }
@@ -2664,7 +2654,7 @@ var Util = {
     isStepTicks(ticks) {
         // increasing or decreasing (+/- 1)
         return (ticks.length >= 2 &&
-            ticks.every((v, i) => i === 0 ? true : Math.abs(ticks[i] - ticks[i - 1]) === 1));
+            ticks.every((_, i) => i === 0 ? true : Math.abs(ticks[i] - ticks[i - 1]) === 1));
     },
     /** -- */
     insertMinorTicks(ticks, _scale, _out, numMinor = 4) {
@@ -2672,16 +2662,16 @@ var Util = {
         if (ticks[0] > ticks[ticks.length - 1])
             ticks = ticks.reverse();
         for (var i = 1; i < ticks.length; i++) {
-            var _minR = ticks[i - 1];
-            var _maxR = ticks[i];
-            var _difR = (_maxR - _minR) / numMinor;
-            var _min = _scale(_minR);
-            var _max = _scale(_maxR);
-            for (var j = 1; j < numMinor; j++) {
+            let _minR = ticks[i - 1];
+            const _maxR = ticks[i];
+            const _difR = (_maxR - _minR) / numMinor;
+            let _min = _scale(_minR);
+            const _max = _scale(_maxR);
+            for (let j = 1; j < numMinor; j++) {
                 if (numMinor === 4) {
                     // base 2
-                    var x = (_min + _max) / 2;
-                    var _midR = (_minR + _maxR) / 2;
+                    let x = (_min + _max) / 2;
+                    const _midR = (_minR + _maxR) / 2;
                     _out.push({
                         tickValue: _scale.invert(x),
                         major: false,
@@ -2692,7 +2682,7 @@ var Util = {
                 }
                 else {
                     // new way
-                    x = ticks[i - 1] + j * _difR;
+                    let x = ticks[i - 1] + j * _difR;
                     _out.push({ tickValue: x, major: false, tickUnique: x });
                 }
             }
@@ -3706,6 +3696,7 @@ class Block {
         (_a = this.DOM.nugget) === null || _a === void 0 ? void 0 : _a.classed("inDashboard", (_) => this.inDashboard);
         if (panelChanged) {
             this.refreshWidth();
+            this.refreshViz_Axis();
         }
         this.browser.refreshIsEmpty();
     }
@@ -4103,16 +4094,14 @@ class Block {
                 this.attrib.chartScale_Measure_prev &&
                 !this.browser.preventAxisScaleTransition) {
                 // to transition position from previous scale, set position based on previous scale first
-                ticks
+                ticks = ticks
                     .style("opacity", 0)
                     .classed("noAnim", true)
                     .style("transform", (tick) => _transform(tick, this.attrib.chartScale_Measure_prev))
                     .classed("noAnim", false)
-                    .call((ticks) => finalAnim(ticks.transition().duration(0).delay(10)));
+                    .transition().duration(0).delay(10);
             }
-            else {
-                finalAnim(ticks);
-            }
+            finalAnim(ticks);
         })
             .merge(selection)
             .classed("major", (tick) => tick.major)
@@ -6496,11 +6485,14 @@ class Attrib_RecordGeo extends Attrib {
             });
             let points = [];
             this.records.forEach((record) => {
-                points.push({
-                    type: "Feature",
-                    properties: record,
-                    geometry: this.getRecordValue(record).geoFeat,
-                });
+                let value = this.getRecordValue(record);
+                if (value) {
+                    points.push({
+                        type: "Feature",
+                        properties: record,
+                        geometry: value.geoFeat,
+                    });
+                }
             });
             this.PointCluster.load(points);
         });
@@ -8146,7 +8138,7 @@ class Block_Categorical extends Block {
             .range(this.invertedColorTheme ? [9, 0] : [0, 9]);
         this.DOM.mapColorScaleGroup
             .selectAll(".mapColorScaleLabels > .mapColorScaleLabel > .tickLabel")
-            .html((d, i) => this.browser.getValueLabel(this.mapColorScale.invert((this.invertedColorTheme ? 3 - i : i) * 3)));
+            .html((_d, i) => this.browser.getValueLabel(this.mapColorScale.invert((this.invertedColorTheme ? 3 - i : i) * 3)));
     }
     catMap_refreshVis(sT) {
         this.DOM.root.select(".editColorTheme").attr("data-color", sT);
@@ -8176,6 +8168,7 @@ class Block_Categorical extends Block {
     // ********************************************************************
     list_prepView() {
         this.DOM.aggrGroup = this.DOM.aggrGroup_list;
+        this.attrib.updateChartScale_Measure(true);
         this.insertCategoryGlyphs();
         if (this.heightRow_category_dirty)
             this.refreshHeight_Category();
@@ -10922,6 +10915,11 @@ class Attrib_Categorical extends Attrib {
         });
         this.block.removeCatGeo();
         this.mapTable = null;
+    }
+    uniqueCategories() {
+        return (!this.isEmpty() &&
+            this._aggrs.length === this.browser.records.length &&
+            !this.isMultiValued);
     }
     setCatGeo_(template) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -15088,9 +15086,10 @@ class RecordView_List extends RecordView {
         this.refreshRecordVis();
         this.refreshRecordDOMOrder();
     }
-    /** Sort all records given the active sort option
-     *  Records are only sorted on init & when active sorting option changes.
-     *  They are not resorted on filtering.
+    /**
+     * Sort all records given the active sort option
+     * Records are only sorted on init & when active sorting option changes.
+     * They are not resorted on filtering.
      */
     sortRecords() {
         var attrib = this.sortAttrib;
@@ -15116,8 +15115,7 @@ class RecordView_List extends RecordView {
     }
     /** Returns the sort value type for given sort Value function */
     getSortFunc(sortValueFunc) {
-        // 0: string, 1: date, 2: others
-        var sortValueFunction = Util.sortFunc_List_Number;
+        var sortValueFunction;
         // find appropriate sortvalue type
         for (var k = 0, same = 0; true; k++) {
             if (same === 3 || k === this.browser.records.length)
@@ -15126,29 +15124,28 @@ class RecordView_List extends RecordView {
             var f = sortValueFunc.call(item.data, item);
             if (f == null || f === "")
                 continue;
-            var sortValueType_temp2;
+            var sortValueType_tmp;
             switch (typeof f) {
                 case "string":
-                    sortValueType_temp2 = Util.sortFunc_List_String;
+                    sortValueType_tmp = Util.sortFunc_List_String;
                     break;
                 case "number":
-                    sortValueType_temp2 = Util.sortFunc_List_Number;
+                    sortValueType_tmp = Util.sortFunc_List_Number;
                     break;
                 case "object":
-                    if (f instanceof Date)
-                        sortValueType_temp2 = Util.sortFunc_List_Date;
-                    else
-                        sortValueType_temp2 = Util.sortFunc_List_Number;
+                    sortValueType_tmp = (f instanceof Date)
+                        ? Util.sortFunc_List_Date
+                        : Util.sortFunc_List_Number;
                     break;
                 default:
-                    sortValueType_temp2 = Util.sortFunc_List_Number;
+                    sortValueType_tmp = Util.sortFunc_List_Number;
                     break;
             }
-            if (sortValueType_temp2 === sortValueFunction) {
+            if (sortValueType_tmp === sortValueFunction) {
                 same++;
             }
             else {
-                sortValueFunction = sortValueType_temp2;
+                sortValueFunction = sortValueType_tmp;
                 same = 0;
             }
         }
@@ -21427,11 +21424,11 @@ function applyPreProc(_key, _transform, recordList) {
     }
     let transformFunc = null;
     /* jshint ignore:start */
-    var isTimeseries = RegExp(/(.+)->\$\{(.+)\}/).exec(_transform);
-    var isDateTime = RegExp("DATETIME\\((.+)\\)").exec(_transform);
-    var isMultiVal = RegExp("MULTIVAL\\((.+)\\)").exec(_transform);
-    var isSplit = RegExp("SPLIT\\((.+)\\)").exec(_transform);
-    var isLatLong = RegExp("LAT_LONG\\((.+),(.+)\\)").exec(_transform);
+    const isTimeseries = RegExp(/(.+)->\$\{(.+)\}/).exec(_transform);
+    const isDateTime = RegExp("DATETIME\\((.+)\\)").exec(_transform);
+    const isMultiVal = RegExp("MULTIVAL\\((.+)\\)").exec(_transform);
+    const isSplit = RegExp("SPLIT\\((.+)\\)").exec(_transform);
+    const isLatLong = RegExp("LAT_LONG\\((.+),(.+)\\)").exec(_transform);
     /* jshint ignore:end */
     if (_transform === "STR()") {
         // convert value to string
@@ -21480,14 +21477,13 @@ function applyPreProc(_key, _transform, recordList) {
     }
     else if (isMultiVal && isMultiVal.length > 1) {
         // merge data from multiple columns
-        var splitExpr = RegExp("\\s*;\\s*");
-        var colNames = isMultiVal[1]
-            .split(splitExpr)
+        const colNames = isMultiVal[1]
+            .split(RegExp("\\s*;\\s*"))
             .map((x) => x.trim())
             .filter((x) => x !== "");
         if (colNames.length >= 2) {
             transformFunc = (v, r) => {
-                var _return = [];
+                let _return = [];
                 colNames.forEach((c) => {
                     if (r[c]) {
                         _return.push(r[c]);
@@ -21501,7 +21497,7 @@ function applyPreProc(_key, _transform, recordList) {
     else if (isTimeseries && isTimeseries.length > 1) {
         // prepare timeseries structure
         var _isDateTime = RegExp("DATETIME\\((.+)\\)").exec(isTimeseries[2]);
-        if (_isDateTime && _isDateTime.length > 1) {
+        if ((_isDateTime === null || _isDateTime === void 0 ? void 0 : _isDateTime.length) > 1) {
             var __timeParse = Util.getTimeParseFunc(_isDateTime[1]);
             var valueKey = null;
             var hasValueKey = RegExp("::(.+)").exec(isTimeseries[2]);
@@ -21534,7 +21530,7 @@ function applyPreProc(_key, _transform, recordList) {
     }
     if (transformFunc) {
         recordList.forEach((r) => {
-            var host = keyHostFunc(r.data);
+            let host = keyHostFunc(r.data);
             if (host == null)
                 return;
             try {
@@ -21547,8 +21543,8 @@ function applyPreProc(_key, _transform, recordList) {
         return;
     }
     if (isLatLong && isLatLong.length > 1) {
-        var latAttrib = isLatLong[1];
-        var lonAttrib = isLatLong[2];
+        const latAttrib = isLatLong[1];
+        const lonAttrib = isLatLong[2];
         recordList.forEach((r) => {
             var host = keyHostFunc(r.data);
             if (!host)
@@ -21662,7 +21658,7 @@ class Browser {
             {
                 name: "Unique",
                 icon: "far fa-fingerprint",
-                member: (attrib) => attrib.uniqueCategories(),
+                member: (attrib) => attrib instanceof Attrib_Categorical && attrib.uniqueCategories(),
                 active: false,
             },
             {
@@ -21892,7 +21888,7 @@ class Browser {
                 this.addedCompare = false;
                 for (let attrib of this.attribsInDashboard) {
                     yield attrib.axisScaleType.set(v === "relative" ? "full" : "fit");
-                    attrib.refreshScale_Measure();
+                    attrib.refreshChartScale_Measure();
                 }
                 yield this.refreshAnalytics();
                 this.preventAxisScaleTransition = false;
@@ -21974,7 +21970,7 @@ class Browser {
                 return v;
             }),
             onSet: () => __awaiter(this, void 0, void 0, function* () {
-                this.attribsInDashboard.forEach((attrib) => attrib.refreshScale_Measure());
+                this.attribsInDashboard.forEach((attrib) => attrib.refreshChartScale_Measure());
                 yield this.refreshAnalytics();
             }),
         });

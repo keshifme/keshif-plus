@@ -404,7 +404,7 @@ export class Browser {
     {
       name: "Unique",
       icon: "far fa-fingerprint",
-      member: (attrib: Attrib) => attrib.uniqueCategories(),
+      member: (attrib: Attrib) => attrib instanceof Attrib_Categorical && attrib.uniqueCategories(),
       active: false,
     },
     {
@@ -605,7 +605,7 @@ export class Browser {
         this.addedCompare = false;
         for(let attrib of this.attribsInDashboard){
           await attrib.axisScaleType.set(v === "relative" ? "full" : "fit");
-          attrib.refreshScale_Measure();
+          attrib.refreshChartScale_Measure();
         }
         await this.refreshAnalytics();
         this.preventAxisScaleTransition = false;
@@ -700,7 +700,7 @@ export class Browser {
       },
       onSet: async () => {
         this.attribsInDashboard.forEach((attrib) =>
-          attrib.refreshScale_Measure()
+          attrib.refreshChartScale_Measure()
         );
         await this.refreshAnalytics();
       },
