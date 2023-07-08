@@ -12,7 +12,7 @@ import { Attrib_Numeric } from "./Attrib_Numeric";
 import { Util } from "./Util";
 import { Record } from "./Record";
 import { i18n } from "./i18n";
-import { CompareType, RecordVisCoding } from "./Types";
+import { CompareType, RecordVisCoding, SortableT } from "./Types";
 import { Attrib } from "./Attrib";
 import { TimeSeriesData } from "./TimeSeriesData";
 
@@ -569,9 +569,10 @@ export class RecordView_List extends RecordView {
     this.refreshRecordDOMOrder();
   }
 
-  /** Sort all records given the active sort option
-   *  Records are only sorted on init & when active sorting option changes.
-   *  They are not resorted on filtering.
+  /** 
+   * Sort all records given the active sort option
+   * Records are only sorted on init & when active sorting option changes.
+   * They are not resorted on filtering.
    */
   sortRecords() {
     var attrib = this.sortAttrib;
@@ -600,9 +601,8 @@ export class RecordView_List extends RecordView {
   }
 
   /** Returns the sort value type for given sort Value function */
-  getSortFunc(sortValueFunc) {
-    // 0: string, 1: date, 2: others
-    var sortValueFunction = Util.sortFunc_List_Number;
+  getSortFunc(sortValueFunc): (a: SortableT, b: SortableT) => number {
+    var sortValueFunction: (a: SortableT, b: SortableT) => number;
 
     // find appropriate sortvalue type
     for (var k = 0, same = 0; true; k++) {
@@ -610,27 +610,28 @@ export class RecordView_List extends RecordView {
       var item = this.browser.records[k];
       var f = sortValueFunc.call(item.data, item);
       if (f == null || f === "") continue;
-      var sortValueType_temp2;
+      var sortValueType_tmp;
       switch (typeof f) {
         case "string":
-          sortValueType_temp2 = Util.sortFunc_List_String;
+          sortValueType_tmp = Util.sortFunc_List_String;
           break;
         case "number":
-          sortValueType_temp2 = Util.sortFunc_List_Number;
+          sortValueType_tmp = Util.sortFunc_List_Number;
           break;
         case "object":
-          if (f instanceof Date) sortValueType_temp2 = Util.sortFunc_List_Date;
-          else sortValueType_temp2 = Util.sortFunc_List_Number;
+          sortValueType_tmp = (f instanceof Date)
+            ? Util.sortFunc_List_Date
+            : Util.sortFunc_List_Number;
           break;
         default:
-          sortValueType_temp2 = Util.sortFunc_List_Number;
+          sortValueType_tmp = Util.sortFunc_List_Number;
           break;
       }
 
-      if (sortValueType_temp2 === sortValueFunction) {
+      if (sortValueType_tmp === sortValueFunction) {
         same++;
       } else {
-        sortValueFunction = sortValueType_temp2;
+        sortValueFunction = sortValueType_tmp;
         same = 0;
       }
     }
