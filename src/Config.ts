@@ -1,4 +1,4 @@
-import noUiSlider from 'nouislider/dist/nouislider.mjs';
+import noUiSlider from 'nouislider';
 
 import { i18n } from "./i18n";
 import { Modal } from "./UI/Modal.js";
@@ -279,7 +279,7 @@ export class Config<T> {
             min: _.minValue,
             max: _.maxValue,
           },
-          start: this.default,
+          start: this.default as number,
         });
         nodes[i].noUiSlider.on("set", async (v) => await this.set(v));
       });

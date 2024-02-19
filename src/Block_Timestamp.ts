@@ -1,4 +1,4 @@
-import { DateTime } from "luxon/build/es6/luxon";
+import { DateTime } from "luxon";
 
 import "pikaday/css/pikaday.css";
 import * as Pikaday from "pikaday";
@@ -9,7 +9,6 @@ import { easePoly } from "d3-ease";
 import { Block_Interval, ZoomableStatus } from "./Block_Interval";
 import { CompareType, MeasureType } from "./Types";
 import { Attrib_Timestamp } from "./Attrib_Timestamp";
-import { Aggregate_Interval } from "./Aggregate_Interval";
 import { Base } from "./Base";
 
 const d3 = {

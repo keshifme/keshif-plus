@@ -1,4 +1,4 @@
-import DOMPurify from "dompurify/dist/purify.es";
+import DOMPurify from "dompurify";
 
 import { select, pointer } from "./d3_select";
 import { rgb } from "d3-color";
@@ -3241,7 +3241,7 @@ export class Browser {
     this.movedAttrib = attrib;
     this.showDropZones = true;
     this.DOM.root.classed("showDropZone", true).attr("dropSource", dropSource);
-    this.DOM.attribDragBox.style("display", "block").html(attrib.attribName);
+    this.DOM.attribDragBox.style("display", "block").html(attrib.printName);
   }
 
   /** -- */

@@ -423,8 +423,8 @@ function yLat(y) {
 }
 
 /* @preserve
- * Leaflet 1.9.3, a JS library for interactive maps. https://leafletjs.com
- * (c) 2010-2022 Vladimir Agafonkin, (c) 2010-2011 CloudMade
+ * Leaflet 1.9.4, a JS library for interactive maps. https://leafletjs.com
+ * (c) 2010-2023 Vladimir Agafonkin, (c) 2010-2011 CloudMade
  */
 
 (function (global, factory) {
@@ -432,7 +432,7 @@ function yLat(y) {
   typeof define === 'function' && define.amd ? define(['exports'], factory) :
   (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.leaflet = {}));
 })(window, (function (exports) {
-  var version = "1.9.3";
+  var version = "1.9.4";
 
   /*
    * @namespace Util
@@ -3049,8 +3049,8 @@ function yLat(y) {
   	if (!element.style) { return; }
   	restoreOutline();
   	_outlineElement = element;
-  	_outlineStyle = element.style.outline;
-  	element.style.outline = 'none';
+  	_outlineStyle = element.style.outlineStyle;
+  	element.style.outlineStyle = 'none';
   	on(window, 'keydown', restoreOutline);
   }
 
@@ -3058,7 +3058,7 @@ function yLat(y) {
   // Cancels the effects of a previous [`L.DomUtil.preventOutline`]().
   function restoreOutline() {
   	if (!_outlineElement) { return; }
-  	_outlineElement.style.outline = _outlineStyle;
+  	_outlineElement.style.outlineStyle = _outlineStyle;
   	_outlineElement = undefined;
   	_outlineStyle = undefined;
   	off(window, 'keydown', restoreOutline);
@@ -5211,7 +5211,7 @@ function yLat(y) {
 
   		requestAnimFrame(function () {
   			this
-  			    ._moveStart(true, false)
+  			    ._moveStart(true, options.noMoveStart || false)
   			    ._animateZoom(center, zoom, true);
   		}, this);
 
@@ -5534,6 +5534,7 @@ function yLat(y) {
   		this._layers = [];
   		this._lastZIndex = 0;
   		this._handlingClick = false;
+  		this._preventClick = false;
 
   		for (var i in baseLayers) {
   			this._addLayer(baseLayers[i], i);
@@ -5809,6 +5810,11 @@ function yLat(y) {
   	},
 
   	_onInputClick: function () {
+  		// expanding the control on mobile with a click can cause adding a layer - we don't want this
+  		if (this._preventClick) {
+  			return;
+  		}
+
   		var inputs = this._layerControlInputs,
   		    input, layer;
   		var addedLayers = [],
@@ -5868,10 +5874,13 @@ function yLat(y) {
 
   	_expandSafely: function () {
   		var section = this._section;
+  		this._preventClick = true;
   		on(section, 'click', preventDefault);
   		this.expand();
+  		var that = this;
   		setTimeout(function () {
   			off(section, 'click', preventDefault);
+  			that._preventClick = false;
   		});
   	}
 
@@ -6560,8 +6569,12 @@ function yLat(y) {
   		enableImageDrag();
   		enableTextSelection();
 
-  		if (this._moved && this._moving) {
+  		var fireDragend = this._moved && this._moving;
 
+  		this._moving = false;
+  		Draggable._dragging = false;
+
+  		if (fireDragend) {
   			// @event dragend: DragEndEvent
   			// Fired when the drag ends.
   			this.fire('dragend', {
@@ -6569,12 +6582,142 @@ function yLat(y) {
   				distance: this._newPos.distanceTo(this._startPos)
   			});
   		}
-
-  		this._moving = false;
-  		Draggable._dragging = false;
   	}
 
   });
+
+  /*
+   * @namespace PolyUtil
+   * Various utility functions for polygon geometries.
+   */
+
+  /* @function clipPolygon(points: Point[], bounds: Bounds, round?: Boolean): Point[]
+   * Clips the polygon geometry defined by the given `points` by the given bounds (using the [Sutherland-Hodgman algorithm](https://en.wikipedia.org/wiki/Sutherland%E2%80%93Hodgman_algorithm)).
+   * Used by Leaflet to only show polygon points that are on the screen or near, increasing
+   * performance. Note that polygon points needs different algorithm for clipping
+   * than polyline, so there's a separate method for it.
+   */
+  function clipPolygon(points, bounds, round) {
+  	var clippedPoints,
+  	    edges = [1, 4, 2, 8],
+  	    i, j, k,
+  	    a, b,
+  	    len, edge, p;
+
+  	for (i = 0, len = points.length; i < len; i++) {
+  		points[i]._code = _getBitCode(points[i], bounds);
+  	}
+
+  	// for each edge (left, bottom, right, top)
+  	for (k = 0; k < 4; k++) {
+  		edge = edges[k];
+  		clippedPoints = [];
+
+  		for (i = 0, len = points.length, j = len - 1; i < len; j = i++) {
+  			a = points[i];
+  			b = points[j];
+
+  			// if a is inside the clip window
+  			if (!(a._code & edge)) {
+  				// if b is outside the clip window (a->b goes out of screen)
+  				if (b._code & edge) {
+  					p = _getEdgeIntersection(b, a, edge, bounds, round);
+  					p._code = _getBitCode(p, bounds);
+  					clippedPoints.push(p);
+  				}
+  				clippedPoints.push(a);
+
+  			// else if b is inside the clip window (a->b enters the screen)
+  			} else if (!(b._code & edge)) {
+  				p = _getEdgeIntersection(b, a, edge, bounds, round);
+  				p._code = _getBitCode(p, bounds);
+  				clippedPoints.push(p);
+  			}
+  		}
+  		points = clippedPoints;
+  	}
+
+  	return points;
+  }
+
+  /* @function polygonCenter(latlngs: LatLng[], crs: CRS): LatLng
+   * Returns the center ([centroid](http://en.wikipedia.org/wiki/Centroid)) of the passed LatLngs (first ring) from a polygon.
+   */
+  function polygonCenter(latlngs, crs) {
+  	var i, j, p1, p2, f, area, x, y, center;
+
+  	if (!latlngs || latlngs.length === 0) {
+  		throw new Error('latlngs not passed');
+  	}
+
+  	if (!isFlat(latlngs)) {
+  		console.warn('latlngs are not flat! Only the first ring will be used');
+  		latlngs = latlngs[0];
+  	}
+
+  	var centroidLatLng = toLatLng([0, 0]);
+
+  	var bounds = toLatLngBounds(latlngs);
+  	var areaBounds = bounds.getNorthWest().distanceTo(bounds.getSouthWest()) * bounds.getNorthEast().distanceTo(bounds.getNorthWest());
+  	// tests showed that below 1700 rounding errors are happening
+  	if (areaBounds < 1700) {
+  		// getting a inexact center, to move the latlngs near to [0, 0] to prevent rounding errors
+  		centroidLatLng = centroid(latlngs);
+  	}
+
+  	var len = latlngs.length;
+  	var points = [];
+  	for (i = 0; i < len; i++) {
+  		var latlng = toLatLng(latlngs[i]);
+  		points.push(crs.project(toLatLng([latlng.lat - centroidLatLng.lat, latlng.lng - centroidLatLng.lng])));
+  	}
+
+  	area = x = y = 0;
+
+  	// polygon centroid algorithm;
+  	for (i = 0, j = len - 1; i < len; j = i++) {
+  		p1 = points[i];
+  		p2 = points[j];
+
+  		f = p1.y * p2.x - p2.y * p1.x;
+  		x += (p1.x + p2.x) * f;
+  		y += (p1.y + p2.y) * f;
+  		area += f * 3;
+  	}
+
+  	if (area === 0) {
+  		// Polygon is so small that all points are on same pixel.
+  		center = points[0];
+  	} else {
+  		center = [x / area, y / area];
+  	}
+
+  	var latlngCenter = crs.unproject(toPoint(center));
+  	return toLatLng([latlngCenter.lat + centroidLatLng.lat, latlngCenter.lng + centroidLatLng.lng]);
+  }
+
+  /* @function centroid(latlngs: LatLng[]): LatLng
+   * Returns the 'center of mass' of the passed LatLngs.
+   */
+  function centroid(coords) {
+  	var latSum = 0;
+  	var lngSum = 0;
+  	var len = 0;
+  	for (var i = 0; i < coords.length; i++) {
+  		var latlng = toLatLng(coords[i]);
+  		latSum += latlng.lat;
+  		lngSum += latlng.lng;
+  		len++;
+  	}
+  	return toLatLng([latSum / len, lngSum / len]);
+  }
+
+  var PolyUtil = {
+    __proto__: null,
+    clipPolygon: clipPolygon,
+    polygonCenter: polygonCenter,
+    centroid: centroid
+  };
 
   /*
    * @namespace LineUtil
@@ -6830,12 +6973,22 @@ function yLat(y) {
   		latlngs = latlngs[0];
   	}
 
-  	var points = [];
-  	for (var j in latlngs) {
-  		points.push(crs.project(toLatLng(latlngs[j])));
+  	var centroidLatLng = toLatLng([0, 0]);
+
+  	var bounds = toLatLngBounds(latlngs);
+  	var areaBounds = bounds.getNorthWest().distanceTo(bounds.getSouthWest()) * bounds.getNorthEast().distanceTo(bounds.getNorthWest());
+  	// tests showed that below 1700 rounding errors are happening
+  	if (areaBounds < 1700) {
+  		// getting a inexact center, to move the latlngs near to [0, 0] to prevent rounding errors
+  		centroidLatLng = centroid(latlngs);
   	}
 
-  	var len = points.length;
+  	var len = latlngs.length;
+  	var points = [];
+  	for (i = 0; i < len; i++) {
+  		var latlng = toLatLng(latlngs[i]);
+  		points.push(crs.project(toLatLng([latlng.lat - centroidLatLng.lat, latlng.lng - centroidLatLng.lng])));
+  	}
 
   	for (i = 0, halfDist = 0; i < len - 1; i++) {
   		halfDist += points[i].distanceTo(points[i + 1]) / 2;
@@ -6861,7 +7014,9 @@ function yLat(y) {
   			}
   		}
   	}
-  	return crs.unproject(toPoint(center));
+
+  	var latlngCenter = crs.unproject(toPoint(center));
+  	return toLatLng([latlngCenter.lat + centroidLatLng.lat, latlngCenter.lng + centroidLatLng.lng]);
   }
 
   var LineUtil = {
@@ -6876,109 +7031,6 @@ function yLat(y) {
     isFlat: isFlat,
     _flat: _flat,
     polylineCenter: polylineCenter
-  };
-
-  /*
-   * @namespace PolyUtil
-   * Various utility functions for polygon geometries.
-   */
-
-  /* @function clipPolygon(points: Point[], bounds: Bounds, round?: Boolean): Point[]
-   * Clips the polygon geometry defined by the given `points` by the given bounds (using the [Sutherland-Hodgman algorithm](https://en.wikipedia.org/wiki/Sutherland%E2%80%93Hodgman_algorithm)).
-   * Used by Leaflet to only show polygon points that are on the screen or near, increasing
-   * performance. Note that polygon points needs different algorithm for clipping
-   * than polyline, so there's a separate method for it.
-   */
-  function clipPolygon(points, bounds, round) {
-  	var clippedPoints,
-  	    edges = [1, 4, 2, 8],
-  	    i, j, k,
-  	    a, b,
-  	    len, edge, p;
-
-  	for (i = 0, len = points.length; i < len; i++) {
-  		points[i]._code = _getBitCode(points[i], bounds);
-  	}
-
-  	// for each edge (left, bottom, right, top)
-  	for (k = 0; k < 4; k++) {
-  		edge = edges[k];
-  		clippedPoints = [];
-
-  		for (i = 0, len = points.length, j = len - 1; i < len; j = i++) {
-  			a = points[i];
-  			b = points[j];
-
-  			// if a is inside the clip window
-  			if (!(a._code & edge)) {
-  				// if b is outside the clip window (a->b goes out of screen)
-  				if (b._code & edge) {
-  					p = _getEdgeIntersection(b, a, edge, bounds, round);
-  					p._code = _getBitCode(p, bounds);
-  					clippedPoints.push(p);
-  				}
-  				clippedPoints.push(a);
-
-  			// else if b is inside the clip window (a->b enters the screen)
-  			} else if (!(b._code & edge)) {
-  				p = _getEdgeIntersection(b, a, edge, bounds, round);
-  				p._code = _getBitCode(p, bounds);
-  				clippedPoints.push(p);
-  			}
-  		}
-  		points = clippedPoints;
-  	}
-
-  	return points;
-  }
-
-  /* @function polygonCenter(latlngs: LatLng[] crs: CRS): LatLng
-   * Returns the center ([centroid](http://en.wikipedia.org/wiki/Centroid)) of the passed LatLngs (first ring) from a polygon.
-   */
-  function polygonCenter(latlngs, crs) {
-  	var i, j, p1, p2, f, area, x, y, center;
-
-  	if (!latlngs || latlngs.length === 0) {
-  		throw new Error('latlngs not passed');
-  	}
-
-  	if (!isFlat(latlngs)) {
-  		console.warn('latlngs are not flat! Only the first ring will be used');
-  		latlngs = latlngs[0];
-  	}
-
-  	var points = [];
-  	for (var k in latlngs) {
-  		points.push(crs.project(toLatLng(latlngs[k])));
-  	}
-
-  	var len = points.length;
-  	area = x = y = 0;
-
-  	// polygon centroid algorithm;
-  	for (i = 0, j = len - 1; i < len; j = i++) {
-  		p1 = points[i];
-  		p2 = points[j];
-
-  		f = p1.y * p2.x - p2.y * p1.x;
-  		x += (p1.x + p2.x) * f;
-  		y += (p1.y + p2.y) * f;
-  		area += f * 3;
-  	}
-
-  	if (area === 0) {
-  		// Polygon is so small that all points are on same pixel.
-  		center = points[0];
-  	} else {
-  		center = [x / area, y / area];
-  	}
-  	return crs.unproject(toPoint(center));
-  }
-
-  var PolyUtil = {
-    __proto__: null,
-    clipPolygon: clipPolygon,
-    polygonCenter: polygonCenter
   };
 
   /*
@@ -9553,7 +9605,7 @@ function yLat(y) {
   			latLngToCoords(latlngs[i], precision));
   	}
 
-  	if (!levelsDeep && closed) {
+  	if (!levelsDeep && closed && coords.length > 0) {
   		coords.push(coords[0].slice());
   	}
 
@@ -11356,7 +11408,7 @@ function yLat(y) {
   	},
 
   	_addFocusListenersOnLayer: function (layer) {
-  		var el = layer.getElement();
+  		var el = typeof layer.getElement === 'function' && layer.getElement();
   		if (el) {
   			on(el, 'focus', function () {
   				this._tooltip._source = layer;
@@ -11367,7 +11419,7 @@ function yLat(y) {
   	},
 
   	_setAriaDescribedByOnLayer: function (layer) {
-  		var el = layer.getElement();
+  		var el = typeof layer.getElement === 'function' && layer.getElement();
   		if (el) {
   			el.setAttribute('aria-describedby', this._tooltip._container.id);
   		}
@@ -11375,9 +11427,21 @@ function yLat(y) {
 
 
   	_openTooltip: function (e) {
-  		if (!this._tooltip || !this._map || (this._map.dragging && this._map.dragging.moving())) {
+  		if (!this._tooltip || !this._map) {
   			return;
   		}
+
+  		// If the map is moving, we will show the tooltip after it's done.
+  		if (this._map.dragging && this._map.dragging.moving() && !this._openOnceFlag) {
+  			this._openOnceFlag = true;
+  			var that = this;
+  			this._map.once('moveend', function () {
+  				that._openOnceFlag = false;
+  				that._openTooltip(e);
+  			});
+  			return;
+  		}
+
   		this._tooltip._source = e.layer || e.target;
 
   		this.openTooltip(this._tooltip.options.sticky ? e.latlng : undefined);
@@ -12842,9 +12906,8 @@ function yLat(y) {
   		if (!this._container) {
   			this._initContainer(); // defined by renderer implementations
 
-  			if (this._zoomAnimated) {
-  				addClass(this._container, 'leaflet-zoom-animated');
-  			}
+  			// always keep transform-origin as 0 0
+  			addClass(this._container, 'leaflet-zoom-animated');
   		}
 
   		this.getPane().appendChild(this._container);

@@ -1,4 +1,4 @@
-import DOMPurify from "dompurify/dist/purify.es";
+import DOMPurify from "dompurify";
 
 import { Record } from "./Record";
 import { Base } from "./Base";

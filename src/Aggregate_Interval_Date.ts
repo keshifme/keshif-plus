@@ -1,4 +1,4 @@
-import { DateTime, Interval } from "luxon/build/es6/luxon";
+import { DateTime, Interval } from "luxon";
 import { utcFormat } from "d3-time-format";
 
 import { Aggregate_Interval } from "./Aggregate_Interval";

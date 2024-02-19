@@ -5,7 +5,7 @@ import { format } from "d3-format";
 import { hsl } from "d3-color";
 import { geoBounds, geoPath, geoTransform } from "d3-geo";
 
-import DOMPurify from "dompurify/dist/purify.es";
+import DOMPurify from "dompurify";
 
 import { Aggregate_Category } from "./Aggregate_Category";
 import { Attrib_Categorical } from "./Attrib_Categorical";
@@ -500,12 +500,14 @@ export class Block_Categorical extends Block {
   // Managing in-display / visible categories
   // ********************************************************************
 
-  isCatActive(ctgry: Aggregate_Category): boolean {
+  private isCatActive(ctgry: Aggregate_Category): boolean {
     if (!ctgry.usedAggr) return false;
     if (ctgry.isFiltered()) return true;
     if (ctgry.recCnt('Active') !== 0) return true;
-    if (!this.attrib.isFiltered()) return ctgry.recCnt('Active') !== 0;
-    if (this.viewType === "map") return ctgry.recCnt('Active') !== 0;
+    if (this.attrib.minAggrSize.get() >= 1) {
+      if (!this.attrib.isFiltered()) return ctgry.recCnt('Active') !== 0;
+      if (this.viewType === "map") return ctgry.recCnt('Active') !== 0;
+    }
     // Hide if multiple options are selected and selection is and
     //        if(this.summaryFilter.selecttype==="SelectAnd") return false;
     // TO-DO: Figuring out non-selected, zero-active-item attribs under "SelectOr" is tricky!

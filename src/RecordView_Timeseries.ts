@@ -1,5 +1,5 @@
-import DOMPurify from "dompurify/dist/purify.es";
-import noUiSlider from "nouislider/dist/nouislider.mjs";
+import DOMPurify from "dompurify";
+import noUiSlider from "nouislider";
 import tippy from "tippy.js";
 
 import { select, pointer, selection } from "./d3_select";

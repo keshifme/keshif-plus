@@ -13,7 +13,8 @@ export var config = {
   summaries: [
     {
       name: "Origin",
-      catLabel: { 1: "American", 2: "European", 3: "Japanese" },
+      catLabel: { 1: "American", 2: "European", 3: "Japanese", 4: "Mexican" },
+      minAggrSize: 0,
       panel: "none",
       panel: "left"
     },

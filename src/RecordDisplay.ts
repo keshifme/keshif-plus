@@ -1,6 +1,6 @@
-import noUiSlider from "nouislider/dist/nouislider.mjs";
+import noUiSlider from "nouislider";
 import "nouislider/dist/nouislider.css";
-import { DateTime } from "luxon/build/es6/luxon";
+import { DateTime } from "luxon";
 
 import { select } from "./d3_select";
 import { scaleLinear, scaleSqrt, scaleThreshold, scaleTime } from "d3-scale";
@@ -368,7 +368,7 @@ export class RecordDisplay {
       var _converted = [];
       Object.keys(config.timeSeriesAnnotations).forEach((_k) => {
         var _v = config.timeSeriesAnnotations[_k];
-        var _t = DateTime.fromFormat(_v, DateTime.DATE_SHORT, { zone: "UTC" });
+        var _t = DateTime.fromFormat(_v, "MM/DD/YYYY", { zone: "UTC" });
         if (_t.isValid) {
           _converted.push({ _time: _t.toJSDate(), _time_src: _k, _text: _v });
         }
@@ -2113,7 +2113,7 @@ export class RecordDisplay {
         if (record.isSelected(cX)) compare_Color = cX;
       });
       catColorText = `<div class='recordColorInfo'>
-        <span class='mapTooltipLabel'>${a.attribName}</span>
+        <span class='mapTooltipLabel'>${a.printName}</span>
         <div class='mapTooltipValue'><span class='colorBox bg_${compare_Color}'></span>${a.getRecordValue(
         record
       )}</div>

@@ -100,7 +100,9 @@ export class Attrib_Categorical extends Attrib {
         { name: "<i class='fa fa-plus'></i>", value: -100, _type: "plus" }, // special value
       ],
       isActive: (d) =>
-        d.value && d.value <= this.barHeight.get() && d.max > this.barHeight.get(),
+        d.value &&
+        d.value <= this.barHeight.get() &&
+        d.max > this.barHeight.get(),
       onDOM: (DOM) => {
         DOM.root.classed("catSummary_ListOnly", true);
       },
@@ -137,9 +139,8 @@ export class Attrib_Categorical extends Attrib {
         },
       ],
       UI: { disabled: true },
-      isActive: (d) => d.value
-        ? this.minAggrSize.get() > 1 
-        : this.minAggrSize.get() === 1,
+      isActive: (d) =>
+        d.value ? this.minAggrSize.get() > 1 : this.minAggrSize.get() === 1,
       onDOM: (DOM) => {
         DOM.root
           .select(".minAggrSizeInput")
@@ -151,11 +152,13 @@ export class Attrib_Categorical extends Attrib {
           .on("input", (event) => {
             if (_timer) window.clearTimeout(_timer);
             _timer = window.setTimeout(async () => {
-              await this.minAggrSize.set( Math.max(2, 1 * event.currentTarget.value) );
+              await this.minAggrSize.set(
+                Math.max(2, 1 * event.currentTarget.value)
+              );
             }, 500);
           });
       },
-      preSet: async (v) => Math.max(1, v),
+      preSet: async (v) => Math.max(0, v),
       onSet: (v) => this.setMinAggrSize(v),
     });
 
@@ -164,16 +167,15 @@ export class Attrib_Categorical extends Attrib {
     this.finishTemplateSpecial();
   }
 
-  // TODO incomplete
   getAggrWithLabel(v: string): Aggregate_Category {
     return this.catTable_id[v];
   }
 
-  getAggregate(v: string): Aggregate_Category {
+  private getAggregate(v: string): Aggregate_Category {
     let aggr = this.catTable_id[v];
     if (!aggr) {
       aggr = new Aggregate_Category(this, v);
-      if(this.catLabel_attr[v]){
+      if (this.catLabel_attr[v]) {
         aggr.label = this.catLabel_attr[v];
       }
       this.catTable_id[v] = aggr;
@@ -228,7 +230,7 @@ export class Attrib_Categorical extends Attrib {
   }
 
   // Modified internal dataMap function - Skip rows with 0 active item count
-  setMinAggrSize(minSize) {
+  private setMinAggrSize(minSize) {
     if (!this.aggr_initialized) return; // too early
     var newAggrs = 0;
     this.removedAggrs = this.removedAggrs.filter((cat) => {
@@ -652,8 +654,8 @@ export class Attrib_Categorical extends Attrib {
         how = how ?? "MoreResults";
       }
       if (ctgry.filtered_OR()) {
-        how = how ?? 
-          this.summaryFilter.selected_OR.length === 0
+        how =
+          how ?? this.summaryFilter.selected_OR.length === 0
             ? "MoreResults"
             : "LessResults";
       }
@@ -869,7 +871,7 @@ export class Attrib_Categorical extends Attrib {
   uniqueCategories() {
     return (
       !this.isEmpty() &&
-      this._aggrs.length === this.browser.records.length && 
+      this._aggrs.length === this.browser.records.length &&
       !this.isMultiValued
     );
   }
@@ -878,7 +880,6 @@ export class Attrib_Categorical extends Attrib {
     if (!this.uniqueCategories()) {
       this.setCatGeo(template);
       this.block.catViewAs("map");
-
     } else {
       // Per-record map: Define new summary
       this.browser.recordDisplay.setAttrib(
@@ -912,6 +913,11 @@ export class Attrib_Categorical extends Attrib {
     this._aggrs.forEach((aggr) => {
       aggr.label = this.catLabel_attr[aggr.id] || "";
     });
+
+    if (this.minAggrSize.get() === 0) {
+      // Generate aggregates for all labels, even if they have no record to associate with.
+      Object.keys(this.catLabel_attr).forEach((key) => this.getAggregate(key));
+    }
 
     this.block?.DOM.catLabel?.html((aggr: Aggregate_Category) => aggr.label);
   }
@@ -1054,7 +1060,7 @@ export class Attrib_Categorical extends Attrib {
       dropdown_type: this.block.isView_Dropdown
         ? this.block.dropdown_type
         : undefined,
-      filter: this.summaryFilter.exportFilter()
+      filter: this.summaryFilter.exportFilter(),
     };
 
     return Object.assign({}, config, t);

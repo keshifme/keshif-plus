@@ -1,4 +1,4 @@
-import DOMPurify from "dompurify/dist/purify.es";
+import DOMPurify from "dompurify";
 
 import tippy, { roundArrow} from "tippy.js";
 

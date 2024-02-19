@@ -1711,7 +1711,9 @@ class Attrib {
     }
     applyTemplateSpecial() { }
     isEmpty() {
-        return this._aggrs.length === 0;
+        if (this._aggrs.length === 0)
+            return true;
+        return this._aggrs.every((aggr) => aggr.records.length === 0);
     }
     isFiltered() {
         var _a, _b;
@@ -2100,11 +2102,11 @@ class Attrib {
     refreshChartScale_Measure(v = null) {
         var _a, _b;
         v !== null && v !== void 0 ? v : (v = this.measureScaleType.get());
-        this.chartScale_Measure_prev = (_b = (_a = this.chartScale_Measure) === null || _a === void 0 ? void 0 : _a.copy().clamp(false)) !== null && _b !== void 0 ? _b : null;
+        this.chartScale_Measure_prev =
+            (_b = (_a = this.chartScale_Measure) === null || _a === void 0 ? void 0 : _a.copy().clamp(false)) !== null && _b !== void 0 ? _b : null;
         this.measureLogBase = 10;
-        this.chartScale_Measure = v === "log"
-            ? d3$o.scaleLog().base(this.measureLogBase)
-            : d3$o.scaleLinear();
+        this.chartScale_Measure =
+            v === "log" ? d3$o.scaleLog().base(this.measureLogBase) : d3$o.scaleLinear();
         this.chartScale_Measure.clamp(true);
         if (this.chartScale_Measure_prev) {
             var domain = this.chartScale_Measure_prev.domain();
@@ -2115,7 +2117,8 @@ class Attrib {
             else {
                 domain[0] = Math.min(0, domain[0]);
             }
-            this.chartScale_Measure.domain(domain)
+            this.chartScale_Measure
+                .domain(domain)
                 .range(this.chartScale_Measure_prev.range()); // same range
         }
     }
@@ -2125,7 +2128,8 @@ class Attrib {
         if (!this.aggr_initialized || this.isEmpty()) {
             return; // nothing to do
         }
-        this.chartScale_Measure_prev = (_b = (_a = this.chartScale_Measure) === null || _a === void 0 ? void 0 : _a.copy().clamp(false)) !== null && _b !== void 0 ? _b : null;
+        this.chartScale_Measure_prev =
+            (_b = (_a = this.chartScale_Measure) === null || _a === void 0 ? void 0 : _a.copy().clamp(false)) !== null && _b !== void 0 ? _b : null;
         var newDomain = this.measureDomain_Final;
         if (this.measureScale_Log && newDomain[0] === 0) {
             newDomain[0] = 1;
@@ -7564,10 +7568,12 @@ class Block_Categorical extends Block {
             return true;
         if (ctgry.recCnt('Active') !== 0)
             return true;
-        if (!this.attrib.isFiltered())
-            return ctgry.recCnt('Active') !== 0;
-        if (this.viewType === "map")
-            return ctgry.recCnt('Active') !== 0;
+        if (this.attrib.minAggrSize.get() >= 1) {
+            if (!this.attrib.isFiltered())
+                return ctgry.recCnt('Active') !== 0;
+            if (this.viewType === "map")
+                return ctgry.recCnt('Active') !== 0;
+        }
         // Hide if multiple options are selected and selection is and
         //        if(this.summaryFilter.selecttype==="SelectAnd") return false;
         // TO-DO: Figuring out non-selected, zero-active-item attribs under "SelectOr" is tricky!
@@ -10260,7 +10266,9 @@ class Attrib_Categorical extends Attrib {
                 { name: "6x", value: 80, max: 120 },
                 { name: "<i class='fa fa-plus'></i>", value: -100, _type: "plus" }, // special value
             ],
-            isActive: (d) => d.value && d.value <= this.barHeight.get() && d.max > this.barHeight.get(),
+            isActive: (d) => d.value &&
+                d.value <= this.barHeight.get() &&
+                d.max > this.barHeight.get(),
             onDOM: (DOM) => {
                 DOM.root.classed("catSummary_ListOnly", true);
             },
@@ -10297,9 +10305,7 @@ class Attrib_Categorical extends Attrib {
                 },
             ],
             UI: { disabled: true },
-            isActive: (d) => d.value
-                ? this.minAggrSize.get() > 1
-                : this.minAggrSize.get() === 1,
+            isActive: (d) => d.value ? this.minAggrSize.get() > 1 : this.minAggrSize.get() === 1,
             onDOM: (DOM) => {
                 DOM.root
                     .select(".minAggrSizeInput")
@@ -10313,13 +10319,12 @@ class Attrib_Categorical extends Attrib {
                     }), 500);
                 });
             },
-            preSet: (v) => __awaiter(this, void 0, void 0, function* () { return Math.max(1, v); }),
+            preSet: (v) => __awaiter(this, void 0, void 0, function* () { return Math.max(0, v); }),
             onSet: (v) => this.setMinAggrSize(v),
         });
         this.setSortingOption();
         this.finishTemplateSpecial();
     }
-    // TODO incomplete
     getAggrWithLabel(v) {
         return this.catTable_id[v];
     }
@@ -10748,9 +10753,10 @@ class Attrib_Categorical extends Attrib {
                 how = how !== null && how !== void 0 ? how : "MoreResults";
             }
             if (ctgry.filtered_OR()) {
-                how = (how !== null && how !== void 0 ? how : this.summaryFilter.selected_OR.length === 0)
-                    ? "MoreResults"
-                    : "LessResults";
+                how =
+                    (how !== null && how !== void 0 ? how : this.summaryFilter.selected_OR.length === 0)
+                        ? "MoreResults"
+                        : "LessResults";
             }
             ctgry.set_NONE();
             if (this.summaryFilter.selected_OR.length === 1 &&
@@ -10947,6 +10953,10 @@ class Attrib_Categorical extends Attrib {
         this._aggrs.forEach((aggr) => {
             aggr.label = this.catLabel_attr[aggr.id] || "";
         });
+        if (this.minAggrSize.get() === 0) {
+            // Generate aggregates for all labels, even if they have no record to associate with.
+            Object.keys(this.catLabel_attr).forEach((key) => this.getAggregate(key));
+        }
         (_b = (_a = this.block) === null || _a === void 0 ? void 0 : _a.DOM.catLabel) === null || _b === void 0 ? void 0 : _b.html((aggr) => aggr.label);
     }
     getRecordValue(record) {
@@ -11083,7 +11093,7 @@ class Attrib_Categorical extends Attrib {
             dropdown_type: this.block.isView_Dropdown
                 ? this.block.dropdown_type
                 : undefined,
-            filter: this.summaryFilter.exportFilter()
+            filter: this.summaryFilter.exportFilter(),
         };
         return Object.assign({}, config, t);
     }
@@ -15735,7 +15745,7 @@ class RecordDisplay {
             var _converted = [];
             Object.keys(config.timeSeriesAnnotations).forEach((_k) => {
                 var _v = config.timeSeriesAnnotations[_k];
-                var _t = DateTime.fromFormat(_v, DateTime.DATE_SHORT, { zone: "UTC" });
+                var _t = DateTime.fromFormat(_v, "MM/DD/YYYY", { zone: "UTC" });
                 if (_t.isValid) {
                     _converted.push({ _time: _t.toJSDate(), _time_src: _k, _text: _v });
                 }
@@ -17222,7 +17232,7 @@ class RecordDisplay {
                     compare_Color = cX;
             });
             catColorText = `<div class='recordColorInfo'>
-        <span class='mapTooltipLabel'>${a.attribName}</span>
+        <span class='mapTooltipLabel'>${a.printName}</span>
         <div class='mapTooltipValue'><span class='colorBox bg_${compare_Color}'></span>${a.getRecordValue(record)}</div>
         </div>`;
         }
@@ -24131,7 +24141,7 @@ class Browser {
         this.movedAttrib = attrib;
         this.showDropZones = true;
         this.DOM.root.classed("showDropZone", true).attr("dropSource", dropSource);
-        this.DOM.attribDragBox.style("display", "block").html(attrib.attribName);
+        this.DOM.attribDragBox.style("display", "block").html(attrib.printName);
     }
     /** -- */
     clearDropZones() {

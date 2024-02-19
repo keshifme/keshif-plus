@@ -1,4 +1,4 @@
-import DOMPurify from "dompurify/dist/purify.es";
+import DOMPurify from "dompurify";
 import { scaleLinear, scaleLog } from "d3-scale";
 import { min, max } from "d3-array";
 
@@ -75,7 +75,8 @@ export abstract class Attrib {
   abstract initializeAggregates(): void;
 
   isEmpty() {
-    return this._aggrs.length === 0;
+    if (this._aggrs.length === 0) return true;
+    return this._aggrs.every((aggr: Aggregate) => aggr.records.length === 0);
   }
 
   // ********************************************************************
@@ -153,7 +154,7 @@ export abstract class Attrib {
 
     if (curName === newName) return;
 
-    if(this.browser.attribWithName(newName)) return;
+    if (this.browser.attribWithName(newName)) return;
 
     this.browser.removeAttribFromGroupIndex(this); // remove it from previous newName index
 
@@ -268,7 +269,7 @@ export abstract class Attrib {
   getFormattedValue(_v, _isSVG): string {
     return "";
   }
-  renderRecordValue(_v, _d3_selection): string{
+  renderRecordValue(_v, _d3_selection): string {
     return "";
   }
 
@@ -527,12 +528,12 @@ export abstract class Attrib {
   refreshChartScale_Measure(v = null) {
     v ??= this.measureScaleType.get();
 
-    this.chartScale_Measure_prev = this.chartScale_Measure?.copy().clamp(false) ?? null;
+    this.chartScale_Measure_prev =
+      this.chartScale_Measure?.copy().clamp(false) ?? null;
 
     this.measureLogBase = 10;
-    this.chartScale_Measure = v === "log"
-      ? d3.scaleLog().base(this.measureLogBase)
-      : d3.scaleLinear();
+    this.chartScale_Measure =
+      v === "log" ? d3.scaleLog().base(this.measureLogBase) : d3.scaleLinear();
     this.chartScale_Measure.clamp(true);
 
     if (this.chartScale_Measure_prev) {
@@ -543,7 +544,8 @@ export abstract class Attrib {
         domain[0] = Math.min(0, domain[0]);
       }
 
-      this.chartScale_Measure.domain(domain)
+      this.chartScale_Measure
+        .domain(domain)
         .range(this.chartScale_Measure_prev.range()); // same range
     }
   }
@@ -554,7 +556,8 @@ export abstract class Attrib {
       return; // nothing to do
     }
 
-    this.chartScale_Measure_prev = this.chartScale_Measure?.copy().clamp(false) ?? null;
+    this.chartScale_Measure_prev =
+      this.chartScale_Measure?.copy().clamp(false) ?? null;
 
     var newDomain = this.measureDomain_Final;
 
